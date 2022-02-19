@@ -1,0 +1,259 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{0ba8efa9-d009-4cf5-bbee-b55dd9a70688}</ProjectGuid>
+    <RootNamespace>GLBareBones</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Hell</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>vendor\physx\include\extensions;vendor\physx\include;vendor\rapidjson\include;vendor\stb_image;vendor;src;vendor\glm;vendor\glad\include;vendor\GLFW\include;vendor\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;Bullet3Dynamics_RelWithDebugInfo.lib;BulletDynamics_RelWithDebugInfo.lib;BulletCollision_RelWithDebugInfo.lib;LinearMath_RelWithDebugInfo.lib;assimp-vc142-mt.lib;LowLevel_static_64.lib;LowLevelAABB_static_64.lib;LowLevelDynamics_static_64.lib;PhysX_64.lib;PhysXCharacterKinematic_static_64.lib;PhysXCommon_64.lib;PhysXCooking_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_64.lib;PhysXPvdSDK_static_64.lib;PhysXTask_static_64.lib;PhysXVehicle_static_64.lib;SceneQuery_static_64.lib;SimulationController_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>vendor\physx\lib\debug;vendor\GLFW\lib\release;vendor\assimp\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>vendor\physx\include\extensions;vendor\physx\include;vendor\rapidjson\include;vendor\stb_image;vendor;src;vendor\glm;vendor\glad\include;vendor\GLFW\include;vendor\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>opengl32.lib;glfw3dll.lib;assimp-vc142-mt.lib;LowLevel_static_64.lib;LowLevelAABB_static_64.lib;LowLevelDynamics_static_64.lib;PhysX_64.lib;PhysXCharacterKinematic_static_64.lib;PhysXCommon_64.lib;PhysXCooking_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_64.lib;PhysXPvdSDK_static_64.lib;PhysXTask_static_64.lib;PhysXVehicle_static_64.lib;SceneQuery_static_64.lib;SimulationController_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>vendor\GLFW\lib\release;vendor\assimp\lib\;vendor\physx\lib\release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>vendor\soloud\include;vendor\physx\include\extensions;vendor\physx\include;vendor\rapidjson\include;vendor\stb_image;vendor;src;vendor\glm;vendor\glad\include;vendor\GLFW\include;vendor\assimp\include;vendor\compressonator\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>SDL2.lib;soloud_static_x64.lib;opengl32.lib;glfw3dll.lib;assimp-vc142-mt.lib;LowLevel_static_64.lib;LowLevelAABB_static_64.lib;LowLevelDynamics_static_64.lib;PhysX_64.lib;PhysXCharacterKinematic_static_64.lib;PhysXCommon_64.lib;PhysXCooking_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_64.lib;PhysXPvdSDK_static_64.lib;PhysXTask_static_64.lib;PhysXVehicle_static_64.lib;SceneQuery_static_64.lib;SimulationController_static_64.lib;Compressonator_MD_DLL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>vendor\sdl\lib\x64;vendor\soloud\lib;vendor\physx\lib\debug;vendor\GLFW\lib\release;vendor\assimp\lib;vendor\compressonator\lib\VS2017\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>vendor\soloud\include;vendor\physx\include\extensions;vendor\physx\include;vendor\rapidjson\include;vendor\stb_image;vendor;src;vendor\glm;vendor\glad\include;vendor\GLFW\include;vendor\assimp\include;vendor\compressonator\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>SDL2.lib;soloud_static_x64.lib;opengl32.lib;glfw3dll.lib;assimp-vc142-mt.lib;LowLevel_static_64.lib;LowLevelAABB_static_64.lib;LowLevelDynamics_static_64.lib;PhysX_64.lib;PhysXCharacterKinematic_static_64.lib;PhysXCommon_64.lib;PhysXCooking_64.lib;PhysXExtensions_static_64.lib;PhysXFoundation_64.lib;PhysXPvdSDK_static_64.lib;PhysXTask_static_64.lib;PhysXVehicle_static_64.lib;SceneQuery_static_64.lib;SimulationController_static_64.lib;Compressonator_MD_DLL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>vendor\sdl\lib\x64;vendor\soloud\lib;vendor\GLFW\lib\release;vendor\assimp\lib\;vendor\physx\lib\release;vendor\compressonator\lib\VS2017\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Animation\Animation.cpp" />
+    <ClCompile Include="src\Animation\AnimatedGameObject.cpp" />
+    <ClCompile Include="src\Animation\SkinnedModel.cpp" />
+    <ClCompile Include="src\Audio\Audio.cpp" />
+    <ClCompile Include="src\Core\EntityStatic.cpp" />
+    <ClCompile Include="src\Core\GameCharacter.cpp" />
+    <ClCompile Include="src\Core\Player.cpp" />
+    <ClCompile Include="src\Core\Scene.cpp" />
+    <ClCompile Include="src\Effects\BloodPool.cpp" />
+    <ClCompile Include="src\HellEngine.cpp" />
+    <ClCompile Include="src\Helpers\AssetManager.cpp" />
+    <ClCompile Include="src\Helpers\FileImporter.cpp" />
+    <ClCompile Include="src\Physics\ContactReportCallback.cpp" />
+    <ClCompile Include="src\Physics\PhysX.cpp" />
+    <ClCompile Include="src\Physics\Ragdoll.cpp" />
+    <ClCompile Include="src\Physics\RayCast.cpp" />
+    <ClCompile Include="src\Renderer\Decal.cpp" />
+    <ClCompile Include="src\Renderer\GBuffer.cpp" />
+    <ClCompile Include="src\Renderer\Material.cpp" />
+    <ClCompile Include="src\Renderer\NumberBlitter.cpp" />
+    <ClCompile Include="src\Renderer\Renderer.cpp" />
+    <ClCompile Include="src\Core\Entity.cpp" />
+    <ClCompile Include="src\Core\Camera.cpp" />
+    <ClCompile Include="src\Core\CoreGL.cpp" />
+    <ClCompile Include="src\Core\Input.cpp" />
+    <ClCompile Include="src\Helpers\Util.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Renderer\Mesh.cpp" />
+    <ClCompile Include="src\Renderer\Model.cpp" />
+    <ClCompile Include="src\Renderer\Shader.cpp" />
+    <ClCompile Include="src\Renderer\TextBlitter.cpp" />
+    <ClCompile Include="src\Renderer\Texture.cpp" />
+    <ClCompile Include="src\Renderer\TextureCompression\DDS_Helpers.cpp" />
+    <ClCompile Include="src\Renderer\Transform.cpp" />
+    <ClCompile Include="vendor\glad\src\glad.c" />
+    <ClCompile Include="vendor\stb_image\stb_image.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Animation\Animation.h" />
+    <ClInclude Include="src\Animation\AnimatedGameObject.h" />
+    <ClInclude Include="src\Animation\SkinnedModel.h" />
+    <ClInclude Include="src\Audio\Audio.h" />
+    <ClInclude Include="src\Core\EntityStatic.h" />
+    <ClInclude Include="src\Core\GameCharacter.h" />
+    <ClInclude Include="src\Core\Player.h" />
+    <ClInclude Include="src\Core\Scene.h" />
+    <ClInclude Include="src\Effects\BloodPool.h" />
+    <ClInclude Include="src\HellEngine.h" />
+    <ClInclude Include="src\Helpers\AssetManager.h" />
+    <ClInclude Include="src\Helpers\FileImporter.h" />
+    <ClInclude Include="src\Physics\ContactReportCallback.h" />
+    <ClInclude Include="src\Physics\PhysX.h" />
+    <ClInclude Include="src\Physics\Ragdoll.h" />
+    <ClInclude Include="src\Physics\RayCast.h" />
+    <ClInclude Include="src\Renderer\Decal.h" />
+    <ClInclude Include="src\Renderer\GBuffer.h" />
+    <ClInclude Include="src\Renderer\Material.h" />
+    <ClInclude Include="src\Renderer\NumberBlitter.h" />
+    <ClInclude Include="src\Renderer\Renderer.h" />
+    <ClInclude Include="src\Core\Entity.h" />
+    <ClInclude Include="src\Core\Camera.h" />
+    <ClInclude Include="src\Core\CoreGL.h" />
+    <ClInclude Include="src\Core\Input.h" />
+    <ClInclude Include="src\Core\keycodes.h" />
+    <ClInclude Include="src\Header.h" />
+    <ClInclude Include="src\Helpers\Util.h" />
+    <ClInclude Include="src\Renderer\Mesh.h" />
+    <ClInclude Include="src\Renderer\Model.h" />
+    <ClInclude Include="src\Renderer\Shader.h" />
+    <ClInclude Include="src\Renderer\TextBlitter.h" />
+    <ClInclude Include="src\Renderer\Texture.h" />
+    <ClInclude Include="src\Renderer\TextureCompression\DDS_Helpers.h" />
+    <ClInclude Include="src\Renderer\Transform.h" />
+    <ClInclude Include="vendor\glad\include\glad\glad.h" />
+    <ClInclude Include="vendor\glad\include\KHR\khrplatform.h" />
+    <ClInclude Include="vendor\GLFW\include\GLFW\glfw3.h" />
+    <ClInclude Include="vendor\GLFW\include\GLFW\glfw3native.h" />
+    <ClInclude Include="vendor\stb_image\stb_image.h" />
+    <ClInclude Include="vendor\tinyobj\tiny_obj_loader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\ragdoll.json" />
+    <None Include="res\shaders\decals.frag" />
+    <None Include="res\shaders\decals.vert" />
+    <None Include="res\shaders\FinalPass.frag" />
+    <None Include="res\shaders\FinalPass.vert" />
+    <None Include="res\shaders\skinnedmodel.frag" />
+    <None Include="res\shaders\skinnedmodel.vert" />
+    <None Include="res\shaders\solidColor.frag" />
+    <None Include="res\shaders\solidColor.vert" />
+    <None Include="res\shaders\test.frag" />
+    <None Include="res\shaders\test.vert" />
+    <None Include="res\shaders\textured2DquadShader.frag" />
+    <None Include="res\shaders\textured2DquadShader.vert" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,184 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="vendor">
+      <UniqueIdentifier>{10c62b98-7944-4e1e-87af-9c6615d0b3aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\glad">
+      <UniqueIdentifier>{87c75122-0c80-44da-aac6-ea794b1e6846}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\stb_image">
+      <UniqueIdentifier>{511278a4-09dc-454f-a639-1b1de7a9ad33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\tinyobj">
+      <UniqueIdentifier>{88c5e142-52ef-41ae-8993-2c50b0083753}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\GLFW">
+      <UniqueIdentifier>{30b6847f-904c-4891-a21e-15291e44cb0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{9e2b1ec2-1ef1-45a0-bba0-1a9eb4e7d9de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\core">
+      <UniqueIdentifier>{4e94f89e-d511-45dd-8ce1-26ac0da0311e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\helpers">
+      <UniqueIdentifier>{cb786cfc-2533-4f48-bacb-1603cea1c47c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\renderer">
+      <UniqueIdentifier>{802baf41-8475-4c8b-bb47-90c7f7b7c66e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res">
+      <UniqueIdentifier>{f5db14a4-a1f5-40ab-bedd-383cfe51a568}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\shaders">
+      <UniqueIdentifier>{4a60ec90-3f63-4217-b3d2-a6539a3ec16b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Core\Camera.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\CoreGL.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Core\Input.cpp">
+      <Filter>src\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Helpers\Util.cpp">
+      <Filter>src\helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\Transform.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\Model.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\Mesh.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\Shader.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\Texture.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\stb_image\stb_image.cpp">
+      <Filter>src\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\glad\src\glad.c">
+      <Filter>vendor\glad</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Renderer\GLDebugDraw.cpp" />
+    <ClCompile Include="src\Core\Entity.cpp" />
+    <ClCompile Include="src\Physics\Physics.cpp" />
+    <ClCompile Include="src\Renderer\TextBlitter.cpp" />
+    <ClCompile Include="src\Renderer\Renderer.cpp" />
+    <ClCompile Include="src\Renderer\Decal.cpp" />
+    <ClCompile Include="src\Physics\RaycastResult.cpp" />
+    <ClCompile Include="src\Renderer\GBuffer.cpp" />
+    <ClCompile Include="src\Physics\Ragdoll.cpp" />
+    <ClCompile Include="src\Helpers\FileImporter.cpp" />
+    <ClCompile Include="src\Animation\AnimatedNode.cpp" />
+    <ClCompile Include="src\Animation\Animation.cpp" />
+    <ClCompile Include="src\Animation\Skeleton.cpp" />
+    <ClCompile Include="src\Animation\SkeletonJoint.cpp" />
+    <ClCompile Include="src\Animation\SkinnedModel.cpp" />
+    <ClCompile Include="src\Animation\SQT.cpp" />
+    <ClCompile Include="src\Core\GameCharacter.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Core\Camera.h">
+      <Filter>src\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\CoreGL.h">
+      <Filter>src\core</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\stb_image\stb_image.h">
+      <Filter>vendor\stb_image</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\tinyobj\tiny_obj_loader.h">
+      <Filter>vendor\tinyobj</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\include\GLFW\glfw3.h">
+      <Filter>vendor\GLFW</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\GLFW\include\GLFW\glfw3native.h">
+      <Filter>vendor\GLFW</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\glad\include\glad\glad.h">
+      <Filter>vendor\glad</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\keycodes.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Header.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Helpers\Util.h">
+      <Filter>src\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\Transform.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\Texture.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\Shader.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\Mesh.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\Model.h">
+      <Filter>src\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Input.h">
+      <Filter>src\core</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\glad\include\KHR\khrplatform.h">
+      <Filter>vendor\glad</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Renderer\GLDebugDraw.h" />
+    <ClInclude Include="src\Core\Entity.h" />
+    <ClInclude Include="src\Physics\Physics.h" />
+    <ClInclude Include="src\Renderer\TextBlitter.h" />
+    <ClInclude Include="src\Renderer\Renderer.h" />
+    <ClInclude Include="src\Renderer\Decal.h" />
+    <ClInclude Include="src\Physics\RaycastResult.h" />
+    <ClInclude Include="src\Renderer\GBuffer.h" />
+    <ClInclude Include="src\Physics\Ragdoll.h" />
+    <ClInclude Include="src\Helpers\FileImporter.h" />
+    <ClInclude Include="src\Animation\AnimatedNode.h" />
+    <ClInclude Include="src\Animation\Animation.h" />
+    <ClInclude Include="src\Animation\Skeleton.h" />
+    <ClInclude Include="src\Animation\SkeletonJoint.h" />
+    <ClInclude Include="src\Animation\SkinnedModel.h" />
+    <ClInclude Include="src\Animation\SQT.h" />
+    <ClInclude Include="src\Core\GameCharacter.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\shaders\test.frag">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\test.vert">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\solidColor.frag">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\solidColor.vert">
+      <Filter>res\shaders</Filter>
+    </None>
+    <None Include="res\shaders\textured2DquadShader.frag" />
+    <None Include="res\shaders\textured2DquadShader.vert" />
+    <None Include="res\shaders\decals.frag" />
+    <None Include="res\shaders\decals.vert" />
+    <None Include="res\shaders\skinnedmodel.frag" />
+    <None Include="res\shaders\skinnedmodel.vert" />
+    <None Include="res\ragdoll.json" />
+  </ItemGroup>
+</Project>
