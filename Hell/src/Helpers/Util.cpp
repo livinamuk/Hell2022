@@ -2,7 +2,16 @@
 #include "Util.h"
 #include <Windows.h>
 #include <random>
+#include <iomanip>
+#include <sstream>
 
+
+std::string Util::FloatToString(float value, int percision)
+{
+	std::stringstream stream;
+	stream << std::fixed << std::setprecision(percision) << value;
+	return stream.str();
+}
 
 float Util::FInterpTo(float Current, float Target, float DeltaTime, float InterpSpeed)
 {

@@ -1,6 +1,7 @@
 #include "AssetManager.h"
 #include "Renderer/Texture.h"
 #include "Helpers/FileImporter.h"
+#include "Core/File.h"
 
 std::unordered_map<std::string, Texture> AssetManager::m_textures;
 std::unordered_map<std::string, Material> AssetManager::m_materials;
@@ -55,6 +56,9 @@ void AssetManager::LoadNextAssetToGL()
             m_models[info.filename] = Model(info.fullpath.c_str(), createPhysicsMesh);
         }
     }
+ /*  else
+    s_loadLog += "Loading map\n";
+        File::LoadMap("Map.json");*/
 }
 
 bool AssetManager::AssetsToLoad()

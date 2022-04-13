@@ -9,19 +9,12 @@
 class Scene
 {
 public: // methods
-	void Reset();
-	void NewRagdoll();
-	void AddEntity(Model* model, Material* material, Transform transform);
+	static void Reset();
+	static void NewRagdoll();
+	static void AddEntity(Model* model, Material* material, Transform transform);
 
-public: // fields
-//	SkinnedModel* nurseModel;
-	std::vector<GameCharacter> m_gameCharacters;
-	std::vector<EntityStatic> m_staticEntities;
-	std::vector<BloodPool> m_bloodPools;
-
-
-	//GameCharacter m_gameCharacterPlayer1;
-	//GameCharacter m_gameCharacterPlayer2;
-
-//	std::vector<Entity> m_staticEntities;
+public: // variables
+	static std::vector<GameCharacter> s_gameCharacters;
+	static std::vector<EntityStatic> s_staticEntities;
+	static std::vector<BloodPool> s_bloodPools;
 };

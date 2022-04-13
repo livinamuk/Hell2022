@@ -4,6 +4,9 @@
 #include <random>
 #include "Helpers/FileImporter.h"
 #include "Helpers/AssetManager.h"
+#include <chrono>
+#include <thread>
+#include "Core/GameData.h"
 
 /*Shader Renderer::s_test_shader;
 Shader Renderer::s_solid_color_shader;
@@ -14,23 +17,35 @@ GBuffer Renderer::s_gBuffer;
 // Pointers
 PhysX* Renderer::p_physX; 
 std::unordered_map<std::string, Model>* Renderer::p_models;
-*/
+*/	
+
+Shader Renderer::s_test_shader;
+Shader Renderer::s_solid_color_shader;
+Shader Renderer::s_textued_2D_quad_shader;
+Shader Renderer::s_skinned_model_shader;
+Shader Renderer::s_final_pass_shader;
+Shader Renderer::s_solid_color_shader_editor; 
+//Shader Renderer::s_textured_editor_shader;
+GBuffer Renderer::s_gBuffer;
+unsigned int Renderer::m_uboMatrices;
 
 void Renderer::Init(int screenWidth, int screenHeight)
 {
-    m_test_shader = Shader("test.vert", "test.frag");
-    m_solid_color_shader = Shader("solidColor.vert", "solidColor.frag");
-    m_textued_2D_quad_shader = Shader("textured2DquadShader.vert", "textured2DquadShader.frag");
-    m_skinned_model_shader = Shader("skinnedmodel.vert", "skinnedmodel.frag");
-    m_final_pass_shader = Shader("FinalPass.vert", "FinalPass.frag");
+    s_test_shader = Shader("test.vert", "test.frag");
+    s_solid_color_shader = Shader("solidColor.vert", "solidColor.frag");
+    s_solid_color_shader_editor = Shader("solidColorEditor.vert", "solidColorEditor.frag");
+    s_textued_2D_quad_shader = Shader("textured2DquadShader.vert", "textured2DquadShader.frag");
+    s_skinned_model_shader = Shader("skinnedmodel.vert", "skinnedmodel.frag");
+    s_final_pass_shader = Shader("FinalPass.vert", "FinalPass.frag");
+    //s_textured_editor_shader = Shader("texturedEditorShader.vert", "texturedEditorShader.frag");
 
    // m_screenWidth = screenWidth;
    // m_screenHeight = screenHeight;
 
     s_gBuffer = GBuffer(screenWidth, screenHeight);
 
-    glUniformBlockBinding(m_skinned_model_shader.ID, glGetUniformBlockIndex(m_skinned_model_shader.ID, "Matrices"), 0);
-    glUniformBlockBinding(m_test_shader.ID, glGetUniformBlockIndex(m_test_shader.ID, "Matrices"), 0);
+    glUniformBlockBinding(s_skinned_model_shader.ID, glGetUniformBlockIndex(s_skinned_model_shader.ID, "Matrices"), 0);
+    glUniformBlockBinding(s_test_shader.ID, glGetUniformBlockIndex(s_test_shader.ID, "Matrices"), 0);
 
     glGenBuffers(1, &m_uboMatrices);
     glBindBuffer(GL_UNIFORM_BUFFER, m_uboMatrices);
@@ -40,39 +55,26 @@ void Renderer::Init(int screenWidth, int screenHeight)
 
 }
 
-/*void Renderer::SetModelPointers()
-{
-    m_modelPointers.p_CubeLines = AssetManager::GetModelPtr("CubeLines");
-    m_modelPointers.p_Sphere = AssetManager::GetModelPtr("Sphere");
-    m_modelPointers.p_SphereLines = AssetManager::GetModelPtr("SphereLines");
-    m_modelPointers.p_UncappedCylinder = AssetManager::GetModelPtr("UncappedCylinder");
-    m_modelPointers.p_HalfSphere2 = AssetManager::GetModelPtr("HalfSphere2");
-    m_modelPointers.p_HalfSphere = AssetManager::GetModelPtr("HalfSphere");
-    m_modelPointers.p_UncappedCylinderLines = AssetManager::GetModelPtr("UncappedCylinderLines");
-    m_modelPointers.p_HalfSphereLines = AssetManager::GetModelPtr("HalfSphereLines");
-    m_modelPointers.p_HalfSphereLines2 = AssetManager::GetModelPtr("HalfSphereLines2");
-}*/
 
-
-void Renderer::RenderFrame(Scene* scene, Camera* camera, int renderWidth, int renderHeight, int player, bool splitscreen)
+void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, int player, bool splitscreen)
 {
-    DrawGrid(camera);
+    DrawGrid(camera->m_transform.position, true);
 
     if (Input::s_showBulletDebug) {
 
 
         DrawPhysicsWorld(player);
 
-        Shader* shader = &m_solid_color_shader;
+        Shader* shader = &s_solid_color_shader;
         shader->use();
 
         // draw static entities with collision meshes
-        for (auto entityStatic : scene->m_staticEntities)
+        for (auto entityStatic : Scene::s_staticEntities)
         {
             if (entityStatic.m_model->m_hasCollisionMesh)
             {
                 shader->setVec3("u_color", glm::vec3(0.4, 0.4, 0.4));
-                entityStatic.DrawEntity(&m_solid_color_shader);
+                entityStatic.DrawEntity(&s_solid_color_shader);
             }
         }
     }
@@ -80,55 +82,64 @@ void Renderer::RenderFrame(Scene* scene, Camera* camera, int renderWidth, int re
     {
         glEnable(GL_DEPTH_TEST);
 
-        Shader* shader = &m_test_shader;
+        Shader* shader = &s_test_shader;
         shader->use();
 
         // Draw scene
-        for (EntityStatic entityStatic : scene->m_staticEntities)
+        for (EntityStatic entityStatic : Scene::s_staticEntities)
             entityStatic.DrawEntity(shader);
 
+        // Draw Rooms
+        for (auto& room : GameData::s_rooms) 
+        {
+            room.DrawFloor(shader);
+            room.DrawCeiling(shader);
+            room.DrawWalls(shader);
+        }
 
-
+        // Draw doors
+        for (auto& door : GameData::s_doors)
+            door.Draw(shader);
 
         glEnable(GL_BLEND);
         //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO); 
         glBlendEquation(GL_FUNC_ADD);
 
-        for (BloodPool bloodPool: scene->m_bloodPools)
+        for (BloodPool bloodPool: Scene::s_bloodPools)
             bloodPool.Draw(shader);
    
         glDisable(GL_BLEND);
 
 
-
+   
 
         // Draw ragdolls
-        shader = &m_skinned_model_shader;
+        shader = &s_skinned_model_shader;
         shader->use();
         shader->setBool("hasAnimation", true);
         shader->setMat4("model", glm::mat4(1));
 
-        for (GameCharacter& gameCharacter : scene->m_gameCharacters)
+        for (GameCharacter& gameCharacter : Scene::s_gameCharacters)
         {
             gameCharacter.RenderSkinnedModel(shader);
         }
 
         if (player == 2) {
-            p_player1->RenderCharacterModel(shader);
+            GameData::s_player1.RenderCharacterModel(shader);
         }
 
         if (player == 1) {
-            p_player2->RenderCharacterModel(shader);
+            GameData::s_player2.RenderCharacterModel(shader);
         }
 
 
         // render player weapons
         if (player == 1) 
         {
-            if (p_player1->m_isAlive) {
-                p_player1->m_HUD_Weapon.Render(&m_skinned_model_shader);
-                RenderPlayerCrosshair(renderWidth, renderHeight, p_player1);
+            if (GameData::s_player1.m_isAlive) {
+                GameData::s_player1.m_HUD_Weapon.Render(&s_skinned_model_shader);
+                RenderPlayerCrosshair(renderWidth, renderHeight, &GameData::s_player1);
             }
             else
             {
@@ -137,10 +148,10 @@ void Renderer::RenderFrame(Scene* scene, Camera* camera, int renderWidth, int re
         }
         if (player == 2) 
         {
-            if (p_player2->m_isAlive)
+            if (GameData::s_player2.m_isAlive)
             {
-                p_player2->m_HUD_Weapon.Render(&m_skinned_model_shader);
-                RenderPlayerCrosshair(renderWidth, renderHeight, p_player2);
+                GameData::s_player2.m_HUD_Weapon.Render(&s_skinned_model_shader);
+                RenderPlayerCrosshair(renderWidth, renderHeight, &GameData::s_player2);
             }
             else
             {
@@ -164,8 +175,8 @@ void Renderer::RenderFrame(Scene* scene, Camera* camera, int renderWidth, int re
     }
 
      if (player != 100) {
-         glm::vec3 dotPos = p_player1->m_debugPos;// glm::vec3(1, 1, 0);
-         Shader* shader = &m_solid_color_shader;
+         glm::vec3 dotPos = GameData::s_player1.m_debugPos;// glm::vec3(1, 1, 0);
+         Shader* shader = &s_solid_color_shader;
          shader->use();
          shader->setVec3("u_color", glm::vec3(1, 0, 1));
          shader->setVec3("u_cameraPos", dotPos);
@@ -231,14 +242,14 @@ void Renderer::RenderFrame(Scene* scene, Camera* camera, int renderWidth, int re
     glBindTexture(GL_TEXTURE_2D, s_gBuffer.gAlbedo);
 
     if (player == 1) {
-        m_final_pass_shader.use();
-        m_final_pass_shader.setFloat("u_timeSinceDeath", p_player1->m_timeSinceDeath);
+        s_final_pass_shader.use();
+        s_final_pass_shader.setFloat("u_timeSinceDeath", GameData::s_player1.m_timeSinceDeath);
         if (splitscreen)
-            Draw_2_Player_Split_Screen_Quad_Top(&m_final_pass_shader);
+            Draw_2_Player_Split_Screen_Quad_Top(&s_final_pass_shader);
         else
-            DrawFullScreenQuad(&m_final_pass_shader);
+            DrawFullScreenQuad(&s_final_pass_shader);
 
-        if (!p_player1->m_isAlive && p_player1->m_timeSinceDeath > 3.125)
+        if (!GameData::s_player1.m_isAlive && GameData::s_player1.m_timeSinceDeath > 3.125)
         {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -249,18 +260,18 @@ void Renderer::RenderFrame(Scene* scene, Camera* camera, int renderWidth, int re
             float height = (1.0f / 1080) * AssetManager::GetTexturePtr("PressStart")->m_height * scale * (CoreGL::s_currentHeight / renderHeight);
             glm::mat4 modelMatrix = glm::mat4(1.0f);
             modelMatrix = glm::scale(modelMatrix, glm::vec3(width, height, 1));
-            DrawQuad(&m_textued_2D_quad_shader, modelMatrix, AssetManager::GetTexturePtr("PressStart")->ID);
+            DrawQuad(&s_textued_2D_quad_shader, modelMatrix, AssetManager::GetTexturePtr("PressStart")->ID);
             glDisable(GL_BLEND);
             glEnable(GL_DEPTH_TEST);
         }
     }
     if (player == 2) {
-        m_final_pass_shader.use();
-        m_final_pass_shader.setFloat("u_timeSinceDeath", p_player2->m_timeSinceDeath);
-        Draw_2_Player_Split_Screen_Quad_Bottom(&m_final_pass_shader);
+        s_final_pass_shader.use();
+        s_final_pass_shader.setFloat("u_timeSinceDeath", GameData::s_player2.m_timeSinceDeath);
+        Draw_2_Player_Split_Screen_Quad_Bottom(&s_final_pass_shader);
     
         
-        if (!p_player2->m_isAlive && p_player2->m_timeSinceDeath > 3.125)
+        if (!GameData::s_player2.m_isAlive && GameData::s_player2.m_timeSinceDeath > 3.125)
         {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -271,7 +282,7 @@ void Renderer::RenderFrame(Scene* scene, Camera* camera, int renderWidth, int re
             float height = (1.0f / 1080) * AssetManager::GetTexturePtr("PressStart")->m_height * scale * (CoreGL::s_currentHeight / renderHeight);
             glm::mat4 modelMatrix = glm::mat4(1.0f);
             modelMatrix = glm::scale(modelMatrix, glm::vec3(width, height, 1));
-            DrawQuad(&m_textued_2D_quad_shader, modelMatrix, AssetManager::GetTexturePtr("PressStart")->ID);
+            DrawQuad(&s_textued_2D_quad_shader, modelMatrix, AssetManager::GetTexturePtr("PressStart")->ID);
             glDisable(GL_BLEND);
             glEnable(GL_DEPTH_TEST);
         }    
@@ -295,7 +306,7 @@ void Renderer::RenderPlayerCrosshair(int renderWidth, int renderHeight, Player* 
     float height = (1.0f / 1080) * crosshairSize * (CoreGL::s_currentHeight / renderHeight);
     glm::mat4 modelMatrix = glm::mat4(1.0f);
     modelMatrix = glm::scale(modelMatrix, glm::vec3(width, height, 1)); 
-    DrawQuad(&m_textued_2D_quad_shader, modelMatrix, AssetManager::GetTexturePtr("CrosshairCross")->ID);
+    DrawQuad(&s_textued_2D_quad_shader, modelMatrix, AssetManager::GetTexturePtr("CrosshairCross")->ID);
 
 
     
@@ -327,10 +338,10 @@ void Renderer::RenderPlayerCrosshair(int renderWidth, int renderHeight, Player* 
     char* cstr2 = new char[m_ammo_total.length() + 1];
     strcpy(cstr2, m_ammo_total.c_str());
     const char* slash = "/";
-    NumberBlitter::DrawTextBlit(&m_textued_2D_quad_shader, slash, 1700, 943, renderWidth, renderHeight);
-    NumberBlitter::DrawTextBlit(&m_textued_2D_quad_shader, cstr2, 1715, 943, renderWidth, renderHeight, 0.8);
-    NumberBlitter::DrawTextBlit(&m_textued_2D_quad_shader, cstr, 1695, 943, renderWidth, renderHeight, 1.0f, ammoColor, false);
-    m_textued_2D_quad_shader.setVec3("colorTint", glm::vec3(1, 1, 1));
+    NumberBlitter::DrawTextBlit(&s_textued_2D_quad_shader, slash, 1700, 943, renderWidth, renderHeight);
+    NumberBlitter::DrawTextBlit(&s_textued_2D_quad_shader, cstr2, 1715, 943, renderWidth, renderHeight, 0.8);
+    NumberBlitter::DrawTextBlit(&s_textued_2D_quad_shader, cstr, 1695, 943, renderWidth, renderHeight, 1.0f, ammoColor, false);
+    s_textued_2D_quad_shader.setVec3("colorTint", glm::vec3(1, 1, 1));
 
 
   /*  shader->use();
@@ -347,7 +358,7 @@ void Renderer::RenderPlayerCrosshair(int renderWidth, int renderHeight, Player* 
     glEnable(GL_DEPTH_TEST);
 }
 
-void Renderer::DrawGrid(Camera* camera)
+void Renderer::DrawGrid(glm::vec3 cameraPos, bool renderFog)
 {
     static unsigned int VAO = 0;
     static unsigned int vertCount;
@@ -375,10 +386,12 @@ void Renderer::DrawGrid(Camera* camera)
         //std::cout << "vertCount: " << vertCount << "\n";
     }
 
-    Shader* shader = &m_solid_color_shader;
+    Shader* shader = &s_solid_color_shader;
     shader->use();
     shader->setVec3("u_color", glm::vec3(0.509, 0.333, 0.490));
-    shader->setVec3("u_cameraPos", camera->m_transform.position);
+
+    shader->setVec3("u_cameraPos", cameraPos);
+    shader->setBool("u_renderFog", renderFog);
     
     int grid_repeat = 100;
     for (int x = -grid_repeat / 2; x < grid_repeat / 2 + 1; x++) {
@@ -391,6 +404,8 @@ void Renderer::DrawGrid(Camera* camera)
             glDrawArrays(GL_LINES, 0, vertCount);
         }
     }
+
+    shader->setBool("u_renderFog", false);
 }
 
 void Renderer::TextBlitterPass(Shader* shader)
@@ -408,7 +423,29 @@ void Renderer::TextBlitterPass(Shader* shader)
     glEnable(GL_DEPTH_TEST);
 }
 
-void Renderer::DrawLine(Shader* shader, Line line, glm::mat4 modelMatrix = glm::mat4(1))
+void Renderer::DrawLine(Shader* shader, glm::vec3 p1, glm::vec3 p2, glm::vec3 color)
+{
+    unsigned int VAO = 0;
+    if (VAO == 0) {
+        unsigned int VBO;
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    }
+    float vertices[] = { p1.x, p1.y, p1.z, p2.x, p2.y, p2.z };
+    glBindVertexArray(VAO); 
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);    
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    shader->setMat4("model", glm::mat4(1));
+    shader->setVec3("u_color", color);
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_LINES, 0, 2);
+
+    glDeleteBuffers(1, &VAO);
+}
+
+/*void Renderer::DrawLine(Shader* shader, Line line, glm::mat4 modelMatrix = glm::mat4(1))
 {
     static unsigned int VAO = 0;
     static unsigned int VBO;
@@ -430,81 +467,47 @@ void Renderer::DrawLine(Shader* shader, Line line, glm::mat4 modelMatrix = glm::
     shader->setMat4("model", modelMatrix);
     glBindVertexArray(VAO);
     glDrawArrays(GL_LINES, 0, 6);
-}
+}*/
 
 void Renderer::HotLoadShaders()
 {
-    m_test_shader.ReloadShader();
-    m_solid_color_shader.ReloadShader();
-    m_textued_2D_quad_shader.ReloadShader();
-    m_skinned_model_shader.ReloadShader();
-    m_final_pass_shader.ReloadShader();
+    s_test_shader.ReloadShader();
+    s_solid_color_shader.ReloadShader();
+    s_solid_color_shader_editor.ReloadShader();
+    s_textued_2D_quad_shader.ReloadShader();
+    s_skinned_model_shader.ReloadShader();
+    s_final_pass_shader.ReloadShader();
 }
 
 void Renderer::DrawPoint(Shader* shader, glm::vec3 position, glm::vec3 color)
 {
+    Transform trans;
+      trans.position = position;
+    DrawPoint(shader, trans.to_mat4(), color);
+}
+
+void Renderer::DrawPoint(Shader* shader, glm::mat4 modelMatrix, glm::vec3 color)
+{
     static unsigned int VAO = 0;
-    static unsigned int VBO;
-    if (VAO == 0) {
+    if (VAO == 0)
+    {
+        static unsigned int VBO;
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
+
+        float vertices[] = { 0, 0, 0 };
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glBindVertexArray(VAO);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glm::mat4 modelMatrix = glm::mat4(1);
     }
 
-    float vertices[] = {
-        position.x, position.y, position.z, color.r, color.g, color.b,
-    };
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindVertexArray(VAO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    glm::mat4 modelMatrix = glm::mat4(1);
     shader->setMat4("model", modelMatrix);
+    shader->setVec3("u_color", color);
     glBindVertexArray(VAO);
     glDrawArrays(GL_POINTS, 0, 1);
 }
-
-void Renderer::RenderFinalImage()
-{
- /*   Shader* shader = &m_textued_2D_quad_shader;
-    shader->use();
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDisable(GL_DEPTH_TEST);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, s_gBuffer.gAlbedo);
-    //glViewport(0, 0, m_screenWidth, m_screenHeight);
-
-    static GLuint VAO = 0;
-    if (VAO == 0)
-    {
-        float quadVertices[] = {
-            // positions         texcoords
-            -1.0f,  1.0f, 0.0f,  0.0f, 1.0f,
-            -1.0f, -1.0f, 0.0f,  0.0f, 0.0f,
-                1.0f,  1.0f, 0.0f,  1.0f, 1.0f,
-                1.0f, -1.0f, 0.0f,  1.0f, 0.0f,
-        };
-        unsigned int VBO;
-        glGenVertexArrays(1, &VAO);
-        glGenBuffers(1, &VBO);
-        glBindVertexArray(VAO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    }
-
-    shader->setMat4("model", glm::mat4(1));
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);*/
-}
-
 
 void Renderer::DrawPhysicsWorld(int player)
 {
@@ -514,7 +517,7 @@ void Renderer::DrawPhysicsWorld(int player)
 
     glEnable(GL_DEPTH_TEST);
 
-    Shader* shader = &m_solid_color_shader;
+    Shader* shader = &s_solid_color_shader;
     shader->use();
 
    // for (Entity )
@@ -534,9 +537,9 @@ void Renderer::DrawPhysicsWorld(int player)
         {
             // skip this shape if part of the current players ragdoll
             void* parent = actors[i]->userData;
-            if (player == 1 && parent == p_player1)
+            if (player == 1 && parent == &GameData::s_player1)
                 continue;
-            if (player == 2 && parent == p_player2)
+            if (player == 2 && parent == &GameData::s_player2)
                 continue;
 
 

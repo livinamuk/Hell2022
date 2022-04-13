@@ -16,6 +16,7 @@
 #include "Physics/PhysX.h"
 #include "Helpers/AssetManager.h"
 #include "Core/Player.h"
+#include "Editor/Editor.h"
 
 class HellEngine
 {
@@ -32,15 +33,14 @@ public: // methods
 public: // fields
 	PhysX m_physx;
 	Renderer m_renderer;
-	Scene m_scene;
 	//Camera m_camera_p1;
 	//Camera m_camera_p2;
 	std::unordered_map<std::string, Model> m_models;
 	bool m_Splitscreen = true;
 
 
-	Player m_player1;
-	Player m_player2;
+	//Player m_player1;
+	//Player m_player2;
 
 	int m_currentPlayer = 1;
 

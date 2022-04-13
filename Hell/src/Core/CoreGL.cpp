@@ -2,6 +2,7 @@
 #include "Input.h"
 #include <windows.h>
 #include "Camera.h"
+#include "Editor/Editor.h"
 //#include "Renderer/Renderer.h"
 //#include "CoreImGui.h"
 
@@ -32,7 +33,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void processInput(GLFWwindow* window);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
-
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 void CoreGL::InitGL(int windowWidth, int windowHeight)
 {
@@ -91,6 +92,7 @@ void CoreGL::InitGL(int windowWidth, int windowHeight)
 	glfwSetCursorPos(s_window, s_fullscreenWidth / 2, s_fullscreenHeight / 2);
 	glfwSetKeyCallback(s_window, key_callback);
 	glfwSetMouseButtonCallback(s_window, mouse_button_callback);
+	glfwSetScrollCallback(s_window, scroll_callback);
 
 
 	// glad: load all OpenGL function pointers
@@ -214,7 +216,7 @@ void CoreGL::Terminate()
 void CoreGL::OnUpdate()
 {
 	// Show/hide cursor
-	if (Input::s_showCursor)
+	if (Input::s_showCursor || Editor::IsOpen())
 		glfwSetInputMode(s_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	else
 		glfwSetInputMode(s_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -249,6 +251,11 @@ void CoreGL::SetVSync(bool enabled)
 		glfwSwapInterval(1);
 	else
 		glfwSwapInterval(0);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	Input::s_mouseWheelValue = yoffset;
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)

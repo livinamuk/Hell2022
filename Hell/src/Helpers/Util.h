@@ -19,6 +19,7 @@
 class Util
 {
 public:
+	static std::string FloatToString(float value, int percision);
 	static float FInterpTo(float Current, float Target, float DeltaTime, float InterpSpeed);
 	static void DrawUpFacingPlane(Shader* shader, const glm::mat4& modelMatrix);
 	static glm::vec3 TranslationFromMat4(glm::mat4& matrix);

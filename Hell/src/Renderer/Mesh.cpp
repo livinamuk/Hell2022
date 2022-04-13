@@ -11,8 +11,6 @@ void Mesh::Draw(int primitiveType)
 {
 	glBindVertexArray(VAO);
 	glDrawElements(primitiveType, (GLsizei)indices.size(), GL_UNSIGNED_INT, 0);
-
-	
 }
 
 void Mesh::SetupMesh()

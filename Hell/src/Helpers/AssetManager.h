@@ -30,8 +30,9 @@
 
         static void LoadSkinnedModel(std::string name, const char* filename);
 
-    private: // fields
         static std::unordered_map<std::string, Model> m_models;
+
+    private: // fields
         // static std::unordered_map<std::string, SkinnedModel> m_skinnedModels;
         static std::unordered_map<std::string, Material> m_materials;
         static std::unordered_map<std::string, Texture> m_textures;

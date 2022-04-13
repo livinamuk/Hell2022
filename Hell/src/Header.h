@@ -126,12 +126,12 @@ namespace std {
 	};
 }
 
-struct Line {
+/*struct Line {
 	glm::vec3 start_pos;
 	glm::vec3 end_pos;
 	glm::vec3 start_color;
 	glm::vec3 end_color;
-};
+};*/
 
 enum class PhysicsObjectType { UNDEFINED, WALL, EDITOR_WINDOW, DOOR, FLOOR, STAIRS, PLAYER_RAGDOLL, RAGDOLL, CEILING, SHELL_PROJECTILE, MISC_MESH, GLASS };
 

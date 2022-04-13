@@ -205,7 +205,7 @@ void Ragdoll::BuildFromJsonFile(std::string filename, Transform spawnLocation, v
 				childRigid = &rigid;
 		}
 
-
+		
 		PxTransform parentFrame = PxTransform(joint.parentFrame);
 		PxTransform childFrame = PxTransform(joint.childFrame);
 		joint.pxD6 = PxD6JointCreate(physX, parentRigid->pxRigidBody, parentFrame, childRigid->pxRigidBody, childFrame);
@@ -218,6 +218,14 @@ void Ragdoll::BuildFromJsonFile(std::string filename, Transform spawnLocation, v
 			joint.limit_linearStiffness,
 			joint.limit_linearDampening
 		};
+
+			std::cout << "\n" << joint.name << "\n";
+
+			PxMat44 m = PxMat44(parentFrame);
+
+			std::cout << m[0][0] << ", " << m[0][1] << ", " << m[0][2] << "\n";
+			std::cout << m[1][0] << ", " << m[1][1] << ", " << m[1][2] << "\n";
+			std::cout << m[2][0] << ", " << m[2][1] << ", " << m[2][2] << "\n";
 
 
 		const PxJointLinearLimitPair limitX{

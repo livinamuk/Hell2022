@@ -98,7 +98,8 @@ class GenericRegexSearch;
     - \c [a-z0-9_] Character class combination
     - \c [^abc] Negated character classes
     - \c [^a-c] Negated character class range
-    - \c [\b]   Backspace (U+0008)
+    - \c [\b]   
+    (U+0008)
     - \c \\| \\\\ ...  Escape characters
     - \c \\f Form feed (U+000C)
     - \c \\n Line feed (U+000A)

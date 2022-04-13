@@ -16,14 +16,18 @@ int Input::s_mouseY_Editor;
 bool Input::s_showCursor = false;
 bool Input::s_keyPressed[372] = { false };
 bool Input::s_keyDown[372] = { false };
-bool Input::s_keyDownLastFrame[372] = { false };
-//bool Input::s_leftMousePressed = false;
-//bool Input::s_rightMousePressed = false;
+bool Input::s_keyDownLastFrame[372] = { false }; 
+
 bool Input::s_leftMouseDown = false;
 bool Input::s_rightMouseDown = false;
-//bool Input::s_leftMouseDownLastFrame = false;
-//bool Input::s_rightMouseDownLastFrame = false;
+
+bool Input::s_leftMousePressed = false;
+bool Input::s_rightMousePressed = false;
+
+bool Input::s_leftMouseDownLastFrame = false;
+bool Input::s_rightMouseDownLastFrame = false;
 bool Input::s_showBulletDebug = false;
+int Input::s_mouseWheelValue = 0;
 
 /*
 float Input::m_oldX;
@@ -50,6 +54,22 @@ void Input::UpdateMouseInput(GLFWwindow* window)
 	m_yoffset = s_mouseY - m_oldY;
 	m_oldX = s_mouseX;
 	m_oldY = s_mouseY;
+
+	// Left mouse down/pressed
+	s_leftMouseDown = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+	if (s_leftMouseDown == GLFW_PRESS && !s_leftMouseDownLastFrame)
+		s_leftMousePressed = true;
+	else
+		s_leftMousePressed = false;
+	s_leftMouseDownLastFrame = s_leftMouseDown;
+
+	// Right mouse down/pressed
+	s_rightMouseDown = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
+	if (s_rightMouseDown == GLFW_PRESS && !s_rightMouseDownLastFrame)
+		s_rightMousePressed = true;
+	else
+		s_rightMousePressed = false;
+	s_rightMouseDownLastFrame = s_rightMouseDown;
 }
 
 void Input::HandleKeypresses()
@@ -61,6 +81,26 @@ void Input::HandleKeypresses()
 	// Toggle cursor
 	if (s_keyPressed[HELL_KEY_M])
 		s_showCursor = !s_showCursor;
+}
+
+bool Input::LeftMouseDown()
+{
+	return s_leftMouseDown;
+}
+
+bool Input::RightMouseDown()
+{
+	return s_rightMouseDown;
+}
+
+bool Input::LeftMousePressed()
+{
+	return s_leftMousePressed;
+}
+
+bool Input::RightMousePressed()
+{
+	return s_rightMousePressed;
 }
 
 bool Input::ButtonPressed(int controllerIndex, unsigned int keycode)

@@ -4,6 +4,7 @@ out vec4 FragColor;
 in vec4 worldPos;
 uniform vec3 u_color;
 uniform vec3 u_cameraPos;
+uniform bool u_renderFog;
 
 float Distance(vec3 point1, vec3 point2)
 {
@@ -18,7 +19,7 @@ void main()
 
     vec3 finalColor = u_color;
 
-    //if (u_renderFog)
+    if (u_renderFog)
     {    
         float darkness = dist / 8.5;
 	

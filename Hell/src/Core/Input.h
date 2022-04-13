@@ -14,6 +14,10 @@ public: // functions
 	static void HandleKeypresses();
 	//static void HandleKeydowns();
 
+	static bool LeftMouseDown();
+	static bool RightMouseDown();
+	static bool LeftMousePressed();
+	static bool RightMousePressed();
 	static bool ButtonPressed(int controllerIndex, unsigned int keycode);
 	static bool ButtonDown(int controllerIndex, unsigned int keycode);
 
@@ -28,11 +32,17 @@ public: // variables
 	static int s_mouseX_Editor;
 	static int s_mouseY_Editor;
 	static bool s_showCursor;
+	static int s_mouseWheelValue;
 
 	static bool s_showBulletDebug;
 
 	static bool s_leftMouseDown;
 	static bool s_rightMouseDown;
+	static bool s_leftMousePressed;
+	static bool s_rightMousePressed;
+	static bool s_leftMouseDownLastFrame;
+	static bool s_rightMouseDownLastFrame;
+
 	static bool s_keyPressed[372];
 	static bool s_keyDown[372];
 	static bool s_keyDownLastFrame[372];

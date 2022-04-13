@@ -1,6 +1,8 @@
 #include "HellEngine.h"
 #include "Core/Input.h"
 #include "Audio/Audio.h"
+#include "Core/GameData.h"
+#include "Core/File.h"
 
 void HellEngine::Init()
 {
@@ -14,21 +16,19 @@ void HellEngine::Init()
 
 	AssetManager::DiscoverAssetFilenames();
 
-	m_renderer.p_player1 = &m_player1;
-	m_renderer.p_player2 = &m_player2;
 	
 
-	m_player1.p_gameCharacters = &m_scene.m_gameCharacters;
-	m_player2.p_gameCharacters = &m_scene.m_gameCharacters;
-	m_player1.p_bloodPools = &m_scene.m_bloodPools;
-	m_player2.p_bloodPools = &m_scene.m_bloodPools;
+	GameData::s_player1.p_gameCharacters = &Scene::s_gameCharacters;
+	GameData::s_player2.p_gameCharacters = &Scene::s_gameCharacters;
+	GameData::s_player1.p_bloodPools = &Scene::s_bloodPools;
+	GameData::s_player2.p_bloodPools = &Scene::s_bloodPools;
 	
 
 	m_renderer.p_physX = &m_physx;
 
 
 
-	std::string line, text;
+	/*std::string line, text;
 	std::ifstream in("res/gamecontrollerdb.txt");
 	while (std::getline(in, line))
 	{
@@ -36,7 +36,7 @@ void HellEngine::Init()
 		//std::cout << line << std::endl;
 	}
 	const char* mappings = text.c_str();
-	//glfwUpdateGamepadMappings(mappings);
+	//glfwUpdateGamepadMappings(mappings);*/
 
 
 	// Search for 16 controllers lol
@@ -49,40 +49,41 @@ void HellEngine::Init()
 	}
 
 	if (m_controllers.size() == 0)
-		m_player2.m_enableControl = false;
+		GameData::s_player2.m_enableControl = false;
 	if (m_controllers.size() > 0)
-		m_player2.SetControllerIndex(m_controllers[0]);
+		GameData::s_player2.SetControllerIndex(m_controllers[0]);
 	if (m_controllers.size() > 1)
-		m_player1.SetControllerIndex(m_controllers[1]);
+		GameData::s_player1.SetControllerIndex(m_controllers[1]);
 
 	std::cout << "CONTROLLERS FOUND: " << m_controllers.size() << "\n";
+
 }
 
 void HellEngine::Update(float deltaTime)
 {
-	m_player1.Update(deltaTime);
-	m_player2.Update(deltaTime);
+	GameData::s_player1.Update(deltaTime);
+	GameData::s_player2.Update(deltaTime);
 		
 	// Animate game characters
-	for (GameCharacter& gameChar : m_scene.m_gameCharacters) 
+	for (GameCharacter& gameChar : Scene::s_gameCharacters)
 	{
 		if (gameChar.m_skinningMethod == SkinningMethod::ANIMATED)
 			gameChar.UpdateAnimation(deltaTime);
 	}
 	
-	m_player1.m_HUD_Weapon.UpdateAnmation(deltaTime);
-	m_player2.m_HUD_Weapon.UpdateAnmation(deltaTime);
+	GameData::s_player1.m_HUD_Weapon.UpdateAnmation(deltaTime);
+	GameData::s_player2.m_HUD_Weapon.UpdateAnmation(deltaTime);
 
 	// Animate blood pools
-	for (BloodPool& bloodPool: m_scene.m_bloodPools) {
+	for (BloodPool& bloodPool : Scene::s_bloodPools) {
 		bloodPool.Update(deltaTime);
 	}
 
     //if (Input::s_keyPressed[HELL_KEY_P])
        m_physx.StepPhysics();
 
-	   m_player1.UpdatePlayerModelAnimation(deltaTime);
-	   m_player2.UpdatePlayerModelAnimation(deltaTime);
+	   GameData::s_player1.UpdatePlayerModelAnimation(deltaTime);
+	   GameData::s_player2.UpdatePlayerModelAnimation(deltaTime);
 
 	   ProcessCollisions();
 }
@@ -91,14 +92,23 @@ void HellEngine::UpdateInput()
 {
 	Input::UpdateKeyboardInput(CoreGL::s_window);
 	Input::UpdateMouseInput(CoreGL::s_window);
-	Input::UpdateControllerInput(m_player1.GetControllerIndex());
-	Input::UpdateControllerInput(m_player2.GetControllerIndex());
+	Input::UpdateControllerInput(GameData::s_player1.GetControllerIndex());
+	Input::UpdateControllerInput(GameData::s_player2.GetControllerIndex());
 
 	CheckForDebugKeyPresses();
 }
 
 void HellEngine::CheckForDebugKeyPresses()
 {
+
+	if (Input::KeyPressed(HELL_KEY_TAB)) {
+		Editor::ToggleEditor();
+		Audio::PlayAudio("UI_Select2.wav", 0.5f);
+	}
+
+	//if (Input::KeyPressed(HELL_KEY_G))
+	//	File::LoadMap("Map.json");
+
 	if (Input::KeyPressed(HELL_KEY_F)) {
 		CoreGL::ToggleFullScreen();
 		m_renderer.ReconfigureFrameBuffers(CoreGL::s_currentWidth, CoreGL::s_currentHeight);
@@ -108,18 +118,16 @@ void HellEngine::CheckForDebugKeyPresses()
 	if (Input::KeyPressed(HELL_KEY_H))
 		m_renderer.HotLoadShaders();
 
-	if (Input::KeyPressed(HELL_KEY_SPACE))
-		m_scene.NewRagdoll();
+	//if (Input::KeyPressed(HELL_KEY_SPACE))
+	//	Scene::NewRagdoll();
 
 	if (Input::KeyPressed(HELL_KEY_N)) 
 	{
-		m_scene.Reset();
+		if (!GameData::s_player1.m_isAlive)
+			GameData::s_player1.Respawn();
 
-		if (!m_player1.m_isAlive)
-			m_player1.Respawn();
-
-		if (!m_player2.m_isAlive)
-			m_player2.Respawn();
+		if (!GameData::s_player2.m_isAlive)
+			GameData::s_player2.Respawn();
 	}
 
 
@@ -151,21 +159,21 @@ void HellEngine::Render()
 	}
 
 	// Player 1
-	m_player1.UpdateCamera(renderWidth, renderHeight);
+	GameData::s_player1.UpdateCamera(renderWidth, renderHeight);
 	
-	glBindBuffer(GL_UNIFORM_BUFFER, m_renderer.m_uboMatrices);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(m_player1.GetCameraProjectionMatrix()));
+	glBindBuffer(GL_UNIFORM_BUFFER, Renderer::m_uboMatrices);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(GameData::s_player1.GetCameraProjectionMatrix()));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-    glBindBuffer(GL_UNIFORM_BUFFER, m_renderer.m_uboMatrices);
-    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(m_player1.GetCameraViewMatrix()));
+    glBindBuffer(GL_UNIFORM_BUFFER, Renderer::m_uboMatrices);
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(GameData::s_player1.GetCameraViewMatrix()));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 
 
 
-	m_player1.SpawnGlockCasing();
+	GameData::s_player1.SpawnGlockCasing();
 
-	m_renderer.RenderFrame(&m_scene, m_player1.GetCameraPointer(), renderWidth, renderHeight, 1, m_Splitscreen);
+	m_renderer.RenderFrame(GameData::s_player1.GetCameraPointer(), renderWidth, renderHeight, 1, m_Splitscreen);
 
 
 	/*if (!Input::s_keyDown[HELL_KEY_C])
@@ -178,29 +186,29 @@ void HellEngine::Render()
 	{
 		glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight / 2);
 
-		m_player2.UpdateCamera(renderWidth, renderHeight);
+		GameData::s_player2.UpdateCamera(renderWidth, renderHeight);
 
-		glBindBuffer(GL_UNIFORM_BUFFER, m_renderer.m_uboMatrices);
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(m_player2.GetCameraProjectionMatrix()));
+		glBindBuffer(GL_UNIFORM_BUFFER, Renderer::m_uboMatrices);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(GameData::s_player2.GetCameraProjectionMatrix()));
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-		glBindBuffer(GL_UNIFORM_BUFFER, m_renderer.m_uboMatrices);
-		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(m_player2.GetCameraViewMatrix()));
+		glBindBuffer(GL_UNIFORM_BUFFER, Renderer::m_uboMatrices);
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(GameData::s_player2.GetCameraViewMatrix()));
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-		m_renderer.RenderFrame(&m_scene, m_player2.GetCameraPointer(), renderWidth, renderHeight, 2, m_Splitscreen);
+		m_renderer.RenderFrame(GameData::s_player2.GetCameraPointer(), renderWidth, renderHeight, 2, m_Splitscreen);
 	}
 
 	// Render final image to default frame buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_renderer.s_gBuffer.gFinal);
+	glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gFinal);
 	//glBindTexture(GL_TEXTURE_2D, m_renderer.s_gBuffer.gAlbedo);
 	glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight);
-	m_renderer.DrawFullScreenQuad(&m_renderer.m_textued_2D_quad_shader);
+	Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
 
 	// Text blitter UI
-	m_renderer.TextBlitterPass(&m_renderer.m_textued_2D_quad_shader);
+	Renderer::TextBlitterPass(&Renderer::s_textued_2D_quad_shader);
 }
 
 void HellEngine::ProcessCollisions()
