@@ -256,14 +256,14 @@
     <None Include="res\shaders\decals.vert" />
     <None Include="res\shaders\FinalPass.frag" />
     <None Include="res\shaders\FinalPass.vert" />
-    <None Include="res\shaders\skinnedmodel.frag" />
-    <None Include="res\shaders\skinnedmodel.vert" />
+    <None Include="res\shaders\lighting.frag" />
+    <None Include="res\shaders\lighting.vert" />
     <None Include="res\shaders\solidColor.frag" />
     <None Include="res\shaders\solidColor.vert" />
     <None Include="res\shaders\solidColorEditor.frag" />
     <None Include="res\shaders\solidColorEditor.vert" />
-    <None Include="res\shaders\test.frag" />
-    <None Include="res\shaders\test.vert" />
+    <None Include="res\shaders\geometry.frag" />
+    <None Include="res\shaders\geometry.vert" />
     <None Include="res\shaders\textured2DquadShader.frag" />
     <None Include="res\shaders\textured2DquadShader.vert" />
   </ItemGroup>

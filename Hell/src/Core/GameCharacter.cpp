@@ -50,11 +50,11 @@ void GameCharacter::RenderSkinnedModel(Shader* shader)
     {
         if (m_materialIndex == 0)
             if (m_skinnedModel->m_meshEntries[i].material)
-                glBindTexture(GL_TEXTURE_2D, m_skinnedModel->m_meshEntries[i].material->ALB);
+                m_skinnedModel->m_meshEntries[i].material->Bind();
 
         if (m_materialIndex == 1)
             if (m_skinnedModel->m_meshEntries[i].materialB)
-                glBindTexture(GL_TEXTURE_2D, m_skinnedModel->m_meshEntries[i].materialB->ALB);
+                m_skinnedModel->m_meshEntries[i].materialB->Bind();
 
         glDrawElementsBaseVertex(GL_TRIANGLES, m_skinnedModel->m_meshEntries[i].NumIndices, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * m_skinnedModel->m_meshEntries[i].BaseIndex), m_skinnedModel->m_meshEntries[i].BaseVertex);
     }

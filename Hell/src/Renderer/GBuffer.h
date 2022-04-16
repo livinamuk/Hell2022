@@ -9,7 +9,7 @@ public:
 	~GBuffer();
 
 	unsigned int ID;
-	unsigned int gAlbedo, gFinal, rboDepth;
+	unsigned int gAlbedo, gNormal, gRMA, gFinal, rboDepth, gLighting;
 
 	void Configure(int width, int height);
 };

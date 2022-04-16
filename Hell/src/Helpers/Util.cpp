@@ -6,6 +6,14 @@
 #include <sstream>
 
 
+float Util::YRotationBetweenTwoPoints(glm::vec3 a, glm::vec3 b)
+{
+	float delta_x = b.x - a.x;
+	float delta_y = b.z - a.z;
+	float theta_radians = atan2(delta_y, delta_x);
+	return -theta_radians;
+}
+
 std::string Util::FloatToString(float value, int percision)
 {
 	std::stringstream stream;
@@ -101,6 +109,92 @@ std::string Util::CharacterModelAnimationStateToString(CharacterModelAnimationSt
 		return "WALKING";
 	else
 		return "";
+}
+
+
+
+bool Util::LineIntersects(glm::vec2 begin_A, glm::vec2 end_A, glm::vec2 begin_B, glm::vec2 end_B, glm::vec2* result)
+{
+	static const auto SameSign = [](float a, float b) -> bool {
+		return ((a * b) >= 0);
+	};
+
+	// a
+	float x1 = begin_A.x;
+	float y1 = begin_A.y;
+	float x2 = end_A.x;
+	float y2 = end_A.y;
+
+	// b
+	float x3 = begin_B.x;
+	float y3 = begin_B.y;
+	float x4 = end_B.x;
+	float y4 = end_B.y;
+
+	float a1, a2, b1, b2, c1, c2;
+	float r1, r2, r3, r4;
+	float denom, offset, num;
+
+	a1 = y2 - y1;
+	b1 = x1 - x2;
+	c1 = (x2 * y1) - (x1 * y2);
+
+	r3 = ((a1 * x3) + (b1 * y3) + c1);
+	r4 = ((a1 * x4) + (b1 * y4) + c1);
+
+	if ((r3 != 0) && (r4 != 0) && SameSign(r3, r4))
+		return DONT_INTERSECT;
+
+	a2 = y4 - y3; // Compute a2, b2, c2
+	b2 = x3 - x4;
+	c2 = (x4 * y3) - (x3 * y4);
+	r1 = (a2 * x1) + (b2 * y1) + c2; // Compute r1 and r2
+	r2 = (a2 * x2) + (b2 * y2) + c2;
+
+	if ((r1 != 0) && (r2 != 0) && (SameSign(r1, r2)))
+		return DONT_INTERSECT;
+
+	denom = (a1 * b2) - (a2 * b1); //Line segments intersect: compute intersection point.
+
+	if (denom == 0)
+		return false;// COLLINEAR;
+
+	// FIND THAT INTERSECTION POINT ALREADY
+	{
+		// Line AB represented as a1x + b1y = c1
+		double a = y2 - y1;
+		double b = x1 - x2;
+		double c = a * (x1)+b * (y1);
+		// Line CD represented as a2x + b2y = c2
+		double a1 = y4 - y3;
+		double b1 = x3 - x4;
+		double c1 = a1 * (x3)+b1 * (y3);
+		double det = a * b1 - a1 * b;
+		if (det == 0) {
+
+			return DONT_INTERSECT;
+		}
+		else {
+			double x = (b1 * c - b * c1) / det;
+			double y = (a * c1 - a1 * c) / det;
+			result->x = x;
+			result->y = y;
+			return DO_INTERSECT;
+		}
+
+		return DONT_INTERSECT;
+	}
+}
+
+bool Util::LineIntersects(glm::vec3 begin_A, glm::vec3 end_A, glm::vec3 begin_B, glm::vec3 end_B, glm::vec3* result)
+{
+	// wow this is ugly
+	glm::vec2 temp;	
+	bool i = LineIntersects(glm::vec2(begin_A.x, begin_A.z), glm::vec2(end_A.x, end_A.z), glm::vec2(begin_B.x, begin_B.z), glm::vec2(end_B.x, end_B.z), &temp);
+	result->x = temp.x;
+	result->y = begin_A.y;
+	result->z = temp.y;
+	return i;
 }
 
 glm::vec3 Util::TranslationFromMat4(glm::mat4& matrix)
@@ -215,7 +309,7 @@ FileType Util::FileTypeFromPath(std::string filepath)
 void Util::SetNormalsAndTangentsFromVertices(Vertex* vert0, Vertex* vert1, Vertex* vert2)
 {
 	//if (!vert0 || !vert1 || !vert2)
-		return;
+	//	return;
 	// above can be used to replace the shit below here. its the same.
 
 	// Shortcuts for UVs

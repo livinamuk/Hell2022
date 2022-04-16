@@ -19,6 +19,7 @@
 class Util
 {
 public:
+	static float YRotationBetweenTwoPoints(glm::vec3 a, glm::vec3 b);
 	static std::string FloatToString(float value, int percision);
 	static float FInterpTo(float Current, float Target, float DeltaTime, float InterpSpeed);
 	static void DrawUpFacingPlane(Shader* shader, const glm::mat4& modelMatrix);
@@ -61,4 +62,7 @@ public:
 	static const char* CopyConstChar(const char* text);
 
 	static std::string CharacterModelAnimationStateToString(CharacterModelAnimationState state);
+
+	static bool LineIntersects(glm::vec2 begin_A, glm::vec2 end_A, glm::vec2 begin_B, glm::vec2 end_B, glm::vec2* result = nullptr);
+	static bool LineIntersects(glm::vec3 begin_A, glm::vec3 end_A, glm::vec3 begin_B, glm::vec3 end_B, glm::vec3* result = nullptr);
 };

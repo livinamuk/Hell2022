@@ -123,12 +123,12 @@ int main()
     tableTransform.rotation = glm::vec3(0, -0.5, 0);
  //   tableTransform.scale = glm::vec3(0.01);
 
-    Scene::AddEntity(AssetManager::GetModelPtr("TableSmall"), AssetManager::GetMaterialPtr("TableSmall"), tableTransform);
+   // Scene::AddEntity(AssetManager::GetModelPtr("TableSmall"), AssetManager::GetMaterialPtr("TableSmall"), tableTransform);
 
 
 
     GameData::s_player2.SetPosition(glm::vec3(0, 0, 0));
-    GameData::s_player2.SetPosition(glm::vec3(0, 0, 3));
+    GameData::s_player2.SetPosition(glm::vec3(0, 0, 2));
     GameData::s_player2.m_materialIndex = 1;
     GameData::s_player1.SetCharacterModel(AssetManager::GetSkinnedModelPtr("Nurse"));
     GameData::s_player2.SetCharacterModel(AssetManager::GetSkinnedModelPtr("Nurse"));
@@ -174,13 +174,20 @@ int main()
     double accumulator = 0.0;
     double fixedStep = 1.0 / 60.0;
 
+    Door::CreateShapes();
+
     File::LoadMap("Map.json");
+
+
 
    
   //  GameData::s_doors.push_back(Door(glm::vec3(0, 0, 2)));
 
     while (CoreGL::IsRunning() && !Input::s_keyDown[HELL_KEY_ESCAPE])
     {
+        if (Input::KeyPressed(HELL_KEY_O))
+            File::LoadMap("Map.json");
+
         double deltaTime = glfwGetTime() - lastTime;
         accumulator += deltaTime;
 
@@ -191,13 +198,16 @@ int main()
         // Update keyboard and controller states
         hellEngine.UpdateInput();
 
+
+
+
         if (!Editor::IsOpen())
         {
             
             hellEngine.Update(deltaTime);
 
-            if (GameData::s_player1.m_isAlive)
-                GameData::s_player1.ForceRagdollToMatchAnimation();
+           // if (GameData::s_player1.m_isAlive)
+            //    GameData::s_player1.ForceRagdollToMatchAnimation();
 
             if (GameData::s_player2.m_isAlive)
                 GameData::s_player2.ForceRagdollToMatchAnimation();
@@ -286,7 +296,7 @@ int main()
 
         if (Editor::IsOpen()) 
         {
-            Editor::Render(CoreGL::s_currentWidth, CoreGL::s_currentHeight); 
+            Editor::Render(CoreGL::s_currentWidth, CoreGL::s_currentHeight);
         }
         else
             hellEngine.Render();

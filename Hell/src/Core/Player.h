@@ -26,6 +26,7 @@ class Player
 {
 public: // methods
 	//void Update(float deltaTime);
+	void Interact();
 	void UpdateCamera(int renderWidth, int renderHeight);
 	void Update(float deltaTime);
 	void Respawn();
@@ -119,9 +120,9 @@ public: // fields
 
 	PxController* m_characterController = nullptr;
 
+	Camera m_camera;
 private:
 	Transform m_transform;
-	Camera m_camera;
 	bool m_isMoving = false;
 	SkinnedModel* m_skinnedModel; 
 	float m_footstepAudioTimer = 0;

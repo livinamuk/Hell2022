@@ -4,6 +4,19 @@
 #include "Physics/PhysX.h"
 #include "GameCharacter.h"
 #include "Effects/BloodPool.h"
+#include "Core/GameData.h"
+
+void Player::Interact()
+{
+	if (m_cameraRay.HitFound())
+	{
+		// Doors
+		if (m_cameraRay.m_physicsObjectType == PhysicsObjectType::DOOR) {
+			Door* door = (Door*)m_cameraRay.m_parent;
+			door->Interact();
+		}
+	}
+}
 
 void Player::UpdateCamera(int renderWidth, int renderHeight)
 {
@@ -21,6 +34,9 @@ void Player::Update(float deltaTime)
 			UpdateMovement(deltaTime);
 			UpdateAiming();
 			CheckForWeaponInput();
+
+			if (PressedInteract())
+				Interact();
 		}
 	}
 	// If player is dead
@@ -617,7 +633,7 @@ void Player::CheckForWeaponInput()
 	}
 
 	// Presses Equip
-	if (m_ammo_total == 80 && Input::KeyPressed(HELL_KEY_Q) && m_HUDWeaponAnimationState != HUDWeaponAnimationState::EQUIPPING)
+	if (Input::KeyPressed(HELL_KEY_Q) && m_HUDWeaponAnimationState != HUDWeaponAnimationState::EQUIPPING)
 	{
 		m_HUD_Weapon.PlayAnimation("Glock_FirstEquip1.fbx");
 		m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
@@ -993,11 +1009,11 @@ void Player::RenderCharacterModel(Shader* shader)
 	{
 		if (m_materialIndex == 0)
 			if (m_skinnedModel->m_meshEntries[i].material)
-				glBindTexture(GL_TEXTURE_2D, m_skinnedModel->m_meshEntries[i].material->ALB);
+				m_skinnedModel->m_meshEntries[i].material->Bind();
 
 		if (m_materialIndex == 1)
 			if (m_skinnedModel->m_meshEntries[i].materialB)
-				glBindTexture(GL_TEXTURE_2D, m_skinnedModel->m_meshEntries[i].materialB->ALB);
+				m_skinnedModel->m_meshEntries[i].materialB->Bind();
 
 		glDrawElementsBaseVertex(GL_TRIANGLES, m_skinnedModel->m_meshEntries[i].NumIndices, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * m_skinnedModel->m_meshEntries[i].BaseIndex), m_skinnedModel->m_meshEntries[i].BaseVertex);
 	}

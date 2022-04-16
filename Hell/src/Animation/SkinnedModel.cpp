@@ -25,10 +25,10 @@ void SkinnedModel::Render(Shader* shader, const glm::mat4& modelMatrix, int mate
 
         if (materialIndex == 0)
             if (m_meshEntries[i].material)
-                glBindTexture(GL_TEXTURE_2D, m_meshEntries[i].material->ALB);
+               m_meshEntries[i].material->Bind();
         else if (materialIndex == 1)
             if (m_meshEntries[i].materialB)
-                glBindTexture(GL_TEXTURE_2D, m_meshEntries[i].materialB->ALB);
+                m_meshEntries[i].materialB->Bind();
 
         glDrawElementsBaseVertex(GL_TRIANGLES, m_meshEntries[i].NumIndices, GL_UNSIGNED_INT, (void*)(sizeof(unsigned int) * m_meshEntries[i].BaseIndex), m_meshEntries[i].BaseVertex);
     }

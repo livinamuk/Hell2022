@@ -15,6 +15,8 @@ public:
 	static std::vector<Room> s_rooms;
 	static std::vector<Door> s_doors;
 
-	static void LoadMap(std::string path);
-	static void SaveMap(std::string path);
+	static void Clear();
+	static void Update(float deltaTime);
+
+	static bool s_splitScreen;
 };

@@ -66,9 +66,8 @@ public: // field
 
 	ContactReportCallback gContactReportCallback;
 	static std::vector<PxVec3> gContactPositions;
-	static std::vector<PxVec3> gContactImpulses;
-
-
+	static std::vector<PxVec3> gContactImpulses;	
+	
 public: // static functions
 	static PxPhysics* GetPhysics();
 	static PxScene* GetScene();

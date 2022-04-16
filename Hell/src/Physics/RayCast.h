@@ -14,4 +14,6 @@ public: // fields
 	glm::vec3 m_surfaceNormal;
 	bool m_hitFound;
 	void* m_hitActor;
+	void* m_parent;
+	PhysicsObjectType m_physicsObjectType;
 };

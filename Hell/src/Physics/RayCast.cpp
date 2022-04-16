@@ -29,6 +29,8 @@ void RayCast::CastRay(glm::vec3 rayOrigin, glm::vec3 rayDirection, float rayLeng
 	m_surfaceNormal = glm::vec3(0, 0, 0);
 	m_hitFound = false;
 	m_hitActor = nullptr;
+	m_parent = nullptr;
+	m_physicsObjectType = PhysicsObjectType::UNDEFINED;
 
 	if (status)
 	{
@@ -42,6 +44,10 @@ void RayCast::CastRay(glm::vec3 rayOrigin, glm::vec3 rayDirection, float rayLeng
 		m_surfaceNormal = glm::vec3(hit.block.normal.x, hit.block.normal.y, hit.block.normal.z);
 		m_hitFound = true;
 		m_hitActor = hit.block.actor;
+
+		EntityData* hitEntityData = (EntityData*)hit.block.actor->userData;		
+		m_parent = hitEntityData->parent;
+		m_physicsObjectType = hitEntityData->type;
 	}
 }
 

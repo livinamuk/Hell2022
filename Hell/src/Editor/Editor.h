@@ -105,7 +105,9 @@ private:
 	static glm::vec3 GetClosestPointFromMouseToHoveredLine();
 	static void PlaceDoorAtMousePos();
 
+public: //
 	static void ReCalculateAllDoorPositions();
+	static void RebuildAllMeshData();
 
 private: // fields
 	static bool s_isOpen;

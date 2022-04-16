@@ -48,8 +48,7 @@ void HellEngine::Init()
 		}
 	}
 
-	if (m_controllers.size() == 0)
-		GameData::s_player2.m_enableControl = false;
+	
 	if (m_controllers.size() > 0)
 		GameData::s_player2.SetControllerIndex(m_controllers[0]);
 	if (m_controllers.size() > 1)
@@ -61,6 +60,19 @@ void HellEngine::Init()
 
 void HellEngine::Update(float deltaTime)
 {
+	if (Input::KeyPressed(HELL_KEY_C))
+		m_switchToPlayer2 = !m_switchToPlayer2;
+
+	if (m_controllers.size() == 0) {
+		GameData::s_player1.m_enableControl = true;
+		GameData::s_player2.m_enableControl = true;
+		if (m_switchToPlayer2)
+			GameData::s_player1.m_enableControl = false;
+		else
+			GameData::s_player2.m_enableControl = false;
+	}
+
+
 	GameData::s_player1.Update(deltaTime);
 	GameData::s_player2.Update(deltaTime);
 		
@@ -78,6 +90,8 @@ void HellEngine::Update(float deltaTime)
 	for (BloodPool& bloodPool : Scene::s_bloodPools) {
 		bloodPool.Update(deltaTime);
 	}
+
+	GameData::Update(deltaTime);
 
     //if (Input::s_keyPressed[HELL_KEY_P])
        m_physx.StepPhysics();
@@ -104,6 +118,10 @@ void HellEngine::CheckForDebugKeyPresses()
 	if (Input::KeyPressed(HELL_KEY_TAB)) {
 		Editor::ToggleEditor();
 		Audio::PlayAudio("UI_Select2.wav", 0.5f);
+	}	
+	
+	if (Input::KeyPressed(HELL_KEY_CAPS_LOCK)) {
+		Renderer::s_showBuffers = !Renderer::s_showBuffers;
 	}
 
 	//if (Input::KeyPressed(HELL_KEY_G))
@@ -137,7 +155,7 @@ void HellEngine::CheckForDebugKeyPresses()
 		m_currentPlayer = 2;
 
 	if (Input::KeyPressed(HELL_KEY_T))
-		m_Splitscreen = !m_Splitscreen;
+		GameData::s_splitScreen = !GameData::s_splitScreen;
 
 
 }
@@ -152,7 +170,7 @@ void HellEngine::Render()
 	int renderHeight = CoreGL::s_currentHeight;
 
 	// If split screen then modify that
-	if (m_Splitscreen) {
+	if (GameData::s_splitScreen) {
 		renderWidth = CoreGL::s_currentWidth;
 		renderHeight = CoreGL::s_currentHeight / 2;
 		glViewport(0, CoreGL::s_currentHeight / 2, CoreGL::s_currentWidth, CoreGL::s_currentHeight/2);
@@ -162,10 +180,10 @@ void HellEngine::Render()
 	GameData::s_player1.UpdateCamera(renderWidth, renderHeight);
 	
 	glBindBuffer(GL_UNIFORM_BUFFER, Renderer::m_uboMatrices);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(GameData::s_player1.GetCameraProjectionMatrix()));
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-    glBindBuffer(GL_UNIFORM_BUFFER, Renderer::m_uboMatrices);
-    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(GameData::s_player1.GetCameraViewMatrix()));
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 0, sizeof(glm::mat4), glm::value_ptr(GameData::s_player1.GetCameraProjectionMatrix()));
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 1, sizeof(glm::mat4), glm::value_ptr(GameData::s_player1.GetCameraViewMatrix()));
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 3, sizeof(glm::mat4), glm::value_ptr(glm::inverse(GameData::s_player1.GetCameraProjectionMatrix())));
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 4, sizeof(glm::mat4), glm::value_ptr(glm::inverse(GameData::s_player1.GetCameraViewMatrix())));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 
@@ -173,7 +191,7 @@ void HellEngine::Render()
 
 	GameData::s_player1.SpawnGlockCasing();
 
-	m_renderer.RenderFrame(GameData::s_player1.GetCameraPointer(), renderWidth, renderHeight, 1, m_Splitscreen);
+	m_renderer.RenderFrame(GameData::s_player1.GetCameraPointer(), renderWidth, renderHeight, 1);
 
 
 	/*if (!Input::s_keyDown[HELL_KEY_C])
@@ -182,20 +200,20 @@ void HellEngine::Render()
 		m_player2.m_isAlive = false;*/
 
 	// Player 2 
-	if (m_Splitscreen) 
+	if (GameData::s_splitScreen)
 	{
 		glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight / 2);
 
 		GameData::s_player2.UpdateCamera(renderWidth, renderHeight);
 
 		glBindBuffer(GL_UNIFORM_BUFFER, Renderer::m_uboMatrices);
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(GameData::s_player2.GetCameraProjectionMatrix()));
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-		glBindBuffer(GL_UNIFORM_BUFFER, Renderer::m_uboMatrices);
-		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(GameData::s_player2.GetCameraViewMatrix()));
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 0, sizeof(glm::mat4), glm::value_ptr(GameData::s_player2.GetCameraProjectionMatrix()));
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 1, sizeof(glm::mat4), glm::value_ptr(GameData::s_player2.GetCameraViewMatrix()));
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 2, sizeof(glm::mat4), glm::value_ptr(glm::inverse(GameData::s_player2.GetCameraProjectionMatrix())));
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 3, sizeof(glm::mat4), glm::value_ptr(glm::inverse(GameData::s_player2.GetCameraViewMatrix())));
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-		m_renderer.RenderFrame(GameData::s_player2.GetCameraPointer(), renderWidth, renderHeight, 2, m_Splitscreen);
+		m_renderer.RenderFrame(GameData::s_player2.GetCameraPointer(), renderWidth, renderHeight, 2);
 	}
 
 	// Render final image to default frame buffer
@@ -206,6 +224,30 @@ void HellEngine::Render()
 	//glBindTexture(GL_TEXTURE_2D, m_renderer.s_gBuffer.gAlbedo);
 	glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight);
 	Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
+
+
+	if (Renderer::s_showBuffers)
+	{
+		glViewport(0, CoreGL::s_currentHeight / 2, CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gAlbedo);
+		Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
+
+		glViewport(CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2, CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gNormal);
+		Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
+
+		glViewport(0, 0, CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gRMA);
+		Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
+
+		glViewport(CoreGL::s_currentWidth / 2, 0, CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gLighting);
+		Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
+	}
 
 	// Text blitter UI
 	Renderer::TextBlitterPass(&Renderer::s_textued_2D_quad_shader);

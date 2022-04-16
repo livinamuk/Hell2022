@@ -36,6 +36,15 @@
 #define HELL_PI	(float)3.14159265358979323846
 #define EDITOR_GRID_SIZE 0.1f
 
+#define RED		glm::vec3(1, 0, 0)
+#define GREEN	glm::vec3(0, 1, 0)
+#define BLUE	glm::vec3(0, 0, 1)
+#define YELLOW	glm::vec3(1, 1, 0)
+
+#define DOOR_WIDTH 0.8f
+#define DOOR_DEPTH 0.04f
+#define DOOR_HEIGHT 2.0f
+
 struct ControllerState
 {
 	std::vector<bool> buttons_down;
@@ -146,13 +155,13 @@ struct EntityData {
 	void* parent;
 };
 
-/*enum class CollisionGroups {
+enum class CollisionGroups {
 	NONE = 0,
 	TERRAIN = 1 << 0,
 	STATIC_ENTITY = 1 << 1,
 	PLAYER_1 = 1 << 2,
 	PLAYER_2 = 2 << 3,
-};*/
+};
 
 enum ActiveGroup
 {
@@ -162,6 +171,12 @@ enum ActiveGroup
 	//GROUP3 = (1 << 2),
 	//GROUP4 = (1 << 3),
 };
+
+#define WORLD_GROUND_SIZE
+
+#define DONT_INTERSECT 0
+#define DO_INTERSECT 1
+#define COLLINEAR 2
 
 #define WORLD_GROUND_SIZE	150.0f
 #define WORLD_GROUND_HEIGHT	1.0f

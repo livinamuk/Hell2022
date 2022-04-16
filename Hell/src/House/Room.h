@@ -11,10 +11,16 @@ public:
 	std::vector<unsigned int> m_indices;
 	std::vector<Wall> m_walls;
 
+	std::vector<glm::mat4> m_floorTrimMatrices;
+	std::vector<glm::mat4> m_ceilingTrimMatrices;
+
 	float m_sumOfEdges = 0;
-	unsigned int m_VAO = 0;
-	unsigned int m_VBO = 0;
-	unsigned int m_EBO = 0;
+	unsigned int m_floor_VAO = 0;
+	unsigned int m_floor_VBO = 0;
+	unsigned int m_floor_EBO = 0;
+	unsigned int m_ceiling_VAO = 0;
+	unsigned int m_ceiling_VBO = 0;
+	unsigned int m_ceiling_EBO = 0;
 	bool m_invertWallNormals = false;
 
 	Room();

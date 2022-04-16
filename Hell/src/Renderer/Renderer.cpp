@@ -19,23 +19,24 @@ PhysX* Renderer::p_physX;
 std::unordered_map<std::string, Model>* Renderer::p_models;
 */	
 
-Shader Renderer::s_test_shader;
+Shader Renderer::s_geometry_shader;
 Shader Renderer::s_solid_color_shader;
 Shader Renderer::s_textued_2D_quad_shader;
-Shader Renderer::s_skinned_model_shader;
+Shader Renderer::s_lighting_shader;
 Shader Renderer::s_final_pass_shader;
 Shader Renderer::s_solid_color_shader_editor; 
 //Shader Renderer::s_textured_editor_shader;
 GBuffer Renderer::s_gBuffer;
 unsigned int Renderer::m_uboMatrices;
+bool Renderer::s_showBuffers = false;
 
 void Renderer::Init(int screenWidth, int screenHeight)
 {
-    s_test_shader = Shader("test.vert", "test.frag");
+    s_geometry_shader = Shader("geometry.vert", "geometry.frag");
     s_solid_color_shader = Shader("solidColor.vert", "solidColor.frag");
     s_solid_color_shader_editor = Shader("solidColorEditor.vert", "solidColorEditor.frag");
     s_textued_2D_quad_shader = Shader("textured2DquadShader.vert", "textured2DquadShader.frag");
-    s_skinned_model_shader = Shader("skinnedmodel.vert", "skinnedmodel.frag");
+    s_lighting_shader = Shader("lighting.vert", "lighting.frag");
     s_final_pass_shader = Shader("FinalPass.vert", "FinalPass.frag");
     //s_textured_editor_shader = Shader("texturedEditorShader.vert", "texturedEditorShader.frag");
 
@@ -44,19 +45,19 @@ void Renderer::Init(int screenWidth, int screenHeight)
 
     s_gBuffer = GBuffer(screenWidth, screenHeight);
 
-    glUniformBlockBinding(s_skinned_model_shader.ID, glGetUniformBlockIndex(s_skinned_model_shader.ID, "Matrices"), 0);
-    glUniformBlockBinding(s_test_shader.ID, glGetUniformBlockIndex(s_test_shader.ID, "Matrices"), 0);
+    glUniformBlockBinding(s_lighting_shader.ID, glGetUniformBlockIndex(s_lighting_shader.ID, "Matrices"), 0);
+    glUniformBlockBinding(s_geometry_shader.ID, glGetUniformBlockIndex(s_geometry_shader.ID, "Matrices"), 0);
 
     glGenBuffers(1, &m_uboMatrices);
     glBindBuffer(GL_UNIFORM_BUFFER, m_uboMatrices);
-    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, 4 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-    glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_uboMatrices, 0, 2 * sizeof(glm::mat4));
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_uboMatrices, 0, 4 * sizeof(glm::mat4));
 
 }
 
 
-void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, int player, bool splitscreen)
+void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, int player)
 {
     DrawGrid(camera->m_transform.position, true);
 
@@ -80,65 +81,14 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
     }
     else
     {
-        glEnable(GL_DEPTH_TEST);
-
-        Shader* shader = &s_test_shader;
-        shader->use();
-
-        // Draw scene
-        for (EntityStatic entityStatic : Scene::s_staticEntities)
-            entityStatic.DrawEntity(shader);
-
-        // Draw Rooms
-        for (auto& room : GameData::s_rooms) 
-        {
-            room.DrawFloor(shader);
-            room.DrawCeiling(shader);
-            room.DrawWalls(shader);
-        }
-
-        // Draw doors
-        for (auto& door : GameData::s_doors)
-            door.Draw(shader);
-
-        glEnable(GL_BLEND);
-        //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO); 
-        glBlendEquation(GL_FUNC_ADD);
-
-        for (BloodPool bloodPool: Scene::s_bloodPools)
-            bloodPool.Draw(shader);
-   
-        glDisable(GL_BLEND);
-
-
-   
-
-        // Draw ragdolls
-        shader = &s_skinned_model_shader;
-        shader->use();
-        shader->setBool("hasAnimation", true);
-        shader->setMat4("model", glm::mat4(1));
-
-        for (GameCharacter& gameCharacter : Scene::s_gameCharacters)
-        {
-            gameCharacter.RenderSkinnedModel(shader);
-        }
-
-        if (player == 2) {
-            GameData::s_player1.RenderCharacterModel(shader);
-        }
-
-        if (player == 1) {
-            GameData::s_player2.RenderCharacterModel(shader);
-        }
-
-
+        GeometryPass(player);
+        LightingPass(player, renderWidth, renderHeight);
+    
         // render player weapons
         if (player == 1) 
         {
             if (GameData::s_player1.m_isAlive) {
-                GameData::s_player1.m_HUD_Weapon.Render(&s_skinned_model_shader);
+              //  GameData::s_player1.m_HUD_Weapon.Render(&s_geometry_shader);
                 RenderPlayerCrosshair(renderWidth, renderHeight, &GameData::s_player1);
             }
             else
@@ -150,7 +100,7 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
         {
             if (GameData::s_player2.m_isAlive)
             {
-                GameData::s_player2.m_HUD_Weapon.Render(&s_skinned_model_shader);
+             //   GameData::s_player2.m_HUD_Weapon.Render(&s_geometry_shader);
                 RenderPlayerCrosshair(renderWidth, renderHeight, &GameData::s_player2);
             }
             else
@@ -159,6 +109,7 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
         }
     }
 
+    RenderDebugShit();
 
     static unsigned int VAO = 0;
     if (VAO == 0) {
@@ -236,15 +187,19 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
 
 
     glDisable(GL_DEPTH_TEST);
-    glDrawBuffer(GL_COLOR_ATTACHMENT1);
+    glDrawBuffer(GL_COLOR_ATTACHMENT3);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, s_gBuffer.gAlbedo);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, s_gBuffer.gLighting);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, s_gBuffer.gNormal);
 
     if (player == 1) {
         s_final_pass_shader.use();
         s_final_pass_shader.setFloat("u_timeSinceDeath", GameData::s_player1.m_timeSinceDeath);
-        if (splitscreen)
+        if (GameData::s_splitScreen)
             Draw_2_Player_Split_Screen_Quad_Top(&s_final_pass_shader);
         else
             DrawFullScreenQuad(&s_final_pass_shader);
@@ -408,6 +363,8 @@ void Renderer::DrawGrid(glm::vec3 cameraPos, bool renderFog)
     shader->setBool("u_renderFog", false);
 }
 
+
+
 void Renderer::TextBlitterPass(Shader* shader)
 {
     glEnable(GL_BLEND);
@@ -425,15 +382,15 @@ void Renderer::TextBlitterPass(Shader* shader)
 
 void Renderer::DrawLine(Shader* shader, glm::vec3 p1, glm::vec3 p2, glm::vec3 color)
 {
-    unsigned int VAO = 0;
+    static unsigned int VAO = 0;
+    static unsigned int VBO;
     if (VAO == 0) {
-        unsigned int VBO;
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
     }
     float vertices[] = { p1.x, p1.y, p1.z, p2.x, p2.y, p2.z };
-    glBindVertexArray(VAO); 
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);    
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -442,40 +399,16 @@ void Renderer::DrawLine(Shader* shader, glm::vec3 p1, glm::vec3 p2, glm::vec3 co
     glBindVertexArray(VAO);
     glDrawArrays(GL_LINES, 0, 2);
 
-    glDeleteBuffers(1, &VAO);
+    //glDeleteBuffers(1, &VAO);
 }
-
-/*void Renderer::DrawLine(Shader* shader, Line line, glm::mat4 modelMatrix = glm::mat4(1))
-{
-    static unsigned int VAO = 0;
-    static unsigned int VBO;
-    if (VAO == 0) {
-        glGenVertexArrays(1, &VAO);
-        glGenBuffers(1, &VBO);
-    }
-    float vertices[] = {
-        line.start_pos.r,  line.start_pos.g,  line.start_pos.b,  line.start_color.r,  line.start_color.g,  line.start_color.b,
-        line.end_pos.r,  line.end_pos.g,  line.end_pos.b,  line.end_color.r,  line.end_color.g,  line.end_color.b,
-    };
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindVertexArray(VAO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    shader->setMat4("model", modelMatrix);
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_LINES, 0, 6);
-}*/
 
 void Renderer::HotLoadShaders()
 {
-    s_test_shader.ReloadShader();
+    s_geometry_shader.ReloadShader();
     s_solid_color_shader.ReloadShader();
     s_solid_color_shader_editor.ReloadShader();
     s_textued_2D_quad_shader.ReloadShader();
-    s_skinned_model_shader.ReloadShader();
+    s_lighting_shader.ReloadShader();
     s_final_pass_shader.ReloadShader();
 }
 
@@ -774,4 +707,174 @@ void Renderer::DrawQuad(Shader* shader, glm::mat4 modelMatrix, GLuint texID)
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
+}
+
+void Renderer::RenderDebugShit()
+{
+    return;
+    glDisable(GL_DEPTH_TEST);
+
+    Shader* shader = &s_solid_color_shader;
+    shader->use();
+
+    for (Door& door : GameData::s_doors)
+    {
+        PxVec3 p = door.m_rigid->getGlobalPose().p;
+        PxQuat q = door.m_rigid->getGlobalPose().q;
+
+        glm::vec3 position(p.x, p.y, p.z);
+        glm::quat rotation(q.w, q.x, q.y, q.z);
+
+        glm::mat4 m = Transform(position).to_mat4();
+
+        DrawPoint(shader, m, RED);
+
+        glm::mat4 m2 = glm::translate(glm::mat4(1), glm::vec3(0.0f, 0, 0.1f));
+        m2 *= glm::mat4_cast(rotation);
+
+      //  DrawPoint(shader, m * m2, YELLOW);
+
+        glm::mat4 mat = Util::PxMat44ToGlmMat4(door.m_rigid->getGlobalPose());
+
+        glm::vec3 basisX = mat[0];
+        glm::vec3 basisY = mat[1];
+        glm::vec3 basisZ = mat[2];
+
+        DrawPoint(shader, Transform(position + (basisZ * 0.1f)).to_mat4(), YELLOW);
+
+       // glm::mat4 newPoint
+        //Transform t = 
+    }
+   // PxVec3 pos = 
+
+}
+
+void Renderer::GeometryPass(int player)
+{
+    unsigned int attachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 , GL_COLOR_ATTACHMENT4 };
+    glDrawBuffers(5, attachments);
+
+    glEnable(GL_DEPTH_TEST);
+
+    Shader* shader = &s_geometry_shader;
+    shader->use();
+
+    DrawScene(shader, player);
+
+    // render player weapons
+    if (player == 1)
+    {
+        if (GameData::s_player1.m_isAlive)
+            GameData::s_player1.m_HUD_Weapon.Render(&s_geometry_shader);
+    }
+    if (player == 2)
+    {
+        if (GameData::s_player2.m_isAlive)
+            GameData::s_player2.m_HUD_Weapon.Render(&s_geometry_shader);
+    }
+}
+
+void Renderer::LightingPass(int player, int renderWidth, int renderHeight)
+{
+    
+    Shader* shader = &s_lighting_shader;
+    shader->use();
+    shader->setFloat("far_plane", FAR_PLANE);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gAlbedo);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gNormal);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gRMA);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.rboDepth);
+    
+    unsigned int attachments[1] = { GL_COLOR_ATTACHMENT4 };
+    glDrawBuffers(1, attachments);
+
+    glDisable(GL_DEPTH_TEST);
+
+
+    shader->setFloat("screenWidth", CoreGL::s_currentWidth);
+    shader->setFloat("screenHeight", CoreGL::s_currentHeight);
+    
+    if (player == 1) 
+    {
+        shader->setVec3("camPos", GameData::s_player1.GetPosition() + glm::vec3(0, GameData::s_player1.m_cameraViewHeight, 0));
+
+        if (GameData::s_splitScreen) {
+            shader->setInt("player", 1);
+            Draw_2_Player_Split_Screen_Quad_Top(shader);
+        }
+        else
+        {
+            shader->setInt("player", 0);
+            DrawFullScreenQuad(shader);
+        }
+    }
+    else if (player == 2)
+    {
+        shader->setInt("player", 2);
+       shader->setVec3("camPos", GameData::s_player2.m_camera.m_viewPos);
+        Draw_2_Player_Split_Screen_Quad_Bottom(shader);
+    }
+       
+    unsigned int attachments2[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 , GL_COLOR_ATTACHMENT4 };
+    glDrawBuffers(5, attachments2);
+
+    glEnable(GL_DEPTH_TEST);
+}
+
+void Renderer::DrawScene(Shader* shader, int player)
+{
+    // Draw scene
+    for (EntityStatic entityStatic : Scene::s_staticEntities)
+        entityStatic.DrawEntity(shader);
+
+    // Draw Rooms
+    for (auto& room : GameData::s_rooms)
+    {
+        room.DrawFloor(shader);
+        room.DrawCeiling(shader);
+        room.DrawWalls(shader);
+    }
+
+
+    // Draw doors
+    for (auto& door : GameData::s_doors)
+        door.Draw(shader);
+
+    glEnable(GL_BLEND);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+    glBlendEquation(GL_FUNC_ADD);
+
+    for (BloodPool bloodPool : Scene::s_bloodPools)
+        bloodPool.Draw(shader);
+
+    glDisable(GL_BLEND);
+
+
+
+
+    // Draw ragdolls
+    //shader = &s_lighting_shader;
+    shader->use();
+    shader->setBool("hasAnimation", true);
+    shader->setMat4("model", glm::mat4(1));
+
+    for (GameCharacter& gameCharacter : Scene::s_gameCharacters)
+    {
+        gameCharacter.RenderSkinnedModel(shader);
+    }
+
+    if (player == 2) {
+        GameData::s_player1.RenderCharacterModel(shader);
+    }
+
+    if (player == 1) {
+        GameData::s_player2.RenderCharacterModel(shader);
+    }
+
 }

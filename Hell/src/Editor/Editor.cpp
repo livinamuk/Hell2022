@@ -63,17 +63,6 @@ bool PointInTriangle(glm::vec3 pt, glm::vec3 v1, glm::vec3 v2, glm::vec3 v3)
     return !(has_neg && has_pos);
 }
 
-/* TRY THISSSSSS
-function SameSide(p1, p2, a, b)
-cp1 = CrossProduct(b - a, p1 - a)
-cp2 = CrossProduct(b - a, p2 - a)
-if DotProduct(cp1, cp2) >= 0 then return true
-else return false
-
-function PointInTriangle(p, a, b, c)
-if SameSide(p, a, b, c) and SameSide(p, b, a, c)
-and SameSide(p, c, a, b) then return true
-else return false*/
 
 void Editor::CheckForHoveredDoor()
 {
@@ -184,6 +173,12 @@ glm::vec3 Editor::GetMouseGridPosVec3()
     return glm::vec3(s_gridX, 0, s_gridZ);
 }
 
+void Editor::RebuildAllMeshData()
+{
+    for (Room& room : GameData::s_rooms)
+        room.BuildMeshFromVertices();
+}
+
 glm::vec3 Editor::GetMousePosVec3()
 {
     return glm::vec3(s_mouseX, 0, s_mouseZ);
@@ -196,7 +191,7 @@ void Editor::Update(float screenWidth, float screenHeight)
         File::SaveMap("Map.json");
 
     if (Input::s_keyDown[HELL_KEY_N])
-        GameData::s_rooms.clear();
+        GameData::Clear();
 
     if (Input::s_keyDown[HELL_KEY_W])
         s_cameraZ -= s_scrollSpeed;
@@ -272,6 +267,7 @@ void Editor::Update(float screenWidth, float screenHeight)
     if (Input::KeyPressed(HELL_KEY_1) && s_editorAction == Action::IDLE && s_hoveredLine.found)
     {
         PlaceDoorAtMousePos();
+        RebuildAllMeshData();
     }
 
 
@@ -425,6 +421,11 @@ void Editor::Update(float screenWidth, float screenHeight)
                 room->BuildMeshFromVertices();
 
                 s_newRoomVertices.clear();
+
+
+               // Editor::ReCalculateAllDoorPositions();
+               // Editor::RebuildAllMeshData();
+
                 s_editorAction = Action::IDLE;
                 Audio::PlayAudio("UI_Select4.wav");
             }
@@ -434,11 +435,12 @@ void Editor::Update(float screenWidth, float screenHeight)
                 s_newRoomVertices.emplace_back(point);
                 Audio::PlayAudio("UI_Select3.wav");
             }
+
         }
     } 
 
     // Add vertex to hovered line
-    if (Input::KeyPressed(HELL_KEY_SPACE) && s_hoveredLine.found)
+    if (Input::KeyPressed(HELL_KEY_SPACE) && s_hoveredLine.found && s_editorAction != Action::CREATING_ROOM)
     {
         Room* room = static_cast<Room*>(s_hoveredLine.room);
 
@@ -560,14 +562,15 @@ void Editor::Render(float screenWidth, float screenHeight)
     glPointSize(13);
     glDisable(GL_DEPTH_TEST);
 
-    Shader* shader = &Renderer::s_test_shader;
+    Shader* shader = &Renderer::s_geometry_shader;
     shader->use();
 
 
 
     // Draw rooms
-    for (auto& room : GameData::s_rooms)
+    for (auto& room : GameData::s_rooms) {
         room.DrawFloor(shader);
+    }
 
     // Draw static entities
     for (EntityStatic entityStatic : Scene::s_staticEntities)
@@ -616,6 +619,7 @@ void Editor::Render(float screenWidth, float screenHeight)
         // remove that temporary final element of the vertices vector that u added
         room.m_vertices.pop_back();
     }
+
 
     // Render the lines and vertices any room in creation
     {
@@ -686,16 +690,75 @@ void Editor::Render(float screenWidth, float screenHeight)
     }
     
 
-    glm::vec3 p = ClosestPointOnLine(GetMouseGridPosVec3(), GameData::s_rooms[0].m_vertices[0], GameData::s_rooms[0].m_vertices[1]);
 
-    Renderer::DrawPoint(shader, p, glm::vec3(0, 1, 1));
+
+    //glm::vec3 p = ClosestPointOnLine(GetMouseGridPosVec3(), GameData::s_rooms[0].m_vertices[0], GameData::s_rooms[0].m_vertices[1]);
+
+  //  Renderer::DrawPoint(shader, p, glm::vec3(0, 1, 1));
+
+
+
+  /*
+
+
+    glLineWidth(6);
+ Line lineA;
+    lineA.start.x = GameData::s_doors[0].GetVert1().x;
+    lineA.start.z = GameData::s_doors[0].GetVert1().z;
+    lineA.end.x = GameData::s_doors[0].GetVert2().x;
+    lineA.end.z = GameData::s_doors[0].GetVert2().z;
+
+    Line lineB;
+    lineB.start.x = -2.6;
+    lineB.start.z = -1.7;
+    lineB.end.x = s_mouseX;
+    lineB.end.z = s_mouseZ;
+
+
+    float x = -1;
+    float z = -1;
+
+    glm::vec2 begin_a(lineA.start.x, lineA.start.z);
+    glm::vec2 end_a(lineA.end.x, lineA.end.z);
+
+    glm::vec2 begin_b(lineB.start.x, lineB.start.z);
+    glm::vec2 end_b(lineB.end.x, lineB.end.z);
+    
+    glm::vec2 result(0, 0);
+
+    int test = Util::LineIntersects(begin_a, end_a, begin_b, end_b, &result);
+
+    glm::vec3 color = glm::vec3(1, 1, 0);
+
+    if (test == DO_INTERSECT)
+        color = glm::vec3(1, 0, 1);
+
+
+    Renderer::DrawLine(shader, glm::vec3(lineA.start.x, 0, lineA.start.z), glm::vec3(lineA.end.x, 0, lineA.end.z), glm::vec3(1, 1, 0));
+    Renderer::DrawLine(shader, glm::vec3(lineB.start.x, 0, lineB.start.z), glm::vec3(lineB.end.x, 0, lineB.end.z), color);
+
+    Renderer::DrawPoint(shader, glm::vec3(result.x, 0, result.y), glm::vec3(1, 1, 1));
+    */
+
+    glLineWidth(1);
+
 
 
     SubmitBlitterText();
     Renderer::TextBlitterPass(&Renderer::s_textued_2D_quad_shader);
 
     glLineWidth(1);
-}
+
+
+
+
+
+    }
+
+
+
+
+
 
 
 
@@ -706,7 +769,7 @@ void Editor::SubmitBlitterText()
     TextBlitter::BlitLine(" ");
    // TextBlitter::BlitLine("New room verts: " + std::to_string(Editor::s_newRoom.m_vertices.size()));
 
-    if (GameData::s_rooms.size() > 0)
+   /* if (GameData::s_rooms.size() > 0)
         TextBlitter::BlitLine("Sum of edges: " + std::to_string(GameData::s_rooms[0].m_sumOfEdges));
 
     if (s_hoveredLine.found) {
@@ -717,7 +780,45 @@ void Editor::SubmitBlitterText()
     if (GameData::s_doors.size() > 0) {
         TextBlitter::BlitLine("Door vert A: " + std::to_string(GameData::s_doors[0].m_parentIndexVertexA));
         TextBlitter::BlitLine("Door vert B: " + std::to_string(GameData::s_doors[0].m_parentIndexVertexB));
-    }
+    }*/
+
+   /* if (s_hoveredDoor.WasFound())
+    {
+        Door* door = s_hoveredDoor.door;
+
+        PxQuat q = door->m_rigid->getGlobalPose().q;
+        //glm::quat rotation(q.w, q.x, q.y, q.z);
+
+        std::string str = "Door rot: ";
+        str += std::to_string(q.w) + " ";
+        str += std::to_string(q.x) + " ";
+        str += std::to_string(q.y) + " ";
+        str += std::to_string(q.z); 
+        TextBlitter::BlitLine(str);
+    }*/
+
+
+  /*  if (GameData::s_rooms.size() > 0)
+    {
+
+        TextBlitter::BlitLine("VERT COUNT: " + std::to_string(GameData::s_rooms[0].m_vertices.size()));
+
+        for (int i = 0; i < GameData::s_rooms[0].m_walls.size(); i++) {
+            TextBlitter::BlitLine("wall vert count: " + std::to_string(i) + " " + std::to_string(GameData::s_rooms[0].m_walls[i].m_vertices.size()) + " " + std::to_string(GameData::s_rooms[0].m_walls[i].m_VAO));
+
+            auto v1 = GameData::s_rooms[0].m_walls[i].m_vertices[0];
+            auto v2 = GameData::s_rooms[0].m_walls[i].m_vertices[1];
+            auto v3 = GameData::s_rooms[0].m_walls[i].m_vertices[2];
+            auto v4 = GameData::s_rooms[0].m_walls[i].m_vertices[3];
+
+            TextBlitter::BlitLine(" -" + std::to_string(v1.Position.x) + " " + std::to_string(v1.Position.y) + " " + std::to_string(v1.Position.z));
+            TextBlitter::BlitLine(" -" + std::to_string(v2.Position.x) + " " + std::to_string(v2.Position.y) + " " + std::to_string(v2.Position.z));
+            TextBlitter::BlitLine(" -" + std::to_string(v3.Position.x) + " " + std::to_string(v3.Position.y) + " " + std::to_string(v3.Position.z));
+            TextBlitter::BlitLine(" -" + std::to_string(v4.Position.x) + " " + std::to_string(v4.Position.y) + " " + std::to_string(v4.Position.z));
+
+        }
+
+    }*/
 
 }
 
@@ -802,6 +903,7 @@ void Editor::DragSelectedVertex()
         if (glm::distance(it->m_transform.position, it->GetParentVert1()) <= 0.6f ||
             glm::distance(it->m_transform.position, it->GetParentVert2()) <= 0.6f) 
         {
+            it->RemoveCollisionObject();
             it = GameData::s_doors.erase(it);
 
             if (s_selectedState == SelectedState::DOOR_SELECTED)
@@ -823,11 +925,12 @@ void Editor::DragSelectedVertex()
         }
     }*/
 
-    for (Room& room : GameData::s_rooms)
-        room.BuildMeshFromVertices();
+    //for (Room& room : GameData::s_rooms)
+    //    room.BuildMeshFromVertices();
 
 
     ReCalculateAllDoorPositions();
+    RebuildAllMeshData();
 
     // ok u should only do a lot of this shit above for the current room. FIX LATER.
 }
@@ -1001,7 +1104,11 @@ void Editor::ReCalculateAllDoorPositions()
 
        door.m_transform.rotation.y = -theta_radians;
 
-       //  
+       
+       if (door.m_rigid != nullptr)
+           door.RemoveCollisionObject();
+
+       door.CreateCollisionObject();
     }
 }
 
@@ -1038,10 +1145,12 @@ void Editor::PlaceDoorAtMousePos()
                 door->m_transform.position = GetClosestPointFromMouseToHoveredLine();
                 door->m_parentIndexVertexA = s_hoveredLine.vertIndex1;
                 door->m_parentIndexVertexB = s_hoveredLine.vertIndex2;
-                ReCalculateAllDoorPositions();
             }
 
     ResetSelectedAndDragStates();
+
+    ReCalculateAllDoorPositions();
+    RebuildAllMeshData();
 }
 
 glm::vec3 Editor::GetClosestPointFromMouseToHoveredLine()

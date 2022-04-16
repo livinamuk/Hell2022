@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <sstream> 
 #include <Helpers/Util.h> 
+#include "Editor/Editor.h"
 
 //std::vector<std::string> File::MapList;
 
@@ -22,6 +23,8 @@
 
 void File::LoadMap(std::string filename)
 {
+	GameData::Clear();
+
 	// Load file
 	std::string fileName = "res/maps/" + filename;
 	FILE* pFile = fopen(fileName.c_str(), "rb");
@@ -63,25 +66,31 @@ void File::LoadMap(std::string filename)
 			}
 
 			room->m_invertWallNormals = ReadBool(rooms[i], "FlipWallNormals");
-			room->BuildMeshFromVertices();
+			//room->BuildMeshFromVertices();
 		}
 	}
-	/*
+	
 	// Doors
 	if (document.HasMember("DOORS"))
 	{
-		const rapidjson::Value& rooms = document["DOORS"];
-		for (rapidjson::SizeType i = 0; i < rooms.Size(); i++)
+		const rapidjson::Value& doors = document["DOORS"];
+		for (rapidjson::SizeType i = 0; i < doors.Size(); i++)
 		{
-			glm::vec3 position = ReadVec3(rooms[i], "Position");
-			std::string axis = ReadString(rooms[i], "Axis");
-			int story = ReadInt(rooms[i], "Story");
-			bool rotateFloor = ReadBool(rooms[i], "RotateFloorTexture");
+			GameData::s_doors.push_back(Door());
+			Door* door= &GameData::s_doors.back();
 
-			house.AddDoor(Door(glm::vec2(position.x, position.z), story, Util::StringToAxis(axis), rotateFloor));
+			door->m_transform.position = ReadVec3(doors[i], "Position");
+			door->m_parentRoomIndex = ReadInt(doors[i], "Room");
+			door->m_parentIndexVertexA = ReadInt(doors[i], "Vert1");
+			door->m_parentIndexVertexB = ReadInt(doors[i], "Vert2");
 		}
 	}
 
+	Editor::ReCalculateAllDoorPositions();
+	Editor::RebuildAllMeshData();
+
+
+	/*
 	// Load Windows
 	if (document.HasMember("WINDOWS"))
 	{
@@ -223,8 +232,8 @@ void File::SaveMap(std::string filename)
 		rapidjson::Value object(rapidjson::kObjectType);
 		SaveVec3(&object, "Position", door.m_transform.position, allocator);
 		SaveInt(&object, "Room", door.m_parentRoomIndex, allocator);
-		SaveInt(&object, "Vert1", door.m_parentRoomIndex, allocator);
-		SaveInt(&object, "Vert2", door.m_parentRoomIndex, allocator);
+		SaveInt(&object, "Vert1", door.m_parentIndexVertexA, allocator);
+		SaveInt(&object, "Vert2", door.m_parentIndexVertexB, allocator);
 		doorsArray.PushBack(object, allocator);
 	}
 	/*

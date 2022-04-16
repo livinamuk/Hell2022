@@ -36,7 +36,6 @@ public: // fields
 	//Camera m_camera_p1;
 	//Camera m_camera_p2;
 	std::unordered_map<std::string, Model> m_models;
-	bool m_Splitscreen = true;
 
 
 	//Player m_player1;
@@ -49,4 +48,6 @@ public: // fields
 	//bool m_controller_1_connected = false;
 
 	//Entity couchEntity;
+
+	bool m_switchToPlayer2 = false;
 };

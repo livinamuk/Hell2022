@@ -15,12 +15,13 @@ void AssetManager::DiscoverAssetFilenames()
     // load compressed texutures first
     std::string path = "res/textures/compressed/";
 
-    /*    for (const auto& entry : std::filesystem::directory_iterator(path)) {
+        for (const auto& entry : std::filesystem::directory_iterator(path)) {
         FileInfo info = GetFileInfo(entry);
 
         if (info.filetype == "dds")
-            m_textures[info.filename] = Texture(info) ;
-    }*/
+            s_assetFilesToLoad.emplace_back(GetFileInfo(entry));
+            //m_textures[info.filename] = Texture(info) ;
+    }
         
     // then check regular file, and if name doesn't already exist, load it...
     path = "res/textures/";
@@ -40,7 +41,7 @@ void AssetManager::LoadNextAssetToGL()
         s_assetFilesToLoad.erase(s_assetFilesToLoad.begin());   // remove first element
         s_loadLog += "Loading " + info.fullpath + "\n";          // add to log
 
-        if (info.filetype == "png" || info.filetype == "tga") {        // read texture from disk and load to GL
+        if (info.filetype == "png" || info.filetype == "tga" || info.filetype == "dds") {        // read texture from disk and load to GL
             if (m_textures.find(info.filename) == m_textures.end())
                 m_textures[info.filename] = Texture(info);
         }

@@ -26,7 +26,7 @@ void Camera::CalculateMatrices(glm::mat4 animatedCameraMatrix)
 	m_Front = glm::vec3(m_inverseViewMatrix[2]) * glm::vec3(-1, -1, -1);
 
 	glm::vec4 vP = (m_inverseViewMatrix * glm::vec4(0, 0, 0, 1));
-	m_viewPos = glm::vec3(vP.x, vP.y, vP.z);
+	m_viewPos = m_viewMatrix[3];// glm::vec3(vP.x, vP.y, vP.z);
 
 	m_projectionViewMatrix = m_projectionMatrix * m_viewMatrix;
 }
