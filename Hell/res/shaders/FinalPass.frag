@@ -21,13 +21,13 @@ void main()
 	color.r =  min(u_timeSinceDeath, 0.5);
 	color.g =  min(u_timeSinceDeath, 0.05);
 	color.b =  min(u_timeSinceDeath, 0.05);
-
+	
+	vec4 baseColor = texture(inputTexture, TexCoords) + color;
 	FragColor = texture(LIGHTING_TEXTURE, TexCoords) + color;
 	vec4 LightingColor = texture(LIGHTING_TEXTURE, TexCoords);
 
-	FragColor = LightingColor;   
-
-	
+	FragColor = LightingColor; 
+	//FragColor += baseColor * 0.1;
 
 	// Make it red
 	if (u_timeSinceDeath > 0) {	
@@ -41,6 +41,8 @@ void main()
 	if (u_timeSinceDeath > waitTime) {
 		float val = (u_timeSinceDeath - waitTime) * 10; 
 		FragColor.r -= val;
+		//FragColor.g = 0;
+		//FragColor.b = 0;
 	}
 
 } 

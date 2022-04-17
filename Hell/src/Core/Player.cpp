@@ -47,7 +47,7 @@ void Player::Update(float deltaTime)
 		SpawnBloodPool();
 
 		// Presses Respawn
-		if (!m_isAlive && m_timeSinceDeath > 3.25)
+		if (m_enableControl && !m_isAlive && m_timeSinceDeath > 3.25)
 		{
 			if (PressedFire() ||
 				PressedReload() ||

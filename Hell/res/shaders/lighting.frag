@@ -1,6 +1,6 @@
 #version 420 core
 
-const int MAX_LIGHTS = 4;
+const int MAX_LIGHTS = 10;
 const float EPS = 1e-4;
 const float PI = 3.14159265359;
 
@@ -13,6 +13,7 @@ layout (binding = 3) uniform sampler2D Depth_Texture;
 layout (binding = 4) uniform samplerCube ShadowMap;
 layout (binding = 5) uniform sampler2D Env_LUT;
 layout (binding = 6) uniform sampler2D BRDF_LUT;
+layout (binding = 7) uniform samplerCube IndirectShadowMap;
 
 struct Light {
     vec4 position_radius;	// position xyz, radius in w
@@ -27,11 +28,9 @@ layout (binding = 0, std140) uniform Matrices {
     mat4 inverseView;
 };
 
-
 layout (binding = 1, std140) uniform Lights {
   Light lights[MAX_LIGHTS];
 };
-
 
 uniform int lightIndex;
 uniform int player;
@@ -40,7 +39,7 @@ in vec2 TexCoords;
 uniform vec3 colorTint;
 uniform sampler2D fboAttachment;
 
-uniform float far_plane;
+uniform float shadow_map_far_plane;
 
 uniform float screenWidth;
 uniform float screenHeight;
@@ -58,7 +57,7 @@ vec3 gridSamplingDisk[20] = vec3[]
    vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
 );
 
-float ShadowCalculation(vec3 lightPos, vec3 fragPos, vec3 viewPos, float NdotL)
+float ShadowCalculation(samplerCube depthTex, vec3 lightPos, vec3 fragPos, vec3 viewPos, float NdotL)
 {
     vec3 fragToLight = fragPos - lightPos;
     float currentDepth = length(fragToLight);
@@ -68,11 +67,11 @@ float ShadowCalculation(vec3 lightPos, vec3 fragPos, vec3 viewPos, float NdotL)
     float bias = 0.0215;
     int samples = 10;
     float viewDistance = length(viewPos - fragPos);
-    float diskRadius = (1.0 + (viewDistance / far_plane)) / 150.0;
+    float diskRadius = (1.0 + (viewDistance / shadow_map_far_plane)) / 150.0;
     for(int i = 0; i < samples; ++i)
     {
-        float closestDepth = texture(ShadowMap, fragToLight + gridSamplingDisk[i] * diskRadius).r;
-        closestDepth *= far_plane;   // undo mapping [0;1]
+        float closestDepth = texture(depthTex, fragToLight + gridSamplingDisk[i] * diskRadius).r;
+        closestDepth *= shadow_map_far_plane;   // undo mapping [0;1]
         if(currentDepth - bias > closestDepth)
             shadow += 1.0;
     }
@@ -450,7 +449,7 @@ void main2()
     //vec3 indirectLighting = (kD * indirectDiffuse + indirectSpecular) * ao;
 	vec3 indirectLighting = (kD * indirectDiffuse) * ao ; // no specular!!!!!!!!!!!!
 
-	float shadowFactor = ShadowCalculation(lightPosition, WorldPos, viewPos, NdotL); 
+	float shadowFactor = ShadowCalculation(ShadowMap, lightPosition, WorldPos, viewPos, NdotL); 
 
 	float shadow = (1 - shadowFactor) ;// (NdotL);
 		
@@ -567,13 +566,29 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 
 void main()
 {
-	vec3 lightPos   = vec3(0, 1.0, 1);
-    vec3 lightColor = vec3(1.0);
+    // get light uniform data
+	Light light = lights[lightIndex];
+	vec3 lightPos   = light.position_radius.xyz;
+    vec3 lightColor = light.color_strength.xyz;
+    float lightRadius = light.position_radius.w;
+    float lightStrength = light.color_strength.w;
+    float lightMagic = light.magic_padding.w;
+
+    if (lightIndex == 3) {
+    lightRadius = 5;//light.position_radius.w;
+    lightStrength = 50;//light.color_strength.w;
+    lightMagic = 0.1;//20;//light.magic_padding.w;
+    }
 
 	vec3 albedo = pow(texture(ALB_Texture, TexCoords).rgb, vec3(2.2));
 	float roughness = texture(RMA_Texture, TexCoords).r;	
 	float metallic  = texture(RMA_Texture, TexCoords).g;
 	float ao = texture(RMA_Texture, TexCoords).b;
+    
+    vec3 f0 = vec3(0.04);
+    vec3 diffuseColor = albedo * (vec3(1.0) - f0);
+	diffuseColor *= 1.0 - metallic;
+
 	//vec3 Normal = texture(NRM_Texture, TexCoords).rgb;
     	
     vec2 TexCoord = vec2(gl_FragCoord.x / screenWidth, gl_FragCoord.y / screenHeight);
@@ -644,14 +659,12 @@ void main()
         vec3 L = normalize(lightPos - WorldPos);
         vec3 H = normalize(V + L);
         float distance = length(lightPos - WorldPos);
-     //   float attenuation = 1.0 / (distance * distance);
-       
-       float lightStrength = 20;
-       float radius = 5;
-       float attenuation = CaclulateAttenuation(WorldPos, lightPos, radius, 4) * lightStrength;
-       vec3 radiance = lightColor * attenuation; 
-     //   radiance *= 10;
 
+        
+        float attenuation = CaclulateAttenuation(WorldPos, lightPos, lightRadius, lightMagic) * lightStrength;
+        vec3 radiance = lightColor * attenuation; 
+     //   radiance *= 10;
+    // radiance = vec3(attenuation);
 
 
        // vec3 L = normalize(lightPositions[i] - WorldPos);
@@ -685,9 +698,64 @@ void main()
         // scale light by NdotL
         float NdotL = max(dot(N, L), 0.0);        
 
+
         // add to outgoing radiance Lo
-        Lo += (kD * albedo / PI + specular) * radiance * NdotL;  // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
-    }   
+        Lo = (kD * albedo / PI + specular) * radiance * NdotL;  // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
+   
+   
+
+
+
+    // Spherical Harmonics
+	mat3 shR, shG, shB;
+    #define SH_FILL(x, y) \
+    { \
+        vec3 samp = texelFetch(Env_LUT, ivec2(x, y), 0).rgb; \
+        shR[x][y] = samp.r; \
+        shG[x][y] = samp.g; \
+        shB[x][y] = samp.b; \
+    }
+    SH_FILL(0, 0)
+    SH_FILL(0, 1)
+    SH_FILL(0, 2)
+    SH_FILL(1, 0)
+    SH_FILL(1, 1)
+    SH_FILL(1, 2)
+    SH_FILL(2, 0)
+    SH_FILL(2, 1)
+    SH_FILL(2, 2)
+    #undef SH_FILL		
+	mat3 shRD = shDiffuseConvolution(shR);
+    mat3 shGD = shDiffuseConvolution(shG);
+    mat3 shBD = shDiffuseConvolution(shB);
+
+	// Indirect diffuse
+	vec3 irradiance = shToColor(shRD, shGD, shBD, N); 
+	vec3 indirectDiffuse = irradiance * diffuseColor;
+    
+	//vec3 kS = F;
+	//vec3 kD = 1.0 - kS;
+	//kD *= 1.0 - metallic;	
+    //vec3 indirectLighting = (kD * indirectDiffuse + indirectSpecular) * ao;
+	vec3 indirectLighting = (kD * indirectDiffuse) * ao ; // no specular!!!!!!!!!!!!
+
+    
+        float indirectShadow = 1 - ShadowCalculation(IndirectShadowMap, lightPos, WorldPos, camPos, NdotL);
+        float shadow = 1 - ShadowCalculation(ShadowMap, lightPos, WorldPos, camPos, NdotL);
+
+       // Lo *= 1 - shadow;
+
+      //  Lo += indirectLighting * (1 - indirectShadow);
+
+        vec3 directLighting = Lo;
+        indirectLighting *= 0.75;
+
+        Lo = ((shadow * directLighting) + (indirectLighting * indirectShadow)) * attenuation;
+
+     //   Lo = vec3(1-shadow);
+   	    //vec3 directLighting = NdotL * (diffuseContrib + specContrib) * radiance;
+   
+   }   
     
     // ambient lighting (note that the next IBL tutorial will replace 
     // this ambient lighting with environment lighting).

@@ -4,12 +4,14 @@ Player GameData::s_player1;
 Player GameData::s_player2;
 std::vector<Room> GameData::s_rooms;
 std::vector<Door> GameData::s_doors;
+std::vector<Light> GameData::s_lights;
 bool GameData::s_splitScreen = true;
 
 void GameData::Clear()
 {
 	s_rooms.clear();
 	s_doors.clear();
+	s_lights.clear();
 }
 
 void GameData::Update(float deltaTime)

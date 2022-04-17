@@ -178,7 +178,10 @@ int main()
 
     File::LoadMap("Map.json");
 
-
+    GameData::s_lights.push_back(Light(glm::vec3(0, 2.2f, 0), DEFAULT_LIGHT_COLOR, 4, 10, 0.1, 0));
+    GameData::s_lights.push_back(Light(glm::vec3(4, 2.2f, 3.5), DEFAULT_LIGHT_COLOR, 4, 10, 0.1, 0));
+    GameData::s_lights.push_back(Light(glm::vec3(-3.9, 2.2f, 5), DEFAULT_LIGHT_COLOR, 4, 10, 0.1, 0));
+    GameData::s_lights.push_back(Light(glm::vec3(-7.9, 2.2f, -1), glm::vec3(1,0,0), 4, 10, 0.1, 0));
 
    
   //  GameData::s_doors.push_back(Door(glm::vec3(0, 0, 2)));
@@ -206,8 +209,8 @@ int main()
             
             hellEngine.Update(deltaTime);
 
-           // if (GameData::s_player1.m_isAlive)
-            //    GameData::s_player1.ForceRagdollToMatchAnimation();
+            if (GameData::s_player1.m_isAlive)
+                GameData::s_player1.ForceRagdollToMatchAnimation();
 
             if (GameData::s_player2.m_isAlive)
                 GameData::s_player2.ForceRagdollToMatchAnimation();

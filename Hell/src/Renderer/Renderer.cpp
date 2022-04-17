@@ -8,27 +8,24 @@
 #include <thread>
 #include "Core/GameData.h"
 
-/*Shader Renderer::s_test_shader;
-Shader Renderer::s_solid_color_shader;
-Shader Renderer::s_textued_2D_quad_shader;
-Shader Renderer::s_skinned_model_shader;
-GBuffer Renderer::s_gBuffer;
-
-// Pointers
-PhysX* Renderer::p_physX; 
-std::unordered_map<std::string, Model>* Renderer::p_models;
-*/	
-
 Shader Renderer::s_geometry_shader;
 Shader Renderer::s_solid_color_shader;
 Shader Renderer::s_textued_2D_quad_shader;
 Shader Renderer::s_lighting_shader;
 Shader Renderer::s_final_pass_shader;
 Shader Renderer::s_solid_color_shader_editor; 
-//Shader Renderer::s_textured_editor_shader;
+Shader Renderer::s_shadow_map_shader;
+Shader Renderer::s_skybox_shader;
 GBuffer Renderer::s_gBuffer;
 unsigned int Renderer::m_uboMatrices;
+unsigned int Renderer::m_uboLights;
 bool Renderer::s_showBuffers = false;
+GLuint Renderer::s_centeredQuadVAO;
+GLuint Renderer::s_quadVAO;
+GLuint Renderer::s_brdfLUTTextureID;
+Shader Renderer::s_brdf_shader;	
+Shader Renderer::s_env_map_shader;
+Shader Renderer::s_SH_shader;
 
 void Renderer::Init(int screenWidth, int screenHeight)
 {
@@ -38,31 +35,72 @@ void Renderer::Init(int screenWidth, int screenHeight)
     s_textued_2D_quad_shader = Shader("textured2DquadShader.vert", "textured2DquadShader.frag");
     s_lighting_shader = Shader("lighting.vert", "lighting.frag");
     s_final_pass_shader = Shader("FinalPass.vert", "FinalPass.frag");
-    //s_textured_editor_shader = Shader("texturedEditorShader.vert", "texturedEditorShader.frag");
-
-   // m_screenWidth = screenWidth;
-   // m_screenHeight = screenHeight;
+    s_shadow_map_shader = Shader("shadowmap.vert", "shadowmap.frag", "shadowmap.geom");
+    s_skybox_shader = Shader("skybox.vert", "skybox.frag");
+    s_brdf_shader = Shader("brdf.vert", "brdf.frag");
+    s_env_map_shader = Shader("envMap.vert", "envMap.frag", "envMap.geom");
+    s_SH_shader = Shader("SH.vert", "SH.frag");
 
     s_gBuffer = GBuffer(screenWidth, screenHeight);
 
-    glUniformBlockBinding(s_lighting_shader.ID, glGetUniformBlockIndex(s_lighting_shader.ID, "Matrices"), 0);
-    glUniformBlockBinding(s_geometry_shader.ID, glGetUniformBlockIndex(s_geometry_shader.ID, "Matrices"), 0);
+    float quadVertices[] = {
+        // positions         texcoords
+        0.0f, 1.0f,  0.0f, 1.0f,
+        0.0f, 0.0f,  0.0f, 0.0f,
+        1.0f, 1.0f,  1.0f, 1.0f,
+        1.0f, 0.0f,  1.0f, 0.0f,
+    };
+    GLuint VBO = 0;
+    glGenVertexArrays(1, &s_quadVAO);
+    glGenBuffers(1, &VBO);
+    glBindVertexArray(s_quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(Vertex2D), &quadVertices[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
+    float centeredQuadVertices[] = {
+        // positions         texcoords
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f,
+        1.0f,  1.0f,  1.0f, 1.0f,
+        1.0f, -1.0f,  1.0f, 0.0f,
+    };
+    GLuint VBO2 = 0;
+    glGenVertexArrays(1, &s_centeredQuadVAO);
+    glGenBuffers(1, &VBO2);
+    glBindVertexArray(s_centeredQuadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(Vertex2D), &centeredQuadVertices[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+    // Matices UBO
     glGenBuffers(1, &m_uboMatrices);
     glBindBuffer(GL_UNIFORM_BUFFER, m_uboMatrices);
-    glBufferData(GL_UNIFORM_BUFFER, 4 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 4, NULL, GL_STATIC_DRAW);       // 4 matrices
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-    glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_uboMatrices, 0, 4 * sizeof(glm::mat4));
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_uboMatrices, 0, sizeof(glm::mat4) * 4);   // 4 matrices
 
+    // Lights UBO
+    glGenBuffers(1, &m_uboLights);
+    glBindBuffer(GL_UNIFORM_BUFFER, m_uboLights);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(LightUniformBlock) * MAX_LIGHTS, NULL, GL_STATIC_DRAW);
+    glBindBufferRange(GL_UNIFORM_BUFFER, 1, m_uboLights, 0, sizeof(LightUniformBlock) * MAX_LIGHTS);
+
+    CreateBRDFLut();
 }
 
 
 void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, int player)
 {
-    DrawGrid(camera->m_transform.position, true);
+    //DrawGrid(camera->m_transform.position, true);
 
     if (Input::s_showBulletDebug) {
-
 
         DrawPhysicsWorld(player);
 
@@ -81,31 +119,22 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
     }
     else
     {
-        GeometryPass(player);
+        EnvMapPass();
+        ShadowMapPass(); 
+        IndirectShadowMapPass();
+        GeometryPass(player, renderWidth, renderHeight);
         LightingPass(player, renderWidth, renderHeight);
     
         // render player weapons
         if (player == 1) 
         {
-            if (GameData::s_player1.m_isAlive) {
-              //  GameData::s_player1.m_HUD_Weapon.Render(&s_geometry_shader);
+            if (GameData::s_player1.m_isAlive)
                 RenderPlayerCrosshair(renderWidth, renderHeight, &GameData::s_player1);
-            }
-            else
-            {
-
-            }
         }
         if (player == 2) 
         {
             if (GameData::s_player2.m_isAlive)
-            {
-             //   GameData::s_player2.m_HUD_Weapon.Render(&s_geometry_shader);
                 RenderPlayerCrosshair(renderWidth, renderHeight, &GameData::s_player2);
-            }
-            else
-            {
-            }
         }
     }
 
@@ -200,9 +229,11 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
         s_final_pass_shader.use();
         s_final_pass_shader.setFloat("u_timeSinceDeath", GameData::s_player1.m_timeSinceDeath);
         if (GameData::s_splitScreen)
-            Draw_2_Player_Split_Screen_Quad_Top(&s_final_pass_shader);
+            DrawViewportQuad(&s_final_pass_shader, ViewportSize::SPLITSCREEN_TOP);
+            //Draw_2_Player_Split_Screen_Quad_Top(&s_final_pass_shader);
         else
-            DrawFullScreenQuad(&s_final_pass_shader);
+            DrawViewportQuad(&s_final_pass_shader, ViewportSize::FULL_SCREEN);
+            //DrawFullScreenQuad(&s_final_pass_shader);
 
         if (!GameData::s_player1.m_isAlive && GameData::s_player1.m_timeSinceDeath > 3.125)
         {
@@ -223,7 +254,8 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
     if (player == 2) {
         s_final_pass_shader.use();
         s_final_pass_shader.setFloat("u_timeSinceDeath", GameData::s_player2.m_timeSinceDeath);
-        Draw_2_Player_Split_Screen_Quad_Bottom(&s_final_pass_shader);
+        //Draw_2_Player_Split_Screen_Quad_Bottom(&s_final_pass_shader);
+        DrawViewportQuad(&s_final_pass_shader, ViewportSize::SPLITSCREEN_BOTTOM);
     
         
         if (!GameData::s_player2.m_isAlive && GameData::s_player2.m_timeSinceDeath > 3.125)
@@ -410,6 +442,9 @@ void Renderer::HotLoadShaders()
     s_textued_2D_quad_shader.ReloadShader();
     s_lighting_shader.ReloadShader();
     s_final_pass_shader.ReloadShader();
+    s_shadow_map_shader.ReloadShader();
+    s_skybox_shader.ReloadShader();
+    s_env_map_shader.ReloadShader();
 }
 
 void Renderer::DrawPoint(Shader* shader, glm::vec3 position, glm::vec3 color)
@@ -574,7 +609,89 @@ void Renderer::ReconfigureFrameBuffers(int height, int width)
     s_gBuffer.Configure(height, width);
 }
 
-void Renderer::DrawFullScreenQuad(Shader* shader)
+
+
+void Renderer::DrawViewportQuad(Shader* shader, ViewportSize viewportSize)
+{
+    static GLuint VAO_fullscreen = 0;
+    static GLuint VAO_splitscreen_top;
+    static GLuint VAO_splitscreen_bottom;
+    
+    if (VAO_fullscreen == 0) {
+        float quadVertices[] = {
+            // positions         texcoords
+            -1.0f,  1.0f, 0.0f,  0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f,  0.0f, 0.0f,
+                1.0f,  1.0f, 0.0f,  1.0f, 1.0f,
+                1.0f, -1.0f, 0.0f,  1.0f, 0.0f,
+        };
+        unsigned int VBO;
+        glGenVertexArrays(1, &VAO_fullscreen);
+        glGenBuffers(1, &VBO);
+        glBindVertexArray(VAO_fullscreen);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+    } 
+
+    if (VAO_splitscreen_top == 0) {
+        float quadVertices[] = {
+            // positions         texcoords
+            -1.0f,  1.0f, 0.0f,  0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f,  0.0f, 0.5f,
+             1.0f,  1.0f, 0.0f,  1.0f, 1.0f,
+             1.0f, -1.0f, 0.0f,  1.0f, 0.5f,
+        };
+        unsigned int VBO;
+        glGenVertexArrays(1, &VAO_splitscreen_top);
+        glGenBuffers(1, &VBO);
+        glBindVertexArray(VAO_splitscreen_top);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+    }
+
+    if (VAO_splitscreen_bottom == 0) {
+        float quadVertices[] = {
+            // positions         texcoords
+            -1.0f,  1.0f, 0.0f,  0.0f, 0.5f,
+            -1.0f, -1.0f, 0.0f,  0.0f, 0.0f,
+             1.0f,  1.0f, 0.0f,  1.0f, 0.5f,
+             1.0f, -1.0f, 0.0f,  1.0f, 0.0f,
+        };
+        unsigned int VBO;
+        glGenVertexArrays(1, &VAO_splitscreen_bottom);
+        glGenBuffers(1, &VBO);
+        glBindVertexArray(VAO_splitscreen_bottom);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    }
+
+    shader->use();
+    shader->setMat4("model", glm::mat4(1));
+
+    if (viewportSize == ViewportSize::FULL_SCREEN)
+        glBindVertexArray(VAO_fullscreen);
+    else if (viewportSize == ViewportSize::SPLITSCREEN_TOP)
+        glBindVertexArray(VAO_splitscreen_top);
+    else if (viewportSize == ViewportSize::SPLITSCREEN_BOTTOM)
+        glBindVertexArray(VAO_splitscreen_bottom);
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
+
+/*void Renderer::DrawFullScreenQuad(Shader * shader)
 {
     static GLuint VAO = 0;
     if (VAO == 0)
@@ -583,8 +700,8 @@ void Renderer::DrawFullScreenQuad(Shader* shader)
             // positions         texcoords
             -1.0f,  1.0f, 0.0f,  0.0f, 1.0f,
             -1.0f, -1.0f, 0.0f,  0.0f, 0.0f,
-                1.0f,  1.0f, 0.0f,  1.0f, 1.0f,
-                1.0f, -1.0f, 0.0f,  1.0f, 0.0f,
+             1.0f,  1.0f, 0.0f,  1.0f, 1.0f,
+             1.0f, -1.0f, 0.0f,  1.0f, 0.0f,
         };
         unsigned int VBO;
         glGenVertexArrays(1, &VAO);
@@ -602,9 +719,9 @@ void Renderer::DrawFullScreenQuad(Shader* shader)
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
-}
+}*/
 
-void Renderer::Draw_2_Player_Split_Screen_Quad_Top(Shader* shader)
+/*void Renderer::Draw_2_Player_Split_Screen_Quad_Top(Shader* shader)
 {
     static GLuint VAO = 0;
     if (VAO == 0)
@@ -633,8 +750,8 @@ void Renderer::Draw_2_Player_Split_Screen_Quad_Top(Shader* shader)
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 }
-
-
+*/
+/*
 void Renderer::Draw_2_Player_Split_Screen_Quad_Bottom(Shader* shader)
 {
     static GLuint VAO = 0;
@@ -663,11 +780,15 @@ void Renderer::Draw_2_Player_Split_Screen_Quad_Bottom(Shader* shader)
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
-}
+}*/
 
 void Renderer::ClearFBOs(int screenWidth, int screenHeight)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, s_gBuffer.ID);
+
+    unsigned int attachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 , GL_COLOR_ATTACHMENT4 };
+    glDrawBuffers(5, attachments);
+
     glViewport(0, 0, screenWidth, screenHeight);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClearColor(0.2f, 0.2f, 0.2f, 0.2f);
@@ -707,6 +828,39 @@ void Renderer::DrawQuad(Shader* shader, glm::mat4 modelMatrix, GLuint texID)
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
+}
+
+void Renderer::CreateBRDFLut()
+{
+    unsigned int BRDFLut_Fbo;
+    unsigned int BRDFLut_Rbo;
+    glGenFramebuffers(1, &BRDFLut_Fbo);
+    glGenRenderbuffers(1, &BRDFLut_Rbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, BRDFLut_Fbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, BRDFLut_Rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, BRDFLut_Rbo);
+    glGenTextures(1, &s_brdfLUTTextureID);
+    glBindTexture(GL_TEXTURE_2D, s_brdfLUTTextureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, 512, 512, 0, GL_RG, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindFramebuffer(GL_FRAMEBUFFER, BRDFLut_Fbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, BRDFLut_Rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s_brdfLUTTextureID, 0);
+    glViewport(0, 0, 512, 512);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    s_brdf_shader.use();
+    s_brdf_shader.setMat4("model", glm::mat4(1));
+    glBindVertexArray(s_centeredQuadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+    glDeleteBuffers(1, &BRDFLut_Fbo);
+    glDeleteRenderbuffers(1, &BRDFLut_Rbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Renderer::RenderDebugShit()
@@ -749,17 +903,146 @@ void Renderer::RenderDebugShit()
 
 }
 
-void Renderer::GeometryPass(int player)
+void Renderer::EnvMapPass()
 {
+    for (Light& light : GameData::s_lights)
+    {
+        glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+        glm::mat4 captureViews[] =
+        {
+            glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+            glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+            glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+        };
+        Transform viewPosTransform;
+
+        Shader* shader = &s_env_map_shader;
+        shader->use();
+        //shader->setInt("equirectangularMap", 0);
+        shader->setMat4("projection", captureProjection);
+        shader->setVec3("lightPosition", light.m_position);
+        shader->setFloat("lightAttenuationConstant", light.m_radius);
+        shader->setFloat("lightAttenuationExp", light.m_magic);
+        shader->setFloat("lightStrength", light.m_strength);
+        shader->setVec3("lightColor", light.m_color);
+
+        glViewport(0, 0, ENV_MAP_WIDTH, ENV_MAP_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, light.m_envMap.m_FboID);
+        glClearColor(0, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
+
+        for (unsigned int i = 0; i < 6; ++i)
+            shader->setMat4("captureViewMatrix[" + std::to_string(i) + "]", captureProjection * captureViews[i] * glm::inverse(Transform(light.m_position).to_mat4()));
+
+        DrawScene(shader, RenderPass::ENV_MAP);
+
+        //glBindTexture(GL_TEXTURE_CUBE_MAP, light.m_shadowMap.m_depthTexture);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, light.m_envMap.m_TexID);
+        //glBindTexture(GL_TEXTURE_CUBE_MAP, m_lightProbeStorage[lightIndex].CubeMap_TexID);
+        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+
+    
+
+        // SH texture
+        glFinish();
+        shader = &s_SH_shader;
+        shader->use();
+        glViewport(0, 0, 3, 3);
+        glBindFramebuffer(GL_FRAMEBUFFER, light.m_envMap.SH_FboID);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, light.m_envMap.m_TexID);
+        glBindVertexArray(s_centeredQuadVAO);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    }
+  //  RenderEnvMap(light, scene, i);
+//
+            //    RenderSphericalHarmonicsTexture(&m_spherical_harmonics_shader, i);
+}
+
+void Renderer::IndirectShadowMapPass()
+{
+    Shader* shader = &s_shadow_map_shader;
+    shader->use();
+    shader->setFloat("far_plane", SHADOW_FAR_PLANE);
+
+    glDepthMask(true);
+    glDisable(GL_BLEND);
+
+    for (Light& light : GameData::s_lights)
+    {
+        glViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
+        glBindFramebuffer(GL_FRAMEBUFFER, light.m_indirectShadowMap.m_ID);
+        glEnable(GL_DEPTH_TEST);
+         glClear(GL_DEPTH_BUFFER_BIT);
+
+        for (unsigned int i = 0; i < 6; ++i)
+            shader->setMat4("shadowMatrices[" + std::to_string(i) + "]", light.m_projectionTransforms[i]);
+        shader->setVec3("lightPosition", light.m_position);
+      
+        glReadBuffer(GL_NONE);
+        glDrawBuffer(GL_NONE);
+        glEnable(GL_CULL_FACE);
+        DrawScene(shader, RenderPass::INDIRECT_SHADOW_MAP);
+    } ;
+}
+
+void Renderer::ShadowMapPass()
+{
+    Shader* shader = &s_shadow_map_shader;
+    shader->use();
+    shader->setFloat("far_plane", SHADOW_FAR_PLANE);
+
+    glDepthMask(true);
+    glDisable(GL_BLEND);
+
+    for (Light& light : GameData::s_lights)
+    {
+        glViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
+        glBindFramebuffer(GL_FRAMEBUFFER, light.m_shadowMap.m_ID);
+        glEnable(GL_DEPTH_TEST);
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        for (unsigned int i = 0; i < 6; ++i)
+            shader->setMat4("shadowMatrices[" + std::to_string(i) + "]", light.m_projectionTransforms[i]);
+        shader->setVec3("lightPosition", light.m_position);
+
+        glReadBuffer(GL_NONE);
+        glDrawBuffer(GL_NONE);
+        glEnable(GL_CULL_FACE);
+        DrawScene(shader, RenderPass::SHADOW_MAP);
+    }
+}
+
+
+void Renderer::GeometryPass(int player, int renderWidth, int renderHeight)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, s_gBuffer.ID);
+
     unsigned int attachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 , GL_COLOR_ATTACHMENT4 };
     glDrawBuffers(5, attachments);
 
+    if(!GameData::s_splitScreen)
+        glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight);
+    else if (player == 1)
+        glViewport(0, CoreGL::s_currentHeight / 2, CoreGL::s_currentWidth, CoreGL::s_currentHeight / 2);
+    else if (player == 2)
+        glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight / 2);
+
+  
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
 
     Shader* shader = &s_geometry_shader;
     shader->use();
 
-    DrawScene(shader, player);
+    DrawScene(shader, RenderPass::GEOMETRY, player);
 
     // render player weapons
     if (player == 1)
@@ -776,58 +1059,88 @@ void Renderer::GeometryPass(int player)
 
 void Renderer::LightingPass(int player, int renderWidth, int renderHeight)
 {
-    
+    ViewportSize viewportSize = ViewportSize::FULL_SCREEN;
     Shader* shader = &s_lighting_shader;
     shader->use();
-    shader->setFloat("far_plane", FAR_PLANE);
+
+    // Player 1 full screen
+    if (player == 1 && !GameData::s_splitScreen) {
+        shader->setInt("player", 0);
+        shader->setVec3("camPos", GameData::s_player1.GetPosition() + glm::vec3(0, GameData::s_player1.m_cameraViewHeight, 0));
+        viewportSize = ViewportSize::FULL_SCREEN;
+    }
+    // Player 1 split screen
+    if (player == 1 && GameData::s_splitScreen) {
+        shader->setInt("player", 1);
+        shader->setVec3("camPos", GameData::s_player1.GetPosition() + glm::vec3(0, GameData::s_player1.m_cameraViewHeight, 0));
+        viewportSize = ViewportSize::SPLITSCREEN_TOP;
+    }
+    // Player 2 split screen
+    if (player == 2 && GameData::s_splitScreen) {
+        shader->setInt("player", 2);
+        shader->setVec3("camPos", GameData::s_player2.GetPosition() + glm::vec3(0, GameData::s_player2.m_cameraViewHeight, 0));
+        viewportSize = ViewportSize::SPLITSCREEN_BOTTOM;
+    }
+
+    // Uniforms n shit
+    shader->setFloat("shadow_map_far_plane", SHADOW_FAR_PLANE);
+    shader->setFloat("screenWidth", CoreGL::s_currentWidth);
+    shader->setFloat("screenHeight", CoreGL::s_currentHeight);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gAlbedo);
+    glBindTexture(GL_TEXTURE_2D, s_gBuffer.gAlbedo);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gNormal);
+    glBindTexture(GL_TEXTURE_2D, s_gBuffer.gNormal);
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gRMA);
+    glBindTexture(GL_TEXTURE_2D, s_gBuffer.gRMA);
     glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.rboDepth);
+    glBindTexture(GL_TEXTURE_2D, s_gBuffer.rboDepth);
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, s_brdfLUTTextureID);
     
     unsigned int attachments[1] = { GL_COLOR_ATTACHMENT4 };
     glDrawBuffers(1, attachments);
-
     glDisable(GL_DEPTH_TEST);
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE); // additive blending for multiple lights. you always forget how to do this.
 
-    shader->setFloat("screenWidth", CoreGL::s_currentWidth);
-    shader->setFloat("screenHeight", CoreGL::s_currentHeight);
-    
-    if (player == 1) 
+    for (int i=0; i<GameData::s_lights.size(); i++)
     {
-        shader->setVec3("camPos", GameData::s_player1.GetPosition() + glm::vec3(0, GameData::s_player1.m_cameraViewHeight, 0));
+        Light& light = GameData::s_lights[i];
+        shader->setInt("lightIndex", i);
 
-        if (GameData::s_splitScreen) {
-            shader->setInt("player", 1);
-            Draw_2_Player_Split_Screen_Quad_Top(shader);
-        }
-        else
-        {
-            shader->setInt("player", 0);
-            DrawFullScreenQuad(shader);
-        }
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, light.m_shadowMap.m_depthTexture);
+        glActiveTexture(GL_TEXTURE5);
+        glBindTexture(GL_TEXTURE_2D, light.m_envMap.SH_TexID);
+        glActiveTexture(GL_TEXTURE7);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, light.m_indirectShadowMap.m_depthTexture);
+        
+        DrawViewportQuad(shader, viewportSize);
     }
-    else if (player == 2)
-    {
-        shader->setInt("player", 2);
-       shader->setVec3("camPos", GameData::s_player2.m_camera.m_viewPos);
-        Draw_2_Player_Split_Screen_Quad_Bottom(shader);
-    }
-       
+
+    // reset for the future. move this to whatever shader comes next
     unsigned int attachments2[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 , GL_COLOR_ATTACHMENT4 };
     glDrawBuffers(5, attachments2);
-
-    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST); 
+    glDisable(GL_BLEND);
 }
 
-void Renderer::DrawScene(Shader* shader, int player)
+void Renderer::DrawScene(Shader* shader, RenderPass renderPass, int player)
 {
+    if (renderPass == RenderPass::INDIRECT_SHADOW_MAP)
+    {
+        for (auto& room : GameData::s_rooms) {
+            room.DrawFloor(shader);
+            room.DrawCeiling(shader);
+            room.DrawWalls(shader);
+        }
+        for (auto& door : GameData::s_doors)
+            door.Draw(shader);
+        return;
+    }
+
     // Draw scene
     for (EntityStatic entityStatic : Scene::s_staticEntities)
         entityStatic.DrawEntity(shader);
@@ -840,41 +1153,55 @@ void Renderer::DrawScene(Shader* shader, int player)
         room.DrawWalls(shader);
     }
 
-
     // Draw doors
     for (auto& door : GameData::s_doors)
         door.Draw(shader);
+
+    if (renderPass == RenderPass::GEOMETRY) 
+    {
+        // Light bulbs
+        for (auto& light : GameData::s_lights)
+            light.Draw(shader);
+
+        for (BloodPool bloodPool : Scene::s_bloodPools)
+            bloodPool.Draw(shader);
+    }
+
+
+ 
 
     glEnable(GL_BLEND);
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
     glBlendEquation(GL_FUNC_ADD);
 
-    for (BloodPool bloodPool : Scene::s_bloodPools)
-        bloodPool.Draw(shader);
 
     glDisable(GL_BLEND);
 
 
-
-
-    // Draw ragdolls
-    //shader = &s_lighting_shader;
+    // Animated characters below
     shader->use();
     shader->setBool("hasAnimation", true);
     shader->setMat4("model", glm::mat4(1));
 
-    for (GameCharacter& gameCharacter : Scene::s_gameCharacters)
-    {
-        gameCharacter.RenderSkinnedModel(shader);
-    }
+   
+    // corpse ragolls
+    if (renderPass != RenderPass::ENV_MAP)
+        for (GameCharacter& gameCharacter : Scene::s_gameCharacters)
+            gameCharacter.RenderSkinnedModel(shader);
 
-    if (player == 2) {
+    // Player models
+    if (player == 2)
         GameData::s_player1.RenderCharacterModel(shader);
-    }
-
-    if (player == 1) {
+    if (player == 1)
         GameData::s_player2.RenderCharacterModel(shader);
-    }
+   
 
+    // shadow mapping
+    if (renderPass == RenderPass::SHADOW_MAP)  {
+        glCullFace(GL_FRONT);
+        GameData::s_player1.RenderCharacterModel(shader);
+        GameData::s_player2.RenderCharacterModel(shader);
+        glCullFace(GL_BACK);
+    }
 }

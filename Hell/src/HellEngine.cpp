@@ -179,6 +179,7 @@ void HellEngine::Render()
 	// Player 1
 	GameData::s_player1.UpdateCamera(renderWidth, renderHeight);
 	
+	// Matrices
 	glBindBuffer(GL_UNIFORM_BUFFER, Renderer::m_uboMatrices);
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 0, sizeof(glm::mat4), glm::value_ptr(GameData::s_player1.GetCameraProjectionMatrix()));
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 1, sizeof(glm::mat4), glm::value_ptr(GameData::s_player1.GetCameraViewMatrix()));
@@ -186,18 +187,25 @@ void HellEngine::Render()
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 4, sizeof(glm::mat4), glm::value_ptr(glm::inverse(GameData::s_player1.GetCameraViewMatrix())));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+	// Lights
+	glBindBuffer(GL_UNIFORM_BUFFER, Renderer::m_uboLights);
+	for (int i = 0; i < GameData::s_lights.size() || i < MAX_LIGHTS; i++) {
+		Light* light = &GameData::s_lights[i];
+		glm::vec4 pos = glm::vec4(light->m_position, light->m_radius);
+		glm::vec4 color = glm::vec4(light->m_color, light->m_strength);
+		glm::vec4 magic = glm::vec4(light->m_radius, 0, 0, 0);
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(LightUniformBlock) * i + sizeof(glm::vec4) * 0, sizeof(glm::vec4), glm::value_ptr(pos));
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(LightUniformBlock) * i + sizeof(glm::vec4) * 1, sizeof(glm::vec4), glm::value_ptr(color));
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(LightUniformBlock) * i + sizeof(glm::vec4) * 2, sizeof(glm::vec4), glm::value_ptr(magic));
+	}
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
 
 
 
 	GameData::s_player1.SpawnGlockCasing();
 
 	m_renderer.RenderFrame(GameData::s_player1.GetCameraPointer(), renderWidth, renderHeight, 1);
-
-
-	/*if (!Input::s_keyDown[HELL_KEY_C])
-		m_player2.m_isAlive = true;
-	else
-		m_player2.m_isAlive = false;*/
 
 	// Player 2 
 	if (GameData::s_splitScreen)
@@ -223,7 +231,8 @@ void HellEngine::Render()
 	glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gFinal);
 	//glBindTexture(GL_TEXTURE_2D, m_renderer.s_gBuffer.gAlbedo);
 	glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight);
-	Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
+	//Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
+	Renderer::DrawViewportQuad(&Renderer::s_textued_2D_quad_shader, Renderer::ViewportSize::FULL_SCREEN);
 
 
 	if (Renderer::s_showBuffers)
@@ -231,22 +240,64 @@ void HellEngine::Render()
 		glViewport(0, CoreGL::s_currentHeight / 2, CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gAlbedo);
-		Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
+		//Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
+		Renderer::DrawViewportQuad(&Renderer::s_textued_2D_quad_shader, Renderer::ViewportSize::FULL_SCREEN);
 
 		glViewport(CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2, CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gNormal);
-		Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
+		Renderer::DrawViewportQuad(&Renderer::s_textued_2D_quad_shader, Renderer::ViewportSize::FULL_SCREEN);
+		//Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
 
 		glViewport(0, 0, CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gRMA);
-		Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
+		Renderer::DrawViewportQuad(&Renderer::s_textued_2D_quad_shader, Renderer::ViewportSize::FULL_SCREEN);
+		//Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
 
 		glViewport(CoreGL::s_currentWidth / 2, 0, CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gLighting);
-		Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
+		//glBindTexture(GL_TEXTURE_2D, GameData::s_lights[0].m_envMap.SH_TexID);
+		Renderer::DrawViewportQuad(&Renderer::s_textued_2D_quad_shader, Renderer::ViewportSize::FULL_SCREEN); 
+		//Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
+	}
+
+	// previouw shadow map
+	if (Input::KeyDown(HELL_KEY_Z))
+	{
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_DEPTH_TEST);
+		glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight);
+		Shader* shader = &Renderer::s_skybox_shader;
+		shader->use();
+		shader->setMat4("projection", GameData::s_player1.GetCameraProjectionMatrix());
+		shader->setMat4("view", GameData::s_player1.GetCameraViewMatrix());
+		Transform trans;
+		trans.position = GameData::s_player1.GetPosition() + glm::vec3(0, GameData::s_player1.m_cameraViewHeight, 0);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, GameData::s_lights[0].m_shadowMap.m_depthTexture);
+
+		AssetManager::m_models["Cube"].Draw(shader, trans.to_mat4());
+	}
+
+	if (Input::KeyDown(HELL_KEY_X))
+	{
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_DEPTH_TEST);
+		glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight);
+		Shader* shader = &Renderer::s_skybox_shader;
+		shader->use();
+		shader->setMat4("projection", GameData::s_player1.GetCameraProjectionMatrix());
+		shader->setMat4("view", GameData::s_player1.GetCameraViewMatrix());
+		Transform trans;
+		trans.position = GameData::s_player1.GetPosition() + glm::vec3(0, GameData::s_player1.m_cameraViewHeight, 0);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, GameData::s_lights[0].m_indirectShadowMap.m_depthTexture);
+
+		AssetManager::m_models["Cube"].Draw(shader, trans.to_mat4());
 	}
 
 	// Text blitter UI

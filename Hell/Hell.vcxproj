@@ -174,6 +174,7 @@
     <ClCompile Include="src\Helpers\AssetManager.cpp" />
     <ClCompile Include="src\Helpers\FileImporter.cpp" />
     <ClCompile Include="src\House\Door.cpp" />
+    <ClCompile Include="src\House\Light.cpp" />
     <ClCompile Include="src\House\Room.cpp" />
     <ClCompile Include="src\House\Wall.cpp" />
     <ClCompile Include="src\Physics\ContactReportCallback.cpp" />
@@ -181,6 +182,7 @@
     <ClCompile Include="src\Physics\Ragdoll.cpp" />
     <ClCompile Include="src\Physics\RayCast.cpp" />
     <ClCompile Include="src\Renderer\Decal.cpp" />
+    <ClCompile Include="src\Renderer\EnvMap.cpp" />
     <ClCompile Include="src\Renderer\GBuffer.cpp" />
     <ClCompile Include="src\Renderer\Material.cpp" />
     <ClCompile Include="src\Renderer\NumberBlitter.cpp" />
@@ -194,6 +196,7 @@
     <ClCompile Include="src\Renderer\Mesh.cpp" />
     <ClCompile Include="src\Renderer\Model.cpp" />
     <ClCompile Include="src\Renderer\Shader.cpp" />
+    <ClCompile Include="src\Renderer\ShadowMap.cpp" />
     <ClCompile Include="src\Renderer\TextBlitter.cpp" />
     <ClCompile Include="src\Renderer\Texture.cpp" />
     <ClCompile Include="src\Renderer\TextureCompression\DDS_Helpers.cpp" />
@@ -218,6 +221,7 @@
     <ClInclude Include="src\Helpers\AssetManager.h" />
     <ClInclude Include="src\Helpers\FileImporter.h" />
     <ClInclude Include="src\House\Door.h" />
+    <ClInclude Include="src\House\Light.h" />
     <ClInclude Include="src\House\Room.h" />
     <ClInclude Include="src\House\Wall.h" />
     <ClInclude Include="src\Physics\ContactReportCallback.h" />
@@ -225,6 +229,7 @@
     <ClInclude Include="src\Physics\Ragdoll.h" />
     <ClInclude Include="src\Physics\RayCast.h" />
     <ClInclude Include="src\Renderer\Decal.h" />
+    <ClInclude Include="src\Renderer\EnvMap.h" />
     <ClInclude Include="src\Renderer\GBuffer.h" />
     <ClInclude Include="src\Renderer\Material.h" />
     <ClInclude Include="src\Renderer\NumberBlitter.h" />
@@ -239,6 +244,7 @@
     <ClInclude Include="src\Renderer\Mesh.h" />
     <ClInclude Include="src\Renderer\Model.h" />
     <ClInclude Include="src\Renderer\Shader.h" />
+    <ClInclude Include="src\Renderer\ShadowMap.h" />
     <ClInclude Include="src\Renderer\TextBlitter.h" />
     <ClInclude Include="src\Renderer\Texture.h" />
     <ClInclude Include="src\Renderer\TextureCompression\DDS_Helpers.h" />
@@ -254,10 +260,19 @@
     <None Include="res\ragdoll.json" />
     <None Include="res\shaders\decals.frag" />
     <None Include="res\shaders\decals.vert" />
+    <None Include="res\shaders\envMap.frag" />
+    <None Include="res\shaders\envMap.geom" />
     <None Include="res\shaders\FinalPass.frag" />
     <None Include="res\shaders\FinalPass.vert" />
     <None Include="res\shaders\lighting.frag" />
     <None Include="res\shaders\lighting.vert" />
+    <None Include="res\shaders\SH.frag" />
+    <None Include="res\shaders\SH.vert" />
+    <None Include="res\shaders\shadowmap.frag" />
+    <None Include="res\shaders\shadowmap.geom" />
+    <None Include="res\shaders\shadowmap.vert" />
+    <None Include="res\shaders\skybox.frag" />
+    <None Include="res\shaders\skybox.vert" />
     <None Include="res\shaders\solidColor.frag" />
     <None Include="res\shaders\solidColor.vert" />
     <None Include="res\shaders\solidColorEditor.frag" />

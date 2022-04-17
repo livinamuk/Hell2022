@@ -45,6 +45,15 @@
 #define DOOR_DEPTH 0.04f
 #define DOOR_HEIGHT 2.0f
 
+#define MAX_LIGHTS 10
+
+struct LightUniformBlock
+{
+	glm::vec4 position;  // position xyz, radius in w
+	glm::vec4 color;     // color xyz, strength in w
+	glm::vec4 magic;     // magic in x, nothing in yzw
+};
+
 struct ControllerState
 {
 	std::vector<bool> buttons_down;
