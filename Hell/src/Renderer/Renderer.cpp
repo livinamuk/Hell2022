@@ -28,6 +28,7 @@ Shader Renderer::s_env_map_shader;
 Shader Renderer::s_SH_shader; 
 Shader Renderer::s_animated_quad_shader;
 Shader Renderer::s_postProcessingShader;
+Shader Renderer::s_decal_shader;
 MuzzleFlash Renderer::s_muzzleFlash;
 
 
@@ -44,8 +45,9 @@ void Renderer::Init(int screenWidth, int screenHeight)
     s_brdf_shader = Shader("brdf.vert", "brdf.frag");
     s_env_map_shader = Shader("envMap.vert", "envMap.frag", "envMap.geom");
     s_SH_shader = Shader("SH.vert", "SH.frag");
-    s_animated_quad_shader = Shader("animatedQuad.vert", "animatedQuad.frag");
+	s_animated_quad_shader = Shader("animatedQuad.vert", "animatedQuad.frag");
     s_postProcessingShader = Shader("PostProcessing.vert", "PostProcessing.frag");
+    s_decal_shader = Shader("decals.vert", "decals.frag");
 
     s_gBuffer = GBuffer(screenWidth, screenHeight);
 
@@ -139,6 +141,7 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
         }
 
         GeometryPass(player, renderWidth, renderHeight);
+        DecalPass(player, renderWidth, renderHeight);
         LightingPass(player, renderWidth, renderHeight);
         MuzzleFlashPass(player, renderWidth, renderHeight);
         PostProcessingPass(player);
@@ -481,6 +484,7 @@ void Renderer::HotLoadShaders()
     s_env_map_shader.ReloadShader();
     s_animated_quad_shader.ReloadShader();
     s_postProcessingShader.ReloadShader();
+    s_decal_shader.ReloadShader();
 }
 
 void Renderer::DrawPoint(Shader* shader, glm::vec3 position, glm::vec3 color)
@@ -941,12 +945,26 @@ void Renderer::CreateBRDFLut()
 
 void Renderer::RenderDebugShit()
 {
-    return;
+ //   return;
     glDisable(GL_DEPTH_TEST);
+
+
+
+
+
 
     Shader* shader = &s_solid_color_shader;
     shader->use();
 
+
+    // decals
+    for (auto& decal : GameData::s_bulletDecals) {
+        Transform t;
+        t.position = decal.m_position;
+		//DrawPoint(shader, t.to_mat4(), RED);
+    }
+
+    return;
 
     auto& glock = GameData::s_player1.m_HUD_Weapon;
     auto glockSkinnedModel = glock.GetSkinnedModelPtr();
@@ -1162,6 +1180,71 @@ void Renderer::GeometryPass(int player, int renderWidth, int renderHeight)
         if (GameData::s_player2.m_isAlive)
             GameData::s_player2.m_HUD_Weapon.Render(&s_geometry_shader, GameData::s_player2.m_camera.m_swayTransform.to_mat4());
     }
+}
+
+void Renderer::DecalPass(int playerIndex, int renderWidth, int renderHeight)
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, s_gBuffer.ID);	
+    SetViewport(playerIndex);
+    Player* player = GetPlayerFromIndex(playerIndex);
+
+	// reset for the future. move this to whatever shader comes next
+	unsigned int attachments2[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2  };
+	glDrawBuffers(3, attachments2);
+	glEnable(GL_DEPTH_TEST);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
+
+    Shader* shader = &s_decal_shader;
+	shader->use();
+	
+    
+    shader->setMat4("pv", player->m_camera.m_projectionViewMatrix);
+	shader->setMat4("inverseProjectionMatrix", player->m_camera.m_inversePprojectionMatrix);
+	shader->setMat4("inverseViewMatrix", player->m_camera.m_inverseViewMatrix);
+	shader->setFloat("screenWidth", GetViewportWidth(playerIndex));
+	shader->setFloat("screenHeight", GetViewportHeight(playerIndex));
+	//shader->setFloat("screenWidth", CoreGL::s_currentWidth);
+	//shader->setFloat("screenHeight", CoreGL::s_currentHeight);
+	//shader->setFloat("screenWidth", renderWidth);
+	//shader->setFloat("screenHeight", renderHeight);
+	shader->setVec3("u_CameraFront", player->m_camera.m_Front);
+	shader->setVec3("u_ViewPos", player->m_camera.m_inverseViewMatrix[3]);
+    shader->setInt("u_playerIndex", playerIndex);
+
+	// Better pass in that light data too so u can get some nice ligthing ya dick head
+	/*for (int i = 0; i < GameData::p_house->m_lights.size(); i++)
+	{
+		Light& light = GameData::p_house->m_lights[i];
+		shader->setVec3("lightPosition[" + std::to_string(i) + "]", light.m_position);
+		shader->setFloat("lightRadius[" + std::to_string(i) + "]", light.m_radius);
+		shader->setFloat("lightMagic[" + std::to_string(i) + "]", light.m_magic);
+		shader->setFloat("lightStrength[" + std::to_string(i) + "]", light.m_strength);
+		shader->setVec3("lightColor[" + std::to_string(i) + "]", light.m_color);
+	}
+    */
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, s_gBuffer.rboDepth);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, s_gBuffer.gNormal);
+
+
+	//	unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	//	glDrawBuffers(3, attachments);
+
+	//glEnable(GL_BLEND);
+	glDepthMask(GL_FALSE);
+	glEnable(GL_DEPTH_TEST);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	for (BulletDecal decal : GameData::s_bulletDecals) {
+		shader->setVec3("targetPlaneSurfaceNormal", decal.m_normal);
+		decal.Draw(shader);
+	}
+
+
+	glDepthMask(GL_TRUE);
 }
 
 void Renderer::LightingPass(int player, int renderWidth, int renderHeight)

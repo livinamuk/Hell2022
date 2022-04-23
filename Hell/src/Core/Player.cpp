@@ -91,8 +91,6 @@ void Player::Respawn()
 	Audio::PlayAudio(file.c_str(), 0.5f);
 
 
-
-
 	int spawnLoc = Util::RandomFloat(0, 9);
 
 	if (spawnLoc == 8) {
@@ -132,20 +130,9 @@ void Player::Respawn()
 		m_camera.m_transform.rotation = glm::vec3(-0.0916229, -3.14659, 0);
 	}
 
-	/*PxFilterData filterData;
-	filterData.word1 = PhysX::CollisionGroup::MISC_OBSTACLE;
-	PxControllerFilters data;
-	data.mFilterData = &filterData;
-	*/
+	// Move character controller to spawn point
 	glm::vec3 pos = m_transform.position;
 	m_characterController->setPosition(PxExtendedVec3(pos.x, pos.y + 0.4, pos.z));
-//	m_characterController->move(PxVec3(0, 0, 0), 0, 0.1, data);
-	
-	//else if (spawnLoc == 7) {
-	//	m_transform.position = glm::vec3(-1.8943, -0.000382753, -1.32018);
-	//	m_camera.m_transform.rotation = glm::vec3(-0.129058, -2.43979, 0);
-	//}
-
 }
 
 void Player::FireCameraRay()
@@ -846,6 +833,16 @@ void Player::FireBullet(float variance, float bulletForce)
 
 	if (m_bulletRay.HitFound())
 	{
+		// bullet decals
+		if (m_bulletRay.m_hitObjectName == "WALL" || m_bulletRay.m_hitObjectName == "GROUND" )
+		{
+			GameData::s_bulletDecals.push_back(BulletDecal());
+			BulletDecal* decal = &GameData::s_bulletDecals.back();
+			decal->m_position = m_bulletRay.m_hitPosition;
+			decal->m_normal = m_bulletRay.m_surfaceNormal;
+		}
+
+
 		if (m_bulletRay.m_hitObjectName == "RAGDOLL"
 			|| m_bulletRay.m_hitObjectName == "RAGDOLL_HEAD")
 		{
@@ -1052,7 +1049,7 @@ void Player::CheckForWeaponInput()
 						m_secondShellLoaded = false;
 					}
 					// 1 shell
-					else if (m_ammo_shotgun_total > 1)
+					else if (m_ammo_shotgun_total > 0)
 					{
 						m_shotgunReloadState = ShotgunReloadState::SINGLE_RELOAD;
 						m_HUD_Weapon.PlayAnimation("Shotgun_Reload1Shell.fbx", 1.5f);
@@ -1063,12 +1060,13 @@ void Player::CheckForWeaponInput()
 				}
 			}
 			// pack it up
-			else if (m_HUD_Weapon.AnimationIsComplete() && m_ammo_shotgun_in_clip == m_clip_size_shotgun && m_shotgunReloadState != ShotgunReloadState::BACK_TO_IDLE)
+			if (m_HUD_Weapon.AnimationIsComplete() && m_shotgunReloadState != ShotgunReloadState::BACK_TO_IDLE)
 			{
-				//if ()
-				m_shotgunReloadState = ShotgunReloadState::BACK_TO_IDLE;
-				m_HUD_Weapon.PlayAnimation("Shotgun_ReloadEnd.fbx", 1.5f);
-				Audio::PlayAudio("Shotgun_ReloadEnd.wav");
+				if (m_ammo_shotgun_in_clip == m_clip_size_shotgun || m_ammo_shotgun_total == 0) {
+					m_shotgunReloadState = ShotgunReloadState::BACK_TO_IDLE;
+					m_HUD_Weapon.PlayAnimation("Shotgun_ReloadEnd.fbx", 1.5f);
+					Audio::PlayAudio("Shotgun_ReloadEnd.wav");
+				}
 			}
 
 			// sounds and counter increment

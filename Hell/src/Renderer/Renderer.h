@@ -40,6 +40,7 @@ public: // functions
 	static void IndirectShadowMapPass();
 	static void ShadowMapPass();
 	static void GeometryPass(int player, int renderWidth, int renderHeight);
+	static void DecalPass(int player, int renderWidth, int renderHeight);
 	static void LightingPass(int player, int renderWidth, int renderHeight);
 	static void MuzzleFlashPass(int player, int renderWidth, int renderHeight);
 	static void PostProcessingPass(int player);
@@ -95,6 +96,7 @@ public: // variables
 	static Shader s_SH_shader;
 	static Shader s_animated_quad_shader;
 	static Shader s_postProcessingShader;
+	static Shader s_decal_shader;
 	//static Shader s_textured_editor_shader;
 
 	static bool s_showBuffers;

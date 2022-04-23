@@ -158,6 +158,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Effects\BulletDecal.cpp" />
     <ClCompile Include="src\Animation\Animation.cpp" />
     <ClCompile Include="src\Animation\AnimatedGameObject.cpp" />
     <ClCompile Include="src\Animation\SkinnedModel.cpp" />
@@ -206,6 +207,7 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Effects\BulletDecal.h" />
     <ClInclude Include="src\Animation\Animation.h" />
     <ClInclude Include="src\Animation\AnimatedGameObject.h" />
     <ClInclude Include="src\Animation\SkinnedModel.h" />

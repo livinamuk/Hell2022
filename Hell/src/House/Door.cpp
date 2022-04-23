@@ -20,13 +20,6 @@ void Door::CreateShapes()
     physx::PxScene* scene = PhysX::GetScene();
 
     float graceFactor = 0.05;
-  //  s_doorShape = physics->createShape(physx::PxBoxGeometry(SHAPE_WIDTH, SHAPE_HEIGHT * 0.95, SHAPE_DEPTH), *material);
-  //  s_frameShape = physics->createShape(physx::PxBoxGeometry(0.025, SHAPE_HEIGHT * 0.005, 0.05), *material);
-
-	PxFilterData filterData;
-	//filterData.word1 = PhysX::CollisionGroup::DOOR;							 //bitmask of the object
-    //filterData.word2 = PhysX::CollisionGroup::PLAYER;// PhysX::CollisionGroup::PLAYER || PhysX::CollisionGroup::RAGDOLL; //bitmask for groups it collides with
-   // s_doorShape->setQueryFilterData(filterData);
 }
 
 Door::Door()
@@ -262,11 +255,6 @@ void Door::CreateCollisionObject()
     PxScene* scene = PhysX::GetScene();
 
 	m_shape = PhysX::GetPhysics()->createShape(physx::PxBoxGeometry(SHAPE_WIDTH, SHAPE_HEIGHT * 0.95, SHAPE_DEPTH), *material);
-	//PxFilterData filterData;
-	//filterData.word1 = PhysX::CollisionGroup::DOOR;
-  //  filterData.word2 = PhysX::CollisionGroup::PLAYER;
-  //  m_shape->setQueryFilterData(filterData);
-
 
 	PxFilterData filterData;
 	filterData.word1 = PhysX::CollisionGroup::MISC_OBSTACLE;
@@ -302,6 +290,8 @@ void Door::CreateCollisionObject()
 
     scene->addActor(*m_rigid);
     scene->addActor(*m_frameRigid);
+
+    m_rigid->setName("DOOR");
 
     m_joint->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLOCKED);
     m_joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eFREE);

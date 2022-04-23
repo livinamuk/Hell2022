@@ -97,7 +97,7 @@ void PhysX::Init()
     auto mMaterial = mPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 
     PxRigidStatic* groundPlane = PxCreatePlane(*mPhysics, PxPlane(0, 1, 0, 0), *mMaterial);
-    groundPlane->setName("Ground");
+    groundPlane->setName("GROUND");
     groundPlane->userData = new EntityData(PhysicsObjectType::FLOOR, nullptr);
 
 
@@ -110,7 +110,9 @@ void PhysX::Init()
     // word 1 is this shapes group
     // word 2 is shapes it collides with
 
+
 	PxFilterData filterData;
+	filterData.word0 = GROUP_RAYCAST;
 	filterData.word1 = PhysX::CollisionGroup::MISC_OBSTACLE;
 	filterData.word2 = PhysX::CollisionGroup::RAGDOLL_GROUP;
 	shape->setQueryFilterData(filterData);
@@ -595,8 +597,8 @@ void PhysX::EnableRayCastingForShape(PxShape* shape)
 {
    // return;
     PxFilterData filterData = shape->getQueryFilterData();
-    filterData.word0 = GROUP_RAYCAST;
-    shape->setQueryFilterData(filterData);
+	filterData.word0 = GROUP_RAYCAST;
+	shape->setQueryFilterData(filterData);
 }
 
 void PhysX::DisableRayCastingForShape(PxShape* shape)

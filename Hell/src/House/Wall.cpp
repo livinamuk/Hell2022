@@ -102,19 +102,16 @@ void Wall::BuildMeshFromVertices()
 	//m_actor->setName("Triangle Mesh");
 	//m_actor->userData = new EntityData(PhysicsObjectType::MISC_MESH, this);
 
-	m_rigidStatic->setName("Triangle Mesh");
+	m_rigidStatic->setName("WALL");
 	m_rigidStatic->userData = new EntityData(PhysicsObjectType::MISC_MESH, this);
 
-	// enable raycasting for this shape
 	PxShape* shape;
 	m_rigidStatic->getShapes(&shape, 1);
-	PhysX::EnableRayCastingForShape(shape);
-
-	PxFilterData filterData;
-	filterData.word1 = PhysX::CollisionGroup::MISC_OBSTACLE;
+	PxFilterData filterData; 
+	filterData.word0 = GROUP_RAYCAST;							// enable raycasting
+	filterData.word1 = PhysX::CollisionGroup::MISC_OBSTACLE;	// enable collision
 	shape->setQueryFilterData(filterData);
 	shape->setSimulationFilterData(filterData);
-
 }
 
 void Wall::Draw(Shader* shader)
