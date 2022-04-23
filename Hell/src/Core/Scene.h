@@ -11,10 +11,9 @@ class Scene
 public: // methods
 	static void Reset();
 	static void NewRagdoll();
-	static void AddEntity(Model* model, Material* material, Transform transform);
+	static void RemoveCorpse();
 
 public: // variables
 	static std::vector<GameCharacter> s_gameCharacters;
-	static std::vector<EntityStatic> s_staticEntities;
 	static std::vector<BloodPool> s_bloodPools;
 };

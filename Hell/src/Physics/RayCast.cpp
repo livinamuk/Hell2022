@@ -26,7 +26,8 @@ void RayCast::CastRay(glm::vec3 rayOrigin, glm::vec3 rayDirection, float rayLeng
 	// Defaults
 	m_hitObjectName = "NO_HIT";
 	m_hitPosition = glm::vec3(0, 0, 0);
-	m_surfaceNormal = glm::vec3(0, 0, 0);
+	m_surfaceNormal = glm::vec3(0, 0, 0); 
+	m_rayDirection = rayDirection;
 	m_hitFound = false;
 	m_hitActor = nullptr;
 	m_parent = nullptr;

@@ -68,6 +68,53 @@ void Wall::BuildMeshFromVertices()
 	//glBindBuffer(GL_ARRAY_BUFFER, 0);
 	//glBindVertexArray(0);
 	
+
+	std::vector<PxVec3> m_PxVertices;
+	std::vector<PxU32> m_PxIndices;
+
+	int i = 0;
+	for (auto vertex : m_vertices) {
+		m_PxVertices.push_back(PxVec3(vertex.Position.x, vertex.Position.y, vertex.Position.z));
+		m_PxIndices.push_back(i);
+		i++;
+	}
+	
+	int numVertices = m_PxVertices.size();
+	const PxVec3* pxVertices = &m_PxVertices[0];
+	int numTriangles = m_PxIndices.size() / 3;
+	const PxU32* pxIndices = &m_PxIndices[0];
+
+	m_triMesh = PhysX::p_PhysX->CreateBV33TriangleMesh(numVertices, pxVertices, numTriangles, pxIndices, false, false, false, false, false);
+
+
+	physx::PxScene* scene = PhysX::GetScene();
+	physx::PxPhysics* physics = PhysX::GetPhysics();
+	physx::PxMaterial* material = PhysX::GetDefaultMaterial();
+
+	physx::PxTriangleMeshGeometry geom(m_triMesh);
+
+	physx::PxTransform pose(Util::GlmMat4ToPxMat44(Transform().to_mat4()));
+	
+	m_rigidStatic = PxCreateStatic(*physics, pose, geom, *material);
+
+	scene->addActor(*m_rigidStatic);
+
+	//m_actor->setName("Triangle Mesh");
+	//m_actor->userData = new EntityData(PhysicsObjectType::MISC_MESH, this);
+
+	m_rigidStatic->setName("Triangle Mesh");
+	m_rigidStatic->userData = new EntityData(PhysicsObjectType::MISC_MESH, this);
+
+	// enable raycasting for this shape
+	PxShape* shape;
+	m_rigidStatic->getShapes(&shape, 1);
+	PhysX::EnableRayCastingForShape(shape);
+
+	PxFilterData filterData;
+	filterData.word1 = PhysX::CollisionGroup::MISC_OBSTACLE;
+	shape->setQueryFilterData(filterData);
+	shape->setSimulationFilterData(filterData);
+
 }
 
 void Wall::Draw(Shader* shader)

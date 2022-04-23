@@ -170,6 +170,7 @@
     <ClCompile Include="src\Core\Scene.cpp" />
     <ClCompile Include="src\Editor\Editor.cpp" />
     <ClCompile Include="src\Effects\BloodPool.cpp" />
+    <ClCompile Include="src\Effects\MuzzleFlash.cpp" />
     <ClCompile Include="src\HellEngine.cpp" />
     <ClCompile Include="src\Helpers\AssetManager.cpp" />
     <ClCompile Include="src\Helpers\FileImporter.cpp" />
@@ -217,6 +218,7 @@
     <ClInclude Include="src\Core\Scene.h" />
     <ClInclude Include="src\Editor\Editor.h" />
     <ClInclude Include="src\Effects\BloodPool.h" />
+    <ClInclude Include="src\Effects\MuzzleFlash.h" />
     <ClInclude Include="src\HellEngine.h" />
     <ClInclude Include="src\Helpers\AssetManager.h" />
     <ClInclude Include="src\Helpers\FileImporter.h" />
@@ -258,6 +260,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="res\ragdoll.json" />
+    <None Include="res\shaders\animatedQuad.frag" />
+    <None Include="res\shaders\animatedQuad.vert" />
     <None Include="res\shaders\decals.frag" />
     <None Include="res\shaders\decals.vert" />
     <None Include="res\shaders\envMap.frag" />
@@ -266,6 +270,8 @@
     <None Include="res\shaders\FinalPass.vert" />
     <None Include="res\shaders\lighting.frag" />
     <None Include="res\shaders\lighting.vert" />
+    <None Include="res\shaders\PostProcessing.frag" />
+    <None Include="res\shaders\PostProcessing.vert" />
     <None Include="res\shaders\SH.frag" />
     <None Include="res\shaders\SH.vert" />
     <None Include="res\shaders\shadowmap.frag" />

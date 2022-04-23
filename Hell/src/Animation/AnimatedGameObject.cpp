@@ -8,8 +8,10 @@ void AnimatedGameObject::SetSkinnedModel(SkinnedModel* skinnedModel)
 		m_animation = m_skinnedModel->m_animations[0];
 }
 
-void AnimatedGameObject::PlayAnimation(std::string name)
+void AnimatedGameObject::PlayAnimation(std::string name, float speed)
 {
+	m_animationHasFinished = false;
+
 	if (!m_skinnedModel)
 		return;
 
@@ -20,6 +22,7 @@ void AnimatedGameObject::PlayAnimation(std::string name)
 			m_animation = animation;
 			m_animTime = 0;
 			m_loopAnimation = false;
+			m_animSpeed = speed;
 			return;
 		}
 	}
@@ -90,9 +93,13 @@ void AnimatedGameObject::SetAnimationTime(float time)
 	m_animTime = time;
 }
 
+#include "Core/Input.h"
+
 void AnimatedGameObject::UpdateAnmation(float deltaTime, bool skin)
 {
-	m_animTime += deltaTime;
+	m_animTime += deltaTime * m_animSpeed;
+
+	//m_animTime = m_animation->m_duration * m_animation->m_ticksPerSecond
 
 	// Check if animation has finished
 	m_animationHasFinished = false;
@@ -101,11 +108,18 @@ void AnimatedGameObject::UpdateAnmation(float deltaTime, bool skin)
 		// If looping then start over
 		if (m_loopAnimation) {
 			m_animTime = 0;
+			m_animSpeed = 1;	// this probably doesn't actually solve the bug, you may still get 1 play through at the speed at which whatever the last anim was played when u switch to a loooping one. check it by setting shotgun equip to 100 speed and then walking out of it
 		}
 		// If not then stop on final frame
 		else {
+
 			m_animTime = m_animation->m_duration / m_animation->GetTicksPerSecond();
 			m_animationHasFinished = true;
+			m_animSpeed = 1;
+
+	//		std::cout << "m_filename: " << m_animation->m_filename << "\n";
+////	std::cout << "m_animTime: " << m_animTime << "\n";
+	//		std::cout << "m_duration / m_animation->GetTicksPerSecond(): " << (m_animation->m_duration / m_animation->GetTicksPerSecond()) << "\n";
 		}
 	}
 	// Now finally skin the cunt
@@ -113,12 +127,12 @@ void AnimatedGameObject::UpdateAnmation(float deltaTime, bool skin)
 		m_skinnedModel->UpdateBoneTransformsFromAnimation(m_animTime, m_animation, m_animatedTransforms);
 }
 
-void AnimatedGameObject::Render(Shader* shader)
+void AnimatedGameObject::Render(Shader* shader, glm::mat4 modelMatrix)
 {
 	shader->use();
 	shader->setBool("hasAnimation", true);
 
-	glm::mat4 modelMatrix = glm::mat4(1);
+	//glm::mat4 modelMatrix = glm::mat4(1);
 
 	for (unsigned int i = 0; i < m_animatedTransforms.local.size(); i++)
 		shader->setMat4("skinningMats[" + std::to_string(i) + "]", modelMatrix * m_animatedTransforms.local[i]);

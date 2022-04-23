@@ -11,6 +11,29 @@ out vec3 FragPos;
 
 void main()
 {
+	vec4 worldPos;
+	vec4 totalLocalPos = vec4(0.0);
+	
+	vec4 vertexPosition =  vec4(aPos, 1.0);
 
-		gl_Position = model * vec4(aPos, 1.0);
+	// Animated
+	if (hasAnimation)
+	{
+		for(int i=0;i<4;i++) 
+		{
+			mat4 jointTransform = skinningMats[int(aBoneID[i])];
+			vec4 posePosition =  jointTransform  * vertexPosition * aBoneWeight[i];
+
+			totalLocalPos += posePosition;	
+		}
+		worldPos = model * totalLocalPos;
+				gl_Position = worldPos;
+	}
+	else // Not animated
+	{
+		worldPos = model * vec4(aPos, 1.0);
+		gl_Position = worldPos;
+	}
+	
+
 }

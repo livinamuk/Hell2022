@@ -12,6 +12,7 @@
 #include "Physics/Ragdoll.h"
 #include "Physics/PhysX.h"
 #include "Core/GameCharacter.h"
+#include "Effects/MuzzleFlash.h"
 
 class Renderer
 {
@@ -40,6 +41,8 @@ public: // functions
 	static void ShadowMapPass();
 	static void GeometryPass(int player, int renderWidth, int renderHeight);
 	static void LightingPass(int player, int renderWidth, int renderHeight);
+	static void MuzzleFlashPass(int player, int renderWidth, int renderHeight);
+	static void PostProcessingPass(int player);
 
 	static void DrawScene(Shader* shader, RenderPass renderPass, int player = 0);
 
@@ -71,6 +74,11 @@ public: // functions
 
 	static void DrawViewportQuad(Shader* shader, ViewportSize viewportSize);
 	static void CreateBRDFLut();
+	static void SetViewport(int player);
+	static float GetViewportWidth(int player);
+	static float GetViewportHeight(int player);
+	static ViewportSize GetViewportSize(int player);
+	static Player* GetPlayerFromIndex(int index);
 
 public: // variables
 
@@ -85,6 +93,8 @@ public: // variables
 	static Shader s_brdf_shader;
 	static Shader s_env_map_shader;
 	static Shader s_SH_shader;
+	static Shader s_animated_quad_shader;
+	static Shader s_postProcessingShader;
 	//static Shader s_textured_editor_shader;
 
 	static bool s_showBuffers;
@@ -97,5 +107,7 @@ public: // variables
 	static GLuint s_centeredQuadVAO;
 	static GLuint s_quadVAO;
 	static GLuint s_brdfLUTTextureID;
+
+	static MuzzleFlash s_muzzleFlash;
 };
 

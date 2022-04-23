@@ -25,13 +25,16 @@ void Player::UpdateCamera(int renderWidth, int renderHeight)
 
 void Player::Update(float deltaTime)
 {
+	if (m_muzzleFlashTimer >= 0)
+		m_muzzleFlashTimer += deltaTime * 15;
+
 	// if player is alive
 	if (m_isAlive) 
 	{
 		m_timeSinceDeath = 0;	
 		
 		if (m_enableControl) {
-			UpdateMovement(deltaTime);
+			UpdateMovement(deltaTime);			
 			UpdateAiming();
 			CheckForWeaponInput();
 
@@ -65,41 +68,84 @@ void Player::Update(float deltaTime)
 
 void Player::Respawn()
 {
-	m_ammo_total = 80;
-	m_ammo_in_clip = 15;
+	m_corpse = nullptr;
+
+
+
+	m_ammo_glock_in_clip = m_clip_size_glock;
+	m_ammo_shotgun_in_clip = m_clip_size_shotgun;
+	m_ammo_glock_total = 80;
+	m_ammo_shotgun_total = 48;
+
 	m_isAlive = true;
 	m_transform = Transform();
 	m_hasHitFloorYet = false;
-	m_transform.position = glm::vec3(Util::RandomFloat(-10, 10), 0, Util::RandomFloat(-10, 10));
-	m_camera.m_transform.rotation = glm::vec3(0, Util::RandomFloat(0, 6), 0);
+	//m_transform.position = glm::vec3(Util::RandomFloat(-10, 10), 0, Util::RandomFloat(-10, 10));
+	//m_camera.m_transform.rotation = glm::vec3(0, Util::RandomFloat(0, 6), 0);
 	m_justBorn = true;
 	m_createdBloodPool = false;
+
+	//m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
 
 	std::string file = "UI_Select2.wav";
 	Audio::PlayAudio(file.c_str(), 0.5f);
 
-	GameCharacter gameCharacter;
-	gameCharacter.m_transform.position = glm::vec3(0, 5, 0);
-	gameCharacter.m_transform.rotation.x = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (HELL_PI)));
-	gameCharacter.m_transform.rotation.y = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (HELL_PI)));
-	gameCharacter.m_transform.rotation.z = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (HELL_PI)));
-	gameCharacter.m_skinnedModel = AssetManager::GetSkinnedModelPtr("Nurse");
-	gameCharacter.m_ragdoll.BuildFromJsonFile("ragdoll.json", gameCharacter.m_transform, nullptr, PhysicsObjectType::RAGDOLL);
-	gameCharacter.m_skinningMethod = SkinningMethod::RAGDOLL;
-	gameCharacter.m_materialIndex = m_materialIndex;
 
-	p_gameCharacters->push_back(gameCharacter);
 
-	GameCharacter* gc = &(*p_gameCharacters)[p_gameCharacters->size() - 1];
 
-	for (int i = 0; i < gc->m_ragdoll.m_rigidComponents.size(); i++)
-	{
-		PxTransform transform = m_ragdoll.m_rigidComponents[i].pxRigidBody->getGlobalPose();
-		gc->m_ragdoll.m_rigidComponents[i].pxRigidBody->setGlobalPose(transform);
-		gc->m_ragdoll.m_rigidComponents[i].pxRigidBody->putToSleep();
-		gc->m_ragdoll.m_rigidComponents[i].pxRigidBody->userData = new EntityData(PhysicsObjectType::RAGDOLL, &gameCharacter);
+	int spawnLoc = Util::RandomFloat(0, 9);
 
+	if (spawnLoc == 8) {
+		m_transform.position = glm::vec3(3.32548, -0.00066999, 0.162508);
+		m_camera.m_transform.rotation = glm::vec3(-0.139529, 1.57592, 0);
 	}
+	else if (spawnLoc == 7) {
+		m_transform.position = glm::vec3(-2.01669, -0.0010103, 7.57015);
+		m_camera.m_transform.rotation = glm::vec3(-0.118587, 0.0314156, 0);
+	}
+	else if (spawnLoc == 2) {
+		m_transform.position = glm::vec3(-7.79973, -8.73399e-05, 3.36098);
+		m_camera.m_transform.rotation = glm::vec3(-0.170943, -3.09424, 0);
+	}
+	else if (spawnLoc == 3) {
+		m_transform.position = glm::vec3(1.92737, -0.00188446, -1.28305);
+		m_camera.m_transform.rotation = glm::vec3(-0.212828, -3.80628, 0);
+	}
+	else if (spawnLoc == 4) {
+		m_transform.position = glm::vec3(4.01202, -0.00145661, 3.09761);
+		m_camera.m_transform.rotation = glm::vec3(-0.275655, -4.07853, 0);
+	}
+	else if (spawnLoc == 5) {
+		m_transform.position = glm::vec3(4.14206, -0.000171214, 4.26873);
+		m_camera.m_transform.rotation = glm::vec3(-0.139529, -4.73822, 0);
+	}
+	else if (spawnLoc == 6) {
+		m_transform.position = glm::vec3(-1.8943, -0.000382753, -1.32018);
+		m_camera.m_transform.rotation = glm::vec3(-0.129058, -2.43979, 0);
+	}
+	else if (spawnLoc == 0) {
+		m_transform.position = glm::vec3(1.92737, -0.00188446, -1.28305);
+		m_camera.m_transform.rotation = glm::vec3(-0.212828, -3.80628, 0);
+	}
+	else if (spawnLoc == 1) {
+		m_transform.position = glm::vec3(-7.8822, 0.00285899, -3.36048);
+		m_camera.m_transform.rotation = glm::vec3(-0.0916229, -3.14659, 0);
+	}
+
+	/*PxFilterData filterData;
+	filterData.word1 = PhysX::CollisionGroup::MISC_OBSTACLE;
+	PxControllerFilters data;
+	data.mFilterData = &filterData;
+	*/
+	glm::vec3 pos = m_transform.position;
+	m_characterController->setPosition(PxExtendedVec3(pos.x, pos.y + 0.4, pos.z));
+//	m_characterController->move(PxVec3(0, 0, 0), 0, 0.1, data);
+	
+	//else if (spawnLoc == 7) {
+	//	m_transform.position = glm::vec3(-1.8943, -0.000382753, -1.32018);
+	//	m_camera.m_transform.rotation = glm::vec3(-0.129058, -2.43979, 0);
+	//}
+
 }
 
 void Player::FireCameraRay()
@@ -123,8 +169,58 @@ void Player::FireCameraRay()
 	}
 }
 
+void Player::FireBulletRay(float variance)
+{
+	// First omit the player ragdoll from it's own raycast
+	for (RigidComponent& rigid : m_ragdoll.m_rigidComponents) {
+		PxShape* shape = PhysX::GetShapeFromPxRigidDynamic(rigid.pxRigidBody);
+		PhysX::DisableRayCastingForShape(shape);
+	}
+
+	// Cast ray
+	glm::vec3 origin = glm::vec3(m_transform.position.x, m_transform.position.y + m_cameraViewHeight, m_transform.position.z);
+	glm::vec3 unitDir = m_camera.m_Front;
+
+	// Add variance
+	unitDir.x += (variance * 0.5f) - Util::RandomFloat(0, variance);
+	unitDir.y += (variance * 0.5f) - Util::RandomFloat(0, variance);
+	unitDir.z += (variance * 0.5f) - Util::RandomFloat(0, variance);
+	unitDir = glm::normalize(unitDir);
+	
+	float distance = 100;
+	m_bulletRay.CastRay(origin, unitDir, distance);
+
+	// Renable raycasting for the ragdoll
+	for (RigidComponent& rigid : m_ragdoll.m_rigidComponents) {
+		PxShape* shape = PhysX::GetShapeFromPxRigidDynamic(rigid.pxRigidBody);
+		PhysX::EnableRayCastingForShape(shape);
+	}
+}
+
+void Player::FireBulletRay(glm::vec3 unitDir)
+{
+	// First omit the player ragdoll from it's own raycast
+	for (RigidComponent& rigid : m_ragdoll.m_rigidComponents) {
+		PxShape* shape = PhysX::GetShapeFromPxRigidDynamic(rigid.pxRigidBody);
+		PhysX::DisableRayCastingForShape(shape);
+	}
+
+	// Cast ray
+	glm::vec3 origin = glm::vec3(m_transform.position.x, m_transform.position.y + m_cameraViewHeight, m_transform.position.z);
+
+	float distance = 100;
+	m_bulletRay.CastRay(origin, unitDir, distance);
+
+	// Renable raycasting for the ragdoll
+	for (RigidComponent& rigid : m_ragdoll.m_rigidComponents) {
+		PxShape* shape = PhysX::GetShapeFromPxRigidDynamic(rigid.pxRigidBody);
+		PhysX::EnableRayCastingForShape(shape);
+	}
+}
+
 #define WALKING_SPEED 3.5f
 #define CROUCHING_SPEED 2.125f
+
 
 void Player::UpdateMovement(float deltaTime)
 {
@@ -138,23 +234,62 @@ void Player::UpdateMovement(float deltaTime)
 
 	m_isMoving = false;
 
+//	const PxExtendedVec3& globalPose = m_characterController->getPosition();
+
+
+	//m_transform.position = glm::vec3(globalPose.x, globalPose.y - 0.4f, globalPose.z);
+
+	glm::vec3 displacement = glm::vec3(0,0,0);
+
 	// Keyboard / controller button movement
 	if (PressingWalkForward()) {
-		m_transform.position += Forward * deltaTime * speed;
+		displacement += Forward;// *deltaTime;
 		m_isMoving = true;
 	}
 	if (PressingWalkBackward()) {
-		m_transform.position -= Forward * deltaTime * speed;
+		displacement -= Forward;// *deltaTime;
 		m_isMoving = true;
 	}
 	if (PressingWalkLeft()) {
-		m_transform.position -= m_camera.m_Right * deltaTime * speed;
+		displacement -= m_camera.m_Right;// *deltaTime;
 		m_isMoving = true;
 	}
 	if (PressingWalkRight()) {
-		m_transform.position += m_camera.m_Right * deltaTime * speed;
+		displacement += m_camera.m_Right;// *deltaTime;
 		m_isMoving = true;
 	}
+
+	// walk speed
+	if (!m_isCrouching)
+		displacement *= 0.0575;
+	// crouch speed
+	else if (m_isCrouching)
+		displacement *= (0.038725);
+	
+	//deltaTime *= 0.14f;
+	displacement *= deltaTime;
+	displacement *= 60 / 1;;
+
+	PxFilterData filterData;
+	filterData.word1 = PhysX::CollisionGroup::MISC_OBSTACLE;										//bitmask of the object
+	//filterData.word2 = PhysX::CollisionGroup::MISC_OBSTACLE;// || PhysX::CollisionGroup::MISC_OBSTACLE; //bitmask for groups it collides with
+
+	PxControllerFilters data;
+	data.mFilterData = &filterData;
+
+
+	if (Input::KeyPressed(HELL_KEY_G)) {
+		m_characterController->setPosition(PxExtendedVec3(2, 2, 2));
+	}
+
+
+	PxVec3 disp = PxVec3(displacement.x, -9.8f, displacement.z);
+	PxF32 minDist = 0.001;
+
+	m_characterController->move(PxVec3(displacement.x, -9.8f, displacement.z), minDist, deltaTime, data);
+
+	//std::cout << disp.x << " " << disp.y << " " << disp.z << "\n";
+	//std::cout << deltaTime << "\n";
 
 	// Controller stick movement
 	if (m_controllerIndex != -1)
@@ -200,7 +335,36 @@ void Player::UpdateMovement(float deltaTime)
 	float target = m_isCrouching ? m_viewHeightCrouching : m_viewHeightStanding;
 	m_cameraViewHeight = Util::FInterpTo(m_cameraViewHeight, target, deltaTime, m_crouchDownSpeed);
 
+	// Weapon sway
+	float xOffset = 0;
+	float yOffset = 0;
+	if (m_inputType == InputType::KEYBOARD_AND_MOUSE) {
+		xOffset = Input::m_xoffset;
+		yOffset = Input::m_yoffset;
+		//std::cout << xOffset << "\n";
+	}
+	else if (m_inputType == InputType::CONTROLLER) {
+		xOffset = m_aim_trigger_axis_X * 1000;
+		yOffset = m_aim_trigger_axis_Y * 1000;
+	}
+
+	if (m_gun == Gun::GLOCK)
+		m_camera.CalculateWeaponSway(deltaTime, xOffset, yOffset, 2.25f);
+
+	if (m_gun == Gun::SHOTGUN)
+		m_camera.CalculateWeaponSway(deltaTime, xOffset, yOffset, 4.25f);
+
 	FootstepAudio(deltaTime);
+
+
+	if (Input::KeyPressed(HELL_KEY_H)) {
+		std::cout << "player pos: " << m_transform.position.x << ",";
+		std::cout << m_transform.position.y << ",";
+		std::cout << m_transform.position.z << "\n";
+		std::cout << "cam rot: " << m_camera.m_transform.rotation.x << ",";
+		std::cout << m_camera.m_transform.rotation.y << ",";
+		std::cout << m_camera.m_transform.rotation.z << "\n\n";
+	}
 }
 
 void Player::FootstepAudio(float deltaTime)
@@ -252,31 +416,31 @@ void Player::UpdateAiming()
 	if (m_inputType == InputType::CONTROLLER && m_controllerIndex != -1)
 	{
 		// Figure out which fucking stick they are using
-		float aim_trigger_axis_X;
-		float aim_trigger_axis_Y;
+		m_aim_trigger_axis_X = 0;
+		m_aim_trigger_axis_Y = 0;
 		if (m_leftStickMode == ControllerStickMode::AIMING) {
-			aim_trigger_axis_X = Input::s_controllerStates[m_controllerIndex].left_stick_axis_X;
-			aim_trigger_axis_Y = Input::s_controllerStates[m_controllerIndex].left_stick_axis_Y;
+			m_aim_trigger_axis_X = Input::s_controllerStates[m_controllerIndex].left_stick_axis_X;
+			m_aim_trigger_axis_Y = Input::s_controllerStates[m_controllerIndex].left_stick_axis_Y;
 		}
 		if (m_rightStickMode == ControllerStickMode::AIMING) {
-			aim_trigger_axis_X = Input::s_controllerStates[m_controllerIndex].right_stick_axis_X;
-			aim_trigger_axis_Y = Input::s_controllerStates[m_controllerIndex].right_stick_axis_Y;
+			m_aim_trigger_axis_X = Input::s_controllerStates[m_controllerIndex].right_stick_axis_X;
+			m_aim_trigger_axis_Y = Input::s_controllerStates[m_controllerIndex].right_stick_axis_Y;
 		}
 
 		// Prevent drifting
 		float deadZone = 0.1f;
-		if (aim_trigger_axis_X < deadZone && aim_trigger_axis_X > -deadZone)
-			aim_trigger_axis_X = 0;
-		if (aim_trigger_axis_Y < deadZone && aim_trigger_axis_Y > -deadZone)
-			aim_trigger_axis_Y = 0;
+		if (m_aim_trigger_axis_X < deadZone && m_aim_trigger_axis_X > -deadZone)
+			m_aim_trigger_axis_X = 0;
+		if (m_aim_trigger_axis_Y < deadZone && m_aim_trigger_axis_Y > -deadZone)
+			m_aim_trigger_axis_Y = 0;
 
 		// Apply sensitivity
-		aim_trigger_axis_X *= 0.08;
-		aim_trigger_axis_Y *= 0.08;
+		m_aim_trigger_axis_X *= 0.08;
+		m_aim_trigger_axis_Y *= 0.08;
 
 		// Apply actual trigger position to the camera
 		float yLimit = 1.5f;
-		m_camera.m_transform.rotation += glm::vec3(-aim_trigger_axis_Y, -aim_trigger_axis_X, 0.0);	
+		m_camera.m_transform.rotation += glm::vec3(-m_aim_trigger_axis_Y, -m_aim_trigger_axis_X, 0.0);
 		m_camera.m_transform.rotation.x = std::min(m_camera.m_transform.rotation.x, yLimit);
 		m_camera.m_transform.rotation.x = std::max(m_camera.m_transform.rotation.x, -yLimit);
 	}
@@ -372,6 +536,14 @@ bool Player::PressedCrouch()
 		return Input::ButtonPressed(m_controllerIndex, m_controls.CROUCH);
 }
 
+bool Player::PressedNextWeapon()
+{
+	if (m_inputType == InputType::KEYBOARD_AND_MOUSE)
+		return Input::KeyPressed(m_controls.NEXT_WEAPON);
+	else
+		return Input::ButtonPressed(m_controllerIndex, m_controls.NEXT_WEAPON);
+}
+
 void Player::SpawnBloodPool()
 {		
 	// Check if it's time to spawn blood pool
@@ -395,9 +567,56 @@ void Player::SpawnBloodPool()
 	}
 }
 
+void Player::SpawnMuzzleFlash()
+{
+	m_muzzleFlashTimer = 0;
+	m_muzzleFlashRotation = Util::RandomFloat(0, HELL_PI * 2);
+}
+
 void Player::CreateCharacterController()
 {
 	m_characterController = PhysX::CreateCharacterController(m_transform);
+}
+
+void Player::SpawnCoprseRagdoll()
+{
+	p_gameCharacters->push_back(GameCharacter());
+
+	GameCharacter* gc = &p_gameCharacters->back();
+	gc->m_skinnedModel = AssetManager::GetSkinnedModelPtr("Nurse");
+	gc->m_ragdoll.BuildFromJsonFile("ragdoll.json", Transform(), nullptr, PhysicsObjectType::RAGDOLL);
+	gc->m_skinningMethod = SkinningMethod::RAGDOLL;
+	gc->m_materialIndex = m_materialIndex;
+
+	m_corpse = gc;
+
+	for (int i = 0; i < gc->m_ragdoll.m_rigidComponents.size(); i++)
+	{
+		// get player world pos/rot
+		Transform transform;
+		transform.position = GetPosition();
+		transform.position.y -= 1;
+		transform.rotation.y = GetRotation().y + HELL_PI;
+
+		// now match the new ragdoll pieces to the animation
+		for (RigidComponent& rigidComponent : gc->m_ragdoll.m_rigidComponents)
+		{
+			int index = m_skinnedModel->m_BoneMapping[rigidComponent.correspondingJointName];
+			PxMat44 matrix = Util::GlmMat4ToPxMat44(transform.to_mat4() * m_character_model.m_animatedTransforms.worldspace[index]);
+			rigidComponent.pxRigidBody->setGlobalPose(PxTransform(matrix));
+			rigidComponent.pxRigidBody->userData = new EntityData(PhysicsObjectType::RAGDOLL, &gc);
+
+			PxShape* shape;
+			rigidComponent.pxRigidBody->getShapes(&shape, 1);
+			PxFilterData filterData;
+			filterData.word1 = PhysX::CollisionGroup::MISC_OBSTACLE;
+			filterData.word2 = PhysX::CollisionGroup::MISC_OBSTACLE;
+			shape->setQueryFilterData(filterData);
+			shape->setSimulationFilterData(filterData);
+
+			rigidComponent.pxRigidBody->wakeUp();
+		}
+	}
 }
 
 void Player::UpdatePlayerModelAnimation(float deltaTime)
@@ -569,100 +788,441 @@ void Player::UpdatePlayerModelAnimation(float deltaTime)
 
 
 
+void Player::CreatePoormansCharacterController()
+{
+	return;
+
+	// Sphere size
+	float radius = 0.25f;
+
+	// Spawn location
+	Transform spawnTransform = m_transform;
+	spawnTransform.position += radius + 0.05;
+	PxMat44 spawnMatrix = Util::GlmMat4ToPxMat44(m_transform.to_mat4());
+
+	// Create rigid
+	m_rigid = PhysX::GetPhysics()->createRigidDynamic(PxTransform(spawnMatrix));
+	m_rigid->setSolverIterationCounts(8, 1);
+	m_rigid->setName("PLAYER_SPHERE");
+	m_rigid->userData = new EntityData(PhysicsObjectType::UNDEFINED, this);
+
+
+	// Create and attach shape
+	auto* material = PhysX::GetDefaultMaterial();
+	PxSphereGeometry geometry = PxSphereGeometry(radius);
+	PxShape* shape = PxRigidActorExt::createExclusiveShape(*m_rigid, geometry, *material);
+
+	// Add to scene
+	PxScene* scene = PhysX::GetScene();
+	scene->addActor(*m_rigid);
+	float mass = 1;
+	PxRigidBodyExt::setMassAndUpdateInertia(*m_rigid, mass);
+}
+
+int Player::GetCurrentGunAmmoInClip()
+{
+	if (m_gun == Gun::GLOCK)
+		return m_ammo_glock_in_clip;
+	if (m_gun == Gun::SHOTGUN)
+		return m_ammo_shotgun_in_clip;
+	return -1;
+}
+
+int Player::GetCurrentGunTotalAmmo()
+{
+	if (m_gun == Gun::GLOCK)
+		return m_ammo_glock_total;
+	if (m_gun == Gun::SHOTGUN)
+		return m_ammo_shotgun_total;
+	return -1;
+}
+
+void Player::FireBullet(float variance, float bulletForce)
+{
+	bool bodyHit = false;
+	bool headHit = false;
+
+	FireBulletRay(variance);
+
+	if (m_bulletRay.HitFound())
+	{
+		if (m_bulletRay.m_hitObjectName == "RAGDOLL"
+			|| m_bulletRay.m_hitObjectName == "RAGDOLL_HEAD")
+		{
+			PxVec3 force = PxVec3(m_camera.m_Front.x, m_camera.m_Front.y, m_camera.m_Front.z) * bulletForce;
+
+			PxRigidDynamic* actor = (PxRigidDynamic*)m_bulletRay.m_hitActor;
+			actor->addForce(force);
+
+			EntityData* physicsData = (EntityData*)actor->userData;
+
+			// blood noise
+			if (physicsData->type == PhysicsObjectType::RAGDOLL || physicsData->type == PhysicsObjectType::PLAYER_RAGDOLL)
+			{
+				bodyHit = true;
+			}
+
+			// kill em if it's player
+			if (physicsData->type == PhysicsObjectType::PLAYER_RAGDOLL) {
+
+				Player* p = (Player*)physicsData->parent;
+
+				// kill em
+				if (m_bulletRay.m_hitObjectName == "RAGDOLL_HEAD" && p->m_isAlive) {
+					p->m_isAlive = false;
+					m_killCount++;
+					headHit = true;
+
+					// first disable players ragdoll from raycasts
+					for (RigidComponent& rigid : p->m_ragdoll.m_rigidComponents) {
+						PxShape* shape = PhysX::GetShapeFromPxRigidDynamic(rigid.pxRigidBody);
+						PhysX::DisableRayCastingForShape(shape);
+					}
+
+					// CREATE A RAGDOLL
+					p->SpawnCoprseRagdoll();
+
+					// enable corpse for raycasts
+					for (RigidComponent& rigid : p->m_corpse->m_ragdoll.m_rigidComponents) {
+						PxShape* shape = PhysX::GetShapeFromPxRigidDynamic(rigid.pxRigidBody);
+						PhysX::EnableRayCastingForShape(shape);
+					}
+
+					PhysX::GetScene()->simulate(std::min(0.01f, 0.01f));
+					PhysX::GetScene()->fetchResults(true);
+
+					FireBulletRay(m_bulletRay.m_rayDirection); // hit the new ragdoll
+					if (m_bulletRay.HitFound())
+					{
+						std::cout << "hit found, was:\n";
+						std::cout << m_bulletRay.m_hitObjectName << "\n";
+						if (m_bulletRay.m_hitObjectName == "RAGDOLL" || m_bulletRay.m_hitObjectName == "RAGDOLL_HEAD")
+						{
+							//	std::cout << "was ragdoll\n";
+							PxVec3 force = PxVec3(m_camera.m_Front.x, m_camera.m_Front.y, m_camera.m_Front.z) * bulletForce;
+
+							PxRigidDynamic* actor = (PxRigidDynamic*)m_bulletRay.m_hitActor;
+							actor->addForce(force);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (headHit) {
+		std::string file = "Death0.wav";
+		Audio::PlayAudio(file.c_str(), 0.45f);
+	}
+	else if (bodyHit) {
+			std::string file = "FLY_Bullet_Impact_Flesh_0" + std::to_string(rand() % 8 + 1) + ".wav";
+			Audio::PlayAudio(file.c_str(), 0.5f);
+	}	
+}
+
 void Player::CheckForWeaponInput()
 {
 
-	// FIRST, check and reset states, hopefully this fixes that weird reload bug but keep an eye out for it: reload anim doesn't play, but sound does and ammo is credited.
-	if (m_HUD_Weapon.AnimationIsComplete())
+	// a better way to do this is to set it to true first and THEN check for the stuff that disallows it
+
+	bool canChangeWeapon = false;
+
+	if (m_gun == Gun::SHOTGUN)
+		canChangeWeapon = true;
+	else if (m_gun == Gun::GLOCK && m_HUDWeaponAnimationState == HUDWeaponAnimationState::RELOADING && m_HUD_Weapon.AnimationIsPastPercentage(50))
+		canChangeWeapon = true;
+	else
+		canChangeWeapon = true;
+
+
+
+	// lazy weapon switch implementation
+	if (canChangeWeapon)
 	{
-		if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::FIRING ||
-			m_HUDWeaponAnimationState == HUDWeaponAnimationState::RELOADING)
+		/*if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::IDLE ||
+			m_HUDWeaponAnimationState == HUDWeaponAnimationState::RELOADING ||
+			m_HUDWeaponAnimationState == HUDWeaponAnimationState::FIRING
+			)
+		{*/
+
+			if (PressedNextWeapon() && m_gun == Gun::SHOTGUN) {
+				//if (Input::KeyPressed(HELL_KEY_1)) {
+				m_gunToChangeTo = Gun::GLOCK;
+				Audio::PlayAudio("Glock_Equip.wav", 0.5f);
+				m_HUD_Weapon.PlayAnimation("Shotgun_Dequip.fbx");
+				m_HUDWeaponAnimationState = HUDWeaponAnimationState::HOLSTERING;
+			}
+			else if (PressedNextWeapon() && m_gun == Gun::GLOCK) {
+				//else if (Input::KeyPressed(HELL_KEY_2)) {
+				m_gunToChangeTo = Gun::SHOTGUN;
+				Audio::PlayAudio("Glock_Equip.wav", 0.5f);
+				m_HUD_Weapon.PlayAnimation("Glock_Holster.fbx");
+				m_HUDWeaponAnimationState = HUDWeaponAnimationState::HOLSTERING;
+			}
+		//}
+	}
+
+	
+	// Finished holstering
+	if (m_HUD_Weapon.AnimationIsComplete() && m_HUDWeaponAnimationState == HUDWeaponAnimationState::HOLSTERING)			
+	{
+		if (m_gunToChangeTo == Gun::GLOCK) {
+			m_gun = Gun::GLOCK;
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
+			m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Glock"));
+			m_HUD_Weapon.PlayAnimation("Glock_Equip2.fbx", 1.25f);
+			m_gunToChangeTo = Gun::NONE;
+		}		
+		
+		else if (m_gunToChangeTo == Gun::SHOTGUN) {
+			m_gun = Gun::SHOTGUN;
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
+			m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Shotgun"));
+			m_HUD_Weapon.PlayAnimation("Shotgun_Equip.fbx", 1.25f);
+			m_gunToChangeTo = Gun::NONE;
+		}
+	}		
+
+
+	if (m_gun == Gun::SHOTGUN) {
+
+		// finished whatever you were doing? (at least i think this is what it does, read the glock comment below)
+		if (m_HUD_Weapon.AnimationIsComplete())
 		{
-			m_HUD_Weapon.PlayAndLoopAnimation("Glock_Idle.fbx");
+			if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::FIRING ||
+				m_HUDWeaponAnimationState == HUDWeaponAnimationState::EQUIPPING)
+			{
+				m_HUD_Weapon.PlayAndLoopAnimation("Shotgun_Idle.fbx");
+				m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
+			}
+		}
+
+		// Fire shotgun
+		if (PressedFire())
+		{
+			if (GetCurrentGunAmmoInClip() > 0) 
+			{
+				// first check you aren't in the first 50% of a fire animation
+				bool stillFiring = false;
+
+				if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::FIRING && m_HUD_Weapon.GetCurrentAnimationTime() < 0.5)
+					stillFiring = true;
+
+				if (!stillFiring)
+				{
+					m_HUDWeaponAnimationState = HUDWeaponAnimationState::FIRING;
+					m_HUD_Weapon.PlayAnimation("Shotgun_Fire.fbx", 1.25f);
+					FireShotgun();
+					SpawnMuzzleFlash();
+				}
+			}
+		}
+
+		// Press reload
+		if (PressedReload() && m_ammo_shotgun_total > 0)
+		{
+			if (m_HUDWeaponAnimationState != HUDWeaponAnimationState::RELOADING &&
+				m_HUDWeaponAnimationState != HUDWeaponAnimationState::EQUIPPING &&
+				m_HUDWeaponAnimationState != HUDWeaponAnimationState::HOLSTERING)
+			{
+				m_HUDWeaponAnimationState = HUDWeaponAnimationState::RELOADING;
+				m_shotgunReloadState = ShotgunReloadState::FROM_IDLE;
+				m_HUD_Weapon.PlayAnimation("Shotgun_ReloadWetStart.fbx", 1.5f);
+			}
+		}
+
+		// Animated reload
+		if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::RELOADING)
+		{
+			//  there is still reloading to do?... 
+			if (m_ammo_shotgun_in_clip < m_clip_size_shotgun) 
+			{
+				// done flipping it? then load shells
+				if (m_HUD_Weapon.AnimationIsComplete() && m_shotgunReloadState == ShotgunReloadState::FROM_IDLE ||
+					m_HUD_Weapon.AnimationIsComplete() && m_shotgunReloadState == ShotgunReloadState::DOUBLE_RELOAD ||
+					m_HUD_Weapon.AnimationIsComplete() && m_shotgunReloadState == ShotgunReloadState::SINGLE_RELOAD)
+				{
+					// 2 shell
+					if (m_ammo_shotgun_in_clip <= 6 && m_ammo_shotgun_total > 2)
+					{
+						m_shotgunReloadState = ShotgunReloadState::DOUBLE_RELOAD;
+						m_HUD_Weapon.PlayAnimation("Shotgun_Reload2Shells.fbx", 1.5f);
+						//m_ammo_shotgun_in_clip += 2;					
+						m_firstShellLoaded = false;
+						m_secondShellLoaded = false;
+					}
+					// 1 shell
+					else if (m_ammo_shotgun_total > 1)
+					{
+						m_shotgunReloadState = ShotgunReloadState::SINGLE_RELOAD;
+						m_HUD_Weapon.PlayAnimation("Shotgun_Reload1Shell.fbx", 1.5f);
+						//m_ammo_shotgun_in_clip++;						
+						m_firstShellLoaded = false;
+						m_secondShellLoaded = false;
+					}
+				}
+			}
+			// pack it up
+			else if (m_HUD_Weapon.AnimationIsComplete() && m_ammo_shotgun_in_clip == m_clip_size_shotgun && m_shotgunReloadState != ShotgunReloadState::BACK_TO_IDLE)
+			{
+				//if ()
+				m_shotgunReloadState = ShotgunReloadState::BACK_TO_IDLE;
+				m_HUD_Weapon.PlayAnimation("Shotgun_ReloadEnd.fbx", 1.5f);
+				Audio::PlayAudio("Shotgun_ReloadEnd.wav");
+			}
+
+			// sounds and counter increment
+			if (m_shotgunReloadState == ShotgunReloadState::DOUBLE_RELOAD)
+			{
+				if (!m_firstShellLoaded && m_HUD_Weapon.GetCurrentAnimationTime() > 0.56f) {
+					m_firstShellLoaded = true;
+					Audio::PlayAudio("Shotgun_Reload_01.wav");
+					m_ammo_shotgun_in_clip++;
+					m_ammo_shotgun_total--;
+				}
+				if (!m_secondShellLoaded && m_HUD_Weapon.GetCurrentAnimationTime() > 1.03f) {
+					m_secondShellLoaded = true;
+					Audio::PlayAudio("Shotgun_Reload_05.wav");
+					m_ammo_shotgun_in_clip++;
+					m_ammo_shotgun_total--;
+				}
+			}
+			// sounds and counter increment
+			if (m_shotgunReloadState == ShotgunReloadState::SINGLE_RELOAD)
+			{
+				if (!m_firstShellLoaded && m_HUD_Weapon.GetCurrentAnimationTime() > 0.45f) {
+					m_firstShellLoaded = true;
+					Audio::PlayAudio("Shotgun_Reload_01.wav");
+					m_ammo_shotgun_in_clip++;
+					m_ammo_shotgun_total--;
+				}
+			}
+
+
+			// are you finished rolling back to idle?
+			if (m_HUD_Weapon.AnimationIsComplete() && m_shotgunReloadState == ShotgunReloadState::BACK_TO_IDLE)
+			{
+				m_shotgunReloadState = ShotgunReloadState::NOT_RELOADING;
+				m_HUD_Weapon.PlayAndLoopAnimation("Shotgun_Idle.fbx");
+				m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
+			}
+		}
+
+		// Animate idle
+		if (!IsMoving() && m_HUDWeaponAnimationState == HUDWeaponAnimationState::IDLE) {
+			m_HUD_Weapon.PlayAndLoopAnimation("Shotgun_Idle.fbx");
+		}
+		// Animate walking
+		if (IsMoving() && m_HUDWeaponAnimationState == HUDWeaponAnimationState::IDLE) {
+			m_HUD_Weapon.PlayAndLoopAnimation("Shotgun_Walk.fbx");
+		}
+
+		// THIS MASKS A BUG SURELY - look into it at some point
+		if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::EQUIPPING && m_HUD_Weapon.AnimationIsPastPercentage(95))
+		{
+			m_HUD_Weapon.PlayAndLoopAnimation("Shotgun_Idle.fbx");
 			m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
 		}
 	}
 
-	if (m_justBorn)
-	{
-		m_HUD_Weapon.PlayAnimation("Glock_FirstEquip1.fbx");
-		m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
-		Audio::PlayAudio("Glock_Equip.wav", 0.5f);
-		m_justBorn = false;
-	}
 
-	// Presses fire
-	if (PressedFire())
-	{
-		// and has ammo
-		if(m_ammo_in_clip > 0)
+	if (m_gun == Gun::GLOCK) {
+		// FIRST, check and reset states, hopefully this fixes that weird reload bug but keep an eye out for it: reload anim doesn't play, but sound does and ammo is credited.
+
+
+		if (m_HUD_Weapon.AnimationIsComplete())
 		{
-			// fire glock if idle (aka not reloading, or reloading animation is 75 percent complete)
-			if (m_HUDWeaponAnimationState != HUDWeaponAnimationState::RELOADING ||
-				m_HUDWeaponAnimationState == HUDWeaponAnimationState::RELOADING && m_HUD_Weapon.AnimationIsPastPercentage(75))
+			if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::FIRING ||
+				m_HUDWeaponAnimationState == HUDWeaponAnimationState::RELOADING ||
+				m_HUDWeaponAnimationState == HUDWeaponAnimationState::EQUIPPING)
 			{
-				m_HUDWeaponAnimationState = HUDWeaponAnimationState::FIRING;
-				m_HUD_Weapon.PlayAnimation("Glock_Fire" + std::to_string(rand() % 3) + ".fbx");
-				std::string file = "Glock_Fire_" + std::to_string(rand() % 3) + ".wav";
-				Audio::PlayAudio(file.c_str(), 0.5f);
-
-				FireGlock();
-				SpawnGlockCasing();
+				m_HUD_Weapon.PlayAndLoopAnimation("Glock_Idle.fbx");
+				m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
 			}
 		}
-		// is empty
-		else {
-			std::string file = "Empty.wav";
-			Audio::PlayAudio(file.c_str(), 0.5f);
+
+		// Presses fire
+		if (PressedFire())
+		{		
+			// and has ammo
+			if (GetCurrentGunAmmoInClip() > 0)
+			{
+				// fire glock if idle (aka not reloading, or reloading animation is 75 percent complete)
+				if (m_HUDWeaponAnimationState != HUDWeaponAnimationState::RELOADING ||
+					m_HUDWeaponAnimationState == HUDWeaponAnimationState::RELOADING && m_HUD_Weapon.AnimationIsPastPercentage(75))
+				{
+					m_HUDWeaponAnimationState = HUDWeaponAnimationState::FIRING;
+					m_HUD_Weapon.PlayAnimation("Glock_Fire" + std::to_string(rand() % 3) + ".fbx");
+					FireGlock();
+					SpawnGlockCasing();
+					SpawnMuzzleFlash();
+				}
+			}
+			// is empty
+			else {
+				std::string file = "Empty.wav";
+				Audio::PlayAudio(file.c_str(), 0.5f);
+			}
+			
+		}
+
+		// Presses Reload
+		if (PressedReload()
+			&& m_HUDWeaponAnimationState != HUDWeaponAnimationState::RELOADING
+			&& m_ammo_glock_in_clip != m_clip_size_glock
+			&& m_ammo_glock_total > 0)
+		{
+			m_HUD_Weapon.PlayAnimation("Glock_Reload.fbx");
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::RELOADING;
+			Audio::PlayAudio("Glock_Reload.wav", 0.5f);
+
+			unsigned int ammo_to_add = std::min(m_clip_size_glock - m_ammo_glock_in_clip, m_ammo_glock_total);
+			m_ammo_glock_in_clip += ammo_to_add;
+			m_ammo_glock_total -= ammo_to_add;
+		}
+
+		// idle
+		if (!IsMoving() && m_HUDWeaponAnimationState == HUDWeaponAnimationState::IDLE) {
+			m_HUD_Weapon.PlayAndLoopAnimation("Glock_Idle.fbx");
+			//m_HUD_Weapon.PlayAndLoopAnimation("Glock_Walk.fbx");
+		}
+		// walking
+		if (IsMoving() && m_HUDWeaponAnimationState == HUDWeaponAnimationState::IDLE) {
+			m_HUD_Weapon.PlayAndLoopAnimation("Glock_Walk.fbx");
+		}
+
+		// THIS MASKS A BUG SURELY - look into it at some point
+		if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::EQUIPPING && m_HUD_Weapon.AnimationIsPastPercentage(95))
+		{
+		//	m_HUD_Weapon.PlayAndLoopAnimation("Glock_Idle.fbx");
+		//	m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
 		}
 	}
 
-	// Presses Reload
-	if (PressedReload()
-		&& m_HUDWeaponAnimationState != HUDWeaponAnimationState::RELOADING
-		&& m_ammo_in_clip != m_clip_size
-		&& m_ammo_total > 0)
-	{
-		m_HUD_Weapon.PlayAnimation("Glock_Reload.fbx");
-		m_HUDWeaponAnimationState = HUDWeaponAnimationState::RELOADING;
-		Audio::PlayAudio("Glock_Reload.wav", 0.5f);
 
-		unsigned int ammo_to_add = std::min(m_clip_size - m_ammo_in_clip, m_ammo_total);
-		m_ammo_in_clip += ammo_to_add;
-		m_ammo_total -= ammo_to_add;
-	}
 
 	// Presses Equip
-	if (Input::KeyPressed(HELL_KEY_Q) && m_HUDWeaponAnimationState != HUDWeaponAnimationState::EQUIPPING)
+	if (Input::KeyPressed(HELL_KEY_J) && m_gun == Gun::GLOCK)
 	{
+		m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Glock"));
 		m_HUD_Weapon.PlayAnimation("Glock_FirstEquip1.fbx");
 		m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
 		Audio::PlayAudio("Glock_Equip.wav", 0.5f);
 	}
 
-	// idle
-	if (!IsMoving() && m_HUDWeaponAnimationState == HUDWeaponAnimationState::IDLE) {
-		m_HUD_Weapon.PlayAndLoopAnimation("Glock_Idle.fbx");
-		//m_HUD_Weapon.PlayAndLoopAnimation("Glock_Walk.fbx");
-	}
-	// walking
-	if (IsMoving() && m_HUDWeaponAnimationState == HUDWeaponAnimationState::IDLE) {
-		m_HUD_Weapon.PlayAndLoopAnimation("Glock_Walk.fbx");
-	}
-
-
-
-
-	// THIS MASKS A BUG SURELY - look into it at some point
-	if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::EQUIPPING && m_HUD_Weapon.AnimationIsPastPercentage(95))
+	// Were you just born????
+	if (m_justBorn) 
 	{
-		m_HUD_Weapon.PlayAndLoopAnimation("Glock_Idle.fbx");
-		m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
+		m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Glock"));
+		m_HUD_Weapon.PlayAnimation("Glock_FirstEquip1.fbx");
+		m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
+		Audio::PlayAudio("Glock_Equip.wav", 0.5f);
+
+		m_gun = Gun::GLOCK;
+		m_justBorn = false;
+		std::cout << "BORN\n";
 	}
 
-
-
-	//FireGlock();
 }
 
 /*template <class T>
@@ -674,42 +1234,21 @@ bool IsPlayer(Player* t) { return true; }*/
 
 void Player::FireGlock()
 {
-	m_ammo_in_clip--;
+	m_ammo_glock_in_clip--;
+	FireBullet(0, 1500);
 
-	if (m_cameraRay.HitFound())
-	{
-		if (m_cameraRay.m_hitObjectName == "RAGDOLL"
-			|| m_cameraRay.m_hitObjectName == "RAGDOLL_HEAD")
-		{
-			PxVec3 force = PxVec3(m_camera.m_Front.x, m_camera.m_Front.y, m_camera.m_Front.z) * 1000;
+	std::string file = "Glock_Fire_" + std::to_string(rand() % 3) + ".wav";
+	Audio::PlayAudio(file.c_str(), 0.5f);
+}
 
-			PxRigidDynamic* actor = (PxRigidDynamic*)m_cameraRay.m_hitActor;
-			actor->addForce(force);
-			
-			EntityData* physicsData = (EntityData*)actor->userData;
+void Player::FireShotgun()
+{
+	m_ammo_shotgun_in_clip--;
+	
+	for (int i=0; i<12;i++)
+		FireBullet(0.125f, 1500);
 
-			// blood noise
-			if (physicsData->type == PhysicsObjectType::RAGDOLL || physicsData->type == PhysicsObjectType::PLAYER_RAGDOLL) 
-			{	
-				std::string file = "FLY_Bullet_Impact_Flesh_0" + std::to_string(rand() % 8 + 1) + ".wav";
-				Audio::PlayAudio(file.c_str(), 0.5f);
-			}
-
-			// kill em if it's player
-			if (physicsData->type == PhysicsObjectType::PLAYER_RAGDOLL) {
-
-				Player* p = (Player*)physicsData->parent;
-
-				// kill em
-				if (m_cameraRay.m_hitObjectName == "RAGDOLL_HEAD" && p->m_isAlive) {
-					p->m_isAlive = false;
-					m_killCount++;
-					std::string file = "Death0.wav";
-					Audio::PlayAudio(file.c_str(), 0.45f);
-				}
-			}
-		}
-	}
+	Audio::PlayAudio("Shotgun_Fire_01.wav", 0.75f);
 }
 
 void Player::SpawnGlockCasing()
@@ -813,6 +1352,7 @@ void Player::SetControlsToDefaultPS4Controls()
 	m_controls.FIRE =			HELL_PS_4_CONTROLLER_TRIGGER_R;
 	m_controls.JUMP =			HELL_PS_4_CONTROLLER_CROSS;
 	m_controls.CROUCH =			HELL_PS_4_CONTROLLER_TRIGGER_L;
+	m_controls.NEXT_WEAPON =	HELL_PS_4_CONTROLLER_CROSS;
 }
 
 int Player::GetControllerIndex()
@@ -849,6 +1389,7 @@ void Player::SetControllerIndex(int index)
 
 void Player::ForceRagdollToMatchAnimation()
 {
+//	return;
 	Transform transform;
 	transform.position = GetPosition();
 	transform.position.y -= 1;
@@ -882,15 +1423,24 @@ glm::mat4& Player::GetCameraViewMatrix()
 {	
 	if (m_isAlive) 
 	{
+		const PxExtendedVec3& globalPose = m_characterController->getPosition();
+		m_transform.position = glm::vec3(globalPose.x, globalPose.y - 0.3f, globalPose.z);
+
 		// camera position (it's player plus view height)
 		m_camera.m_transform.position = m_transform.position;
 		m_camera.m_transform.position.y += m_cameraViewHeight;
+
+
 
 		// weapon transform 
 		Transform weaponTransform;
 		weaponTransform.position = m_camera.m_transform.position;
 		weaponTransform.rotation = m_camera.m_transform.rotation;
 		weaponTransform.scale = glm::vec3(0.001);
+
+		// Add sway
+		//weaponTransform.position += m_camera.m_swayPosition * glm::vec3(0.001);
+
 		m_HUD_Weapon.SetTransform(weaponTransform);
 
 
@@ -906,7 +1456,7 @@ glm::mat4& Player::GetCameraViewMatrix()
 	}
 	else
 	{
-		for (RigidComponent& rigid : m_ragdoll.m_rigidComponents) 
+		for (RigidComponent& rigid : m_corpse->m_ragdoll.m_rigidComponents) 
 		{
 			if (rigid.correspondingJointName == "mixamorig:Neck")
 			{
@@ -964,6 +1514,11 @@ glm::mat4& Player::GetCameraViewMatrix()
 
 
 
+}
+
+glm::vec3 Player::GetViewPos()
+{
+	return GetPosition() + glm::vec3(0, m_cameraViewHeight, 0);
 }
 
 Camera* Player::GetCameraPointer()

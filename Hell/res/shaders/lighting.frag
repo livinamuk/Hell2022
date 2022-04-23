@@ -574,12 +574,6 @@ void main()
     float lightStrength = light.color_strength.w;
     float lightMagic = light.magic_padding.w;
 
-    if (lightIndex == 3) {
-    lightRadius = 5;//light.position_radius.w;
-    lightStrength = 50;//light.color_strength.w;
-    lightMagic = 0.1;//20;//light.magic_padding.w;
-    }
-
 	vec3 albedo = pow(texture(ALB_Texture, TexCoords).rgb, vec3(2.2));
 	float roughness = texture(RMA_Texture, TexCoords).r;	
 	float metallic  = texture(RMA_Texture, TexCoords).g;
@@ -741,7 +735,7 @@ void main()
 
     
         float indirectShadow = 1 - ShadowCalculation(IndirectShadowMap, lightPos, WorldPos, camPos, NdotL);
-        float shadow = 1 - ShadowCalculation(ShadowMap, lightPos, WorldPos, camPos, NdotL);
+        float shadow = 1 - ShadowCalculation(IndirectShadowMap, lightPos, WorldPos, camPos, NdotL);
 
        // Lo *= 1 - shadow;
 
@@ -763,11 +757,13 @@ void main()
 
     vec3 color = Lo;
 
+    
     // HDR tonemapping
     color = color / (color + vec3(1.0));
     // gamma correct
     color = pow(color, vec3(1.0/2.2)); 
-    
+   
     FragColor = vec4(color, 1.0);
+
  //FragColor = vec4(clipSpacePosition.y, 0, 0, 1.0);
 }

@@ -59,8 +59,22 @@ int main()
     FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Glock"), "Glock_Fire1.fbx");
     FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Glock"), "Glock_Fire2.fbx");
     FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Glock"), "Glock_Walk.fbx");
-    FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Glock"), "Glock_Reload.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Glock"), "Glock_Reload.fbx");
     FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Glock"), "Glock_FirstEquip1.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Glock"), "Glock_Equip2.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Glock"), "Glock_Holster.fbx");
+
+	AssetManager::LoadSkinnedModel("Shotgun", "Shotgun.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Shotgun"), "Shotgun_Idle.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Shotgun"), "Shotgun_Fire.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Shotgun"), "Shotgun_Equip.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Shotgun"), "Shotgun_Dequip.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Shotgun"), "Shotgun_Walk.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Shotgun"), "Shotgun_Reload1Shell.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Shotgun"), "Shotgun_Reload2Shells.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Shotgun"), "Shotgun_ReloadDryStart.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Shotgun"), "Shotgun_ReloadWetStart.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Shotgun"), "Shotgun_ReloadEnd.fbx");
 
 
     // set nurse guy mesh materials
@@ -101,7 +115,6 @@ int main()
     for (SkinnedModel::MeshEntry& meshEntry : glockModel->m_meshEntries)
     {
         // std::cout << meshEntry.Name << "\n";
-
         if (meshEntry.Name == "manniquen1_2")
             meshEntry.material = AssetManager::GetMaterialPtr("Hands");
         if (meshEntry.Name == "Glock")
@@ -112,10 +125,19 @@ int main()
             meshEntry.material = AssetManager::GetMaterialPtr("BulletCasing");
     }
 
+	SkinnedModel* shotgunModel = AssetManager::GetSkinnedModelPtr("Shotgun");
+	for (SkinnedModel::MeshEntry& meshEntry : shotgunModel->m_meshEntries)
+	{
+        //std::cout << meshEntry.Name << "\n";
+		if (meshEntry.Name == "Arms")
+			meshEntry.material = AssetManager::GetMaterialPtr("Hands");
+		if (meshEntry.Name == "Shotgun Mesh")
+			meshEntry.material = AssetManager::GetMaterialPtr("Shotgun");
+		if (meshEntry.Name == "shotgunshells")
+			meshEntry.material = AssetManager::GetMaterialPtr("BulletCasing");
+	}
+
     Audio::Init();
-
-
-    Scene::AddEntity(AssetManager::GetModelPtr("Couch"), AssetManager::GetMaterialPtr("Couch"), Transform(glm::vec3(0, 0, -1)));
 
     Transform tableTransform;
     tableTransform.position = glm::vec3(-2, 1000, -1);
@@ -125,7 +147,7 @@ int main()
 
    // Scene::AddEntity(AssetManager::GetModelPtr("TableSmall"), AssetManager::GetMaterialPtr("TableSmall"), tableTransform);
 
-
+    GameData::s_staticEntities.emplace_back(AssetManager::GetModelPtr("Couch"), AssetManager::GetMaterialPtr("Couch"), Transform(glm::vec3(0, 0, -1)));
 
     GameData::s_player2.SetPosition(glm::vec3(0, 0, 0));
     GameData::s_player2.SetPosition(glm::vec3(0, 0, 2));
@@ -144,7 +166,8 @@ int main()
     GameData::s_player2.m_character_model.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Nurse"));
 
 
-    GameData::s_player1.CreateCharacterController();
+	GameData::s_player1.CreateCharacterController();
+	GameData::s_player2.CreateCharacterController();
 
 
     hellEngine.m_currentPlayer = 1;
@@ -179,10 +202,14 @@ int main()
     File::LoadMap("Map.json");
 
     GameData::s_lights.push_back(Light(glm::vec3(0, 2.2f, 0), DEFAULT_LIGHT_COLOR, 4, 10, 0.1, 0));
-    GameData::s_lights.push_back(Light(glm::vec3(4, 2.2f, 3.5), DEFAULT_LIGHT_COLOR, 4, 10, 0.1, 0));
-    GameData::s_lights.push_back(Light(glm::vec3(-3.9, 2.2f, 5), DEFAULT_LIGHT_COLOR, 4, 10, 0.1, 0));
-    GameData::s_lights.push_back(Light(glm::vec3(-7.9, 2.2f, -1), glm::vec3(1,0,0), 4, 10, 0.1, 0));
+	GameData::s_lights.push_back(Light(glm::vec3(4, 2.2f, 3.5), DEFAULT_LIGHT_COLOR, 4, 10, 0.1, 0));
+	GameData::s_lights.push_back(Light(glm::vec3(-3.9, 2.2f, 5), DEFAULT_LIGHT_COLOR, 4, 10, 0.1, 0));
+	GameData::s_lights.push_back(Light(glm::vec3(-7.9, 2.2f, -1), COLOR_RED, 5, 50, 0.1, 0));
+	GameData::s_lights.push_back(Light(glm::vec3(-3.6, 2.2f, -5.2), DEFAULT_LIGHT_COLOR, 4, 5, 0.1, 0));
+	GameData::s_lights.push_back(Light(glm::vec3(3.2, 2.2f, -3.0), COLOR_RED, 4, 50, 0.1, 0));
 
+	GameData::s_player1.CreatePoormansCharacterController();
+	GameData::s_player2.CreatePoormansCharacterController();
    
   //  GameData::s_doors.push_back(Door(glm::vec3(0, 0, 2)));
 
@@ -284,8 +311,18 @@ int main()
             TextBlitter::BlitLine("P1 Kill count: " + std::to_string(GameData::s_player1.m_killCount));
             TextBlitter::BlitLine("P2 Kill count: " + std::to_string(GameData::s_player2.m_killCount));
             TextBlitter::BlitLine("");
-        
+            TextBlitter::BlitLine("Body count: " + std::to_string(Scene::s_gameCharacters.size()));
+            TextBlitter::BlitLine("Weapon State: " + Util::WeaponStateToString(GameData::s_player1.m_HUDWeaponAnimationState));
 
+			/*if (GameData::s_doors[0].m_state == Door::State::OPENING)
+				TextBlitter::BlitLine("OPENING");
+			if (GameData::s_doors[0].m_state == Door::State::CLOSING)
+				TextBlitter::BlitLine("CLOSING");
+			if (GameData::s_doors[0].m_state == Door::State::CLOSED)
+				TextBlitter::BlitLine("CLOSED");
+			if (GameData::s_doors[0].m_state == Door::State::OPEN)
+				TextBlitter::BlitLine("OPEN");*/
+           
         }
     
         lastTime = glfwGetTime();

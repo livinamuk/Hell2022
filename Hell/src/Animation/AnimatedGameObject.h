@@ -7,7 +7,7 @@ class AnimatedGameObject
 {
 public:
 	void SetSkinnedModel(SkinnedModel* skinnedModel);
-	void PlayAnimation(std::string name);
+	void PlayAnimation(std::string name, float speed = 1.0f);
 	void PlayAndLoopAnimation(std::string name);
 	void PlayAndLoopAnimationIfItIsNotAlreadyPlaying(std::string name);
 	void PauseAnimation();
@@ -18,7 +18,7 @@ public:
 	void SetScale(glm::vec3 scale);
 	void SetAnimationTime(float time);
 	void UpdateAnmation(float deltaTime, bool skin = true);
-	void Render(Shader* shader);
+	void Render(Shader* shader, glm::mat4 modelMatrix = glm::mat4(1));
 
 	float GetCurrentAnimationTime();
 	float GetAnimationDuration();
@@ -38,6 +38,7 @@ private:
 	bool m_pause;
 	bool m_animationHasFinished;
 	float m_animTime;
+	float m_animSpeed = 1;
 	//int m_animIndex;
 
 public:

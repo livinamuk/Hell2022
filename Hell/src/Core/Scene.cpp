@@ -3,7 +3,6 @@
 #include "Helpers/AssetManager.h"
 
 std::vector<GameCharacter> Scene::s_gameCharacters;
-std::vector<EntityStatic> Scene::s_staticEntities;
 std::vector<BloodPool> Scene::s_bloodPools;
 
 void Scene::NewRagdoll()
@@ -31,9 +30,11 @@ void Scene::NewRagdoll()
 
 }
 
-void Scene::AddEntity(Model* model, Material* material, Transform transform)
+void Scene::RemoveCorpse()
 {
-    if (model && material) {
-        s_staticEntities.emplace_back(EntityStatic(model, material, transform));
-    }
+    if (!s_gameCharacters.size())
+        return;
+
+    s_gameCharacters[0].m_ragdoll.RemovePhysicsObjects();
+    s_gameCharacters.erase(s_gameCharacters.begin());
 }

@@ -5,6 +5,7 @@ Player GameData::s_player2;
 std::vector<Room> GameData::s_rooms;
 std::vector<Door> GameData::s_doors;
 std::vector<Light> GameData::s_lights;
+std::vector<EntityStatic> GameData::s_staticEntities;
 bool GameData::s_splitScreen = true;
 
 void GameData::Clear()
@@ -17,6 +18,6 @@ void GameData::Clear()
 void GameData::Update(float deltaTime)
 {
 	for (Door& door : s_doors)
-		door.Update();
+		door.Update(deltaTime);
 }
 

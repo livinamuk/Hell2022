@@ -39,9 +39,20 @@ class PhysX
 
 
 public: // methods
+
+	enum CollisionGroup
+	{
+		ZERP = 0,
+		NO_GROUP = (1 << 0),
+		PLAYER = (1 << 1),
+		MISC_OBSTACLE = (1 << 2),
+		DOOR = (1 << 3),
+		RAGDOLL_GROUP = (1 << 4),
+	};
+
 	void Init();
 	void Shutdown(); 
-	void StepPhysics();
+	void StepPhysics(float deltaTime);
 
 	static PxController* CreateCharacterController(Transform transform);
 	static PxRigidDynamic* CreateBox(Transform transform, glm::vec3 velocity);

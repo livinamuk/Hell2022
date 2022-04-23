@@ -11,6 +11,7 @@ void Audio::Init()
 	Audio::LoadAudio("BodyFall_01.wav");
 	Audio::LoadAudio("Shotgun_Fire_01.wav");
 	Audio::LoadAudio("Door_Open.wav");
+	Audio::LoadAudio("Door_Open2.wav");
 	Audio::LoadAudio("player_step_1.wav");
 	Audio::LoadAudio("player_step_2.wav");
 	Audio::LoadAudio("player_step_3.wav");
@@ -54,7 +55,9 @@ void Audio::Init()
 	Audio::LoadAudio("Death1.wav");
 	Audio::LoadAudio("Death2.wav");
 	Audio::LoadAudio("Death3.wav");
-
+	Audio::LoadAudio("Door_Latch.wav");
+	Audio::LoadAudio("Shotgun_Fire_01.wav");
+	
 	//Audio::LoadAudio("Music.wav");
 
 	Audio::LoadAudio("Music.wav");
@@ -71,12 +74,11 @@ void Audio::LoadAudio(const char* name)
 	s_loadedAudio[name] = audio;
 }
 
-void Audio::PlayAudio(const char* name, float volume)
+SoLoud::handle Audio::PlayAudio(const char* name, float volume)
 {
 	auto audio = s_loadedAudio[name];
-	gSoloud.play(*audio, volume);
-	return;
-	std::cout << "AUDIO NOT FOUND: " << name << "\n";
+	SoLoud::handle handle = gSoloud.play(*audio, volume);
+	return handle;
 }
 
 SoLoud::handle Audio::LoopAudio(const char* name, float volume)

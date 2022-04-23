@@ -72,7 +72,7 @@ struct ControllerState
 enum class ControllerStickMode {AIMING, MOVEMENT};
 enum class InputType {KEYBOARD_AND_MOUSE, CONTROLLER};
 enum class CharacterModelAnimationState{ STOPPED, WALKING, STOPPED_CROUCHED, WALKING_CROUCHED };
-enum class HUDWeaponAnimationState {IDLE, WALKING, FIRING, RELOADING, EQUIPPING};
+enum class HUDWeaponAnimationState {IDLE, WALKING, FIRING, RELOADING, EQUIPPING, HOLSTERING};
 
 /*enum ClipState {
 	PLAYING,
@@ -174,9 +174,9 @@ enum class CollisionGroups {
 
 enum ActiveGroup
 {
-	//NONE = 0,
+	NONE = 0,
 	GROUP_RAYCAST = (1 << 0),
-	//GROUP2 = (1 << 1),
+	GROUP2 = (1 << 1),
 	//GROUP3 = (1 << 2),
 	//GROUP4 = (1 << 3),
 };

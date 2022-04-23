@@ -60,8 +60,13 @@ void HellEngine::Init()
 
 void HellEngine::Update(float deltaTime)
 {
+	m_physx.StepPhysics(deltaTime);
+
 	if (Input::KeyPressed(HELL_KEY_C))
 		m_switchToPlayer2 = !m_switchToPlayer2;
+
+	if (Input::KeyPressed(HELL_KEY_BACKSPACE))
+		Scene::RemoveCorpse();
 
 	if (m_controllers.size() == 0) {
 		GameData::s_player1.m_enableControl = true;
@@ -76,6 +81,10 @@ void HellEngine::Update(float deltaTime)
 	GameData::s_player1.Update(deltaTime);
 	GameData::s_player2.Update(deltaTime);
 		
+	// Update game character logic
+	for (GameCharacter& gameChar : Scene::s_gameCharacters)
+			gameChar.Update(deltaTime);
+	
 	// Animate game characters
 	for (GameCharacter& gameChar : Scene::s_gameCharacters)
 	{
@@ -94,12 +103,13 @@ void HellEngine::Update(float deltaTime)
 	GameData::Update(deltaTime);
 
     //if (Input::s_keyPressed[HELL_KEY_P])
-       m_physx.StepPhysics();
 
 	   GameData::s_player1.UpdatePlayerModelAnimation(deltaTime);
 	   GameData::s_player2.UpdatePlayerModelAnimation(deltaTime);
 
 	   ProcessCollisions();
+
+
 }
 
 void HellEngine::UpdateInput()
@@ -189,8 +199,9 @@ void HellEngine::Render()
 
 	// Lights
 	glBindBuffer(GL_UNIFORM_BUFFER, Renderer::m_uboLights);
-	for (int i = 0; i < GameData::s_lights.size() || i < MAX_LIGHTS; i++) {
-		Light* light = &GameData::s_lights[i];
+	for (int i = 0; i < GameData::s_lights.size() && i < MAX_LIGHTS; i++) 
+	{
+		Light* light = &GameData::s_lights[i];	
 		glm::vec4 pos = glm::vec4(light->m_position, light->m_radius);
 		glm::vec4 color = glm::vec4(light->m_color, light->m_strength);
 		glm::vec4 magic = glm::vec4(light->m_radius, 0, 0, 0);
@@ -234,30 +245,34 @@ void HellEngine::Render()
 	//Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
 	Renderer::DrawViewportQuad(&Renderer::s_textued_2D_quad_shader, Renderer::ViewportSize::FULL_SCREEN);
 
+	GLint buffer0 = Renderer::s_gBuffer.gAlbedo;
+	GLint buffer1 = Renderer::s_gBuffer.gNormal;
+	GLint buffer2 = Renderer::s_gBuffer.gFinal;
+	GLint buffer3 = Renderer::s_gBuffer.gRMA;
 
 	if (Renderer::s_showBuffers)
 	{
 		glViewport(0, CoreGL::s_currentHeight / 2, CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gAlbedo);
+		glBindTexture(GL_TEXTURE_2D, buffer0);
 		//Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
 		Renderer::DrawViewportQuad(&Renderer::s_textued_2D_quad_shader, Renderer::ViewportSize::FULL_SCREEN);
 
 		glViewport(CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2, CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gNormal);
+		glBindTexture(GL_TEXTURE_2D, buffer1);
 		Renderer::DrawViewportQuad(&Renderer::s_textued_2D_quad_shader, Renderer::ViewportSize::FULL_SCREEN);
 		//Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
 
 		glViewport(0, 0, CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gRMA);
+		glBindTexture(GL_TEXTURE_2D, buffer2);
 		Renderer::DrawViewportQuad(&Renderer::s_textued_2D_quad_shader, Renderer::ViewportSize::FULL_SCREEN);
 		//Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
 
 		glViewport(CoreGL::s_currentWidth / 2, 0, CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, Renderer::s_gBuffer.gLighting);
+		glBindTexture(GL_TEXTURE_2D, buffer3);
 		//glBindTexture(GL_TEXTURE_2D, GameData::s_lights[0].m_envMap.SH_TexID);
 		Renderer::DrawViewportQuad(&Renderer::s_textued_2D_quad_shader, Renderer::ViewportSize::FULL_SCREEN); 
 		//Renderer::DrawFullScreenQuad(&Renderer::s_textued_2D_quad_shader);
@@ -306,12 +321,24 @@ void HellEngine::Render()
 
 void HellEngine::ProcessCollisions()
 {
+	return;
+
 	for (CollisionReport& report : ContactReportCallback::s_collisionReports)
 	{
+		if (!report.dataA)
+			continue;
+		if (!report.dataB)
+			continue;
+
 		// Game character ragdoll
 		if (report.dataA->type == PhysicsObjectType::RAGDOLL && report.dataB->type == PhysicsObjectType::FLOOR)
 		{
 			PxRigidDynamic* rigid = (PxRigidDynamic*)report.rigidA;
+			if (!rigid)
+				continue;
+
+			//std::cout << rigid->getLinearVelocity().x << ", " << rigid->getLinearVelocity().y << ", " << rigid->getLinearVelocity().z << "\n";
+
 			float velocity = rigid->getLinearVelocity().magnitude();
 
 			if (velocity > 1.9f) {

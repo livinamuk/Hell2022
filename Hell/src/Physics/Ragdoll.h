@@ -28,7 +28,7 @@ public:
 	PxQuat rotation;
 	float mass, friction, restitution, linearDamping, angularDamping, sleepThreshold;
 	PxVec3 angularMass;
-	PxRigidDynamic* pxRigidBody;
+	PxRigidDynamic* pxRigidBody = nullptr;
 };
 
 struct JointComponent
@@ -37,7 +37,7 @@ public:
 	std::string name;
 	int parentID, childID;
 	PxMat44 parentFrame, childFrame;
-	PxD6Joint* pxD6;
+	PxD6Joint* pxD6 = nullptr;
 	
 	// Drive component
 	float drive_angularDamping, drive_angularStiffness, drive_linearDampening, drive_linearStiffness;

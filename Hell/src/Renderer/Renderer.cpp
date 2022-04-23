@@ -25,7 +25,11 @@ GLuint Renderer::s_quadVAO;
 GLuint Renderer::s_brdfLUTTextureID;
 Shader Renderer::s_brdf_shader;	
 Shader Renderer::s_env_map_shader;
-Shader Renderer::s_SH_shader;
+Shader Renderer::s_SH_shader; 
+Shader Renderer::s_animated_quad_shader;
+Shader Renderer::s_postProcessingShader;
+MuzzleFlash Renderer::s_muzzleFlash;
+
 
 void Renderer::Init(int screenWidth, int screenHeight)
 {
@@ -40,6 +44,8 @@ void Renderer::Init(int screenWidth, int screenHeight)
     s_brdf_shader = Shader("brdf.vert", "brdf.frag");
     s_env_map_shader = Shader("envMap.vert", "envMap.frag", "envMap.geom");
     s_SH_shader = Shader("SH.vert", "SH.frag");
+    s_animated_quad_shader = Shader("animatedQuad.vert", "animatedQuad.frag");
+    s_postProcessingShader = Shader("PostProcessing.vert", "PostProcessing.frag");
 
     s_gBuffer = GBuffer(screenWidth, screenHeight);
 
@@ -93,6 +99,8 @@ void Renderer::Init(int screenWidth, int screenHeight)
     glBindBufferRange(GL_UNIFORM_BUFFER, 1, m_uboLights, 0, sizeof(LightUniformBlock) * MAX_LIGHTS);
 
     CreateBRDFLut();
+
+    s_muzzleFlash.Init();
 }
 
 
@@ -108,7 +116,7 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
         shader->use();
 
         // draw static entities with collision meshes
-        for (auto entityStatic : Scene::s_staticEntities)
+        for (auto entityStatic : GameData::s_staticEntities)
         {
             if (entityStatic.m_model->m_hasCollisionMesh)
             {
@@ -119,23 +127,26 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
     }
     else
     {
-        EnvMapPass();
-        ShadowMapPass(); 
-        IndirectShadowMapPass();
+        if (player == 1) {
+
+            static bool runOnce = true;
+            if (runOnce) {
+                EnvMapPass();
+                runOnce = false;
+            }
+            ShadowMapPass();
+            IndirectShadowMapPass();
+        }
+
         GeometryPass(player, renderWidth, renderHeight);
         LightingPass(player, renderWidth, renderHeight);
-    
-        // render player weapons
-        if (player == 1) 
-        {
-            if (GameData::s_player1.m_isAlive)
-                RenderPlayerCrosshair(renderWidth, renderHeight, &GameData::s_player1);
-        }
-        if (player == 2) 
-        {
-            if (GameData::s_player2.m_isAlive)
-                RenderPlayerCrosshair(renderWidth, renderHeight, &GameData::s_player2);
-        }
+        MuzzleFlashPass(player, renderWidth, renderHeight);
+        PostProcessingPass(player);
+
+
+     //   glDrawBuffer(GL_COLOR_ATTACHMENT3);
+
+
     }
 
     RenderDebugShit();
@@ -221,12 +232,25 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, s_gBuffer.gAlbedo);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, s_gBuffer.gLighting);
+    glBindTexture(GL_TEXTURE_2D, s_gBuffer.gPostProcessed);
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, s_gBuffer.gNormal);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, s_gBuffer.gRMA);
+
+    int CHROM_ABZ_mode = 0;
+
+    if (GameData::s_splitScreen && player == 1)
+        CHROM_ABZ_mode = 1;
+    else if (GameData::s_splitScreen && player == 2)
+        CHROM_ABZ_mode = 2;
+
+    s_final_pass_shader.use();
+    s_final_pass_shader.setInt("u_CHROM_ABZ_mode", CHROM_ABZ_mode);
+
+    s_final_pass_shader.setFloat("u_time", CoreGL::GetGLTime());
 
     if (player == 1) {
-        s_final_pass_shader.use();
         s_final_pass_shader.setFloat("u_timeSinceDeath", GameData::s_player1.m_timeSinceDeath);
         if (GameData::s_splitScreen)
             DrawViewportQuad(&s_final_pass_shader, ViewportSize::SPLITSCREEN_TOP);
@@ -276,7 +300,17 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
     }
 
 
-
+    // render player weapons
+    if (player == 1)
+    {
+        if (GameData::s_player1.m_isAlive)
+            RenderPlayerCrosshair(renderWidth, renderHeight, &GameData::s_player1);
+    }
+    if (player == 2)
+    {
+        if (GameData::s_player2.m_isAlive)
+            RenderPlayerCrosshair(renderWidth, renderHeight, &GameData::s_player2);
+    }
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 }
@@ -316,8 +350,8 @@ void Renderer::RenderPlayerCrosshair(int renderWidth, int renderHeight, Player* 
 
     glBindTexture(GL_TEXTURE_2D, AssetManager::GetTexturePtr("NumSheet")->ID);
 
-    std::string ammo_in_clip = std::to_string(player->m_ammo_in_clip);
-    std::string m_ammo_total = std::to_string(player->m_ammo_total);
+    std::string ammo_in_clip = std::to_string(player->GetCurrentGunAmmoInClip());
+    std::string m_ammo_total = std::to_string(player->GetCurrentGunTotalAmmo());
     glm::vec3 ammoColor = glm::vec3(0.26f, 0.78f, 0.33f);
 
     char* cstr = new char[ammo_in_clip.length() + 1];
@@ -445,6 +479,8 @@ void Renderer::HotLoadShaders()
     s_shadow_map_shader.ReloadShader();
     s_skybox_shader.ReloadShader();
     s_env_map_shader.ReloadShader();
+    s_animated_quad_shader.ReloadShader();
+    s_postProcessingShader.ReloadShader();
 }
 
 void Renderer::DrawPoint(Shader* shader, glm::vec3 position, glm::vec3 color)
@@ -691,6 +727,46 @@ void Renderer::DrawViewportQuad(Shader* shader, ViewportSize viewportSize)
     glBindVertexArray(0);
 }
 
+void Renderer::SetViewport(int player)
+{
+    if (!GameData::s_splitScreen)
+        glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight);
+    else if (player == 1)
+        glViewport(0, CoreGL::s_currentHeight / 2, CoreGL::s_currentWidth, CoreGL::s_currentHeight / 2);
+    else if (player == 2)
+        glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight / 2);
+}
+
+float Renderer::GetViewportWidth(int player)
+{
+    if (!GameData::s_splitScreen)
+        return CoreGL::s_currentWidth;
+    else if (player == 1)
+        return CoreGL::s_currentWidth;
+    else if (player == 2)
+        return CoreGL::s_currentWidth;
+}
+
+float Renderer::GetViewportHeight(int player)
+{
+    if (!GameData::s_splitScreen)
+        return CoreGL::s_currentHeight;
+    else if (player == 1)
+        return CoreGL::s_currentHeight / 2;
+    else if (player == 2)
+        return CoreGL::s_currentHeight / 2;
+}
+
+Renderer::ViewportSize Renderer::GetViewportSize(int player)
+{
+    if (!GameData::s_splitScreen)
+        return ViewportSize::FULL_SCREEN;
+    else if (player == 1)
+        return ViewportSize::SPLITSCREEN_TOP;
+    else if (player == 2)
+        return ViewportSize::SPLITSCREEN_BOTTOM;
+}
+
 /*void Renderer::DrawFullScreenQuad(Shader * shader)
 {
     static GLuint VAO = 0;
@@ -871,6 +947,28 @@ void Renderer::RenderDebugShit()
     Shader* shader = &s_solid_color_shader;
     shader->use();
 
+
+    auto& glock = GameData::s_player1.m_HUD_Weapon;
+    auto glockSkinnedModel = glock.GetSkinnedModelPtr();
+    int BoneIndex = glockSkinnedModel->m_BoneMapping["barrel"];
+    glm::mat4& BoneMatrix = GameData::s_player1.m_HUD_Weapon.m_animatedTransforms.local[BoneIndex];
+
+    Transform weaponSwayTransform;
+    Transform offsetTransform;
+    offsetTransform.position = glm::vec3(0, -15, 10);
+
+    glm::mat4 worldMatrix = glock.GetTransform().to_mat4() * weaponSwayTransform.to_mat4() * BoneMatrix * offsetTransform.to_mat4();
+
+    float x = worldMatrix[3][0];
+    float y = worldMatrix[3][1];
+    float z = worldMatrix[3][2];
+    glm::vec3 worldPosition = glm::vec3(x, y, z);
+
+    Transform t(worldPosition);
+    DrawPoint(shader, t.to_mat4(), RED);
+
+    return;
+    
     for (Door& door : GameData::s_doors)
     {
         PxVec3 p = door.m_rigid->getGlobalPose().p;
@@ -901,6 +999,16 @@ void Renderer::RenderDebugShit()
     }
    // PxVec3 pos = 
 
+}
+
+Player* Renderer::GetPlayerFromIndex(int index)
+{
+	if (index == 1)
+		return &GameData::s_player1;
+    if (index == 2)
+        return &GameData::s_player2;
+    else
+        return nullptr; 
 }
 
 void Renderer::EnvMapPass()
@@ -1035,7 +1143,6 @@ void Renderer::GeometryPass(int player, int renderWidth, int renderHeight)
     else if (player == 2)
         glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight / 2);
 
-  
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
@@ -1048,12 +1155,12 @@ void Renderer::GeometryPass(int player, int renderWidth, int renderHeight)
     if (player == 1)
     {
         if (GameData::s_player1.m_isAlive)
-            GameData::s_player1.m_HUD_Weapon.Render(&s_geometry_shader);
+            GameData::s_player1.m_HUD_Weapon.Render(&s_geometry_shader, GameData::s_player1.m_camera.m_swayTransform.to_mat4());
     }
     if (player == 2)
     {
         if (GameData::s_player2.m_isAlive)
-            GameData::s_player2.m_HUD_Weapon.Render(&s_geometry_shader);
+            GameData::s_player2.m_HUD_Weapon.Render(&s_geometry_shader, GameData::s_player2.m_camera.m_swayTransform.to_mat4());
     }
 }
 
@@ -1127,6 +1234,185 @@ void Renderer::LightingPass(int player, int renderWidth, int renderHeight)
     glDisable(GL_BLEND);
 }
 
+void Renderer::MuzzleFlashPass(int playerIndex, int renderWidth, int renderHeight)
+{
+    // Get player pointer
+    Player* player;
+    if (playerIndex == 1)
+        player = &GameData::s_player1;
+    else if (playerIndex == 2)
+        player = &GameData::s_player2;
+    else
+        return;
+
+    // Bail if no flash
+    if (player->m_muzzleFlashTimer < 0)
+        return;
+    if (player->m_muzzleFlashTimer > 1)
+        return;
+
+    s_muzzleFlash.m_CurrentTime = player->m_muzzleFlashTimer;
+
+    glm::mat4 BoneMatrix;
+	auto& glock = player->m_HUD_Weapon;
+	auto glockSkinnedModel = glock.GetSkinnedModelPtr();    
+    Transform offsetTransform;
+
+    if (player->m_gun == Player::Gun::GLOCK) {        
+        int BoneIndex = glockSkinnedModel->m_BoneMapping["barrel"];
+		BoneMatrix = player->m_HUD_Weapon.m_animatedTransforms.local[BoneIndex];
+		offsetTransform.position = glm::vec3(0, -15, 10);
+    }
+    else if (player->m_gun == Player::Gun::SHOTGUN) {
+        int BoneIndex = glockSkinnedModel->m_BoneMapping["ShotgunMain_bone"];
+		BoneMatrix = player->m_HUD_Weapon.m_animatedTransforms.local[BoneIndex];
+        offsetTransform.position = glm::vec3(0, -73, 6);
+    }
+    else
+        return;
+
+
+
+	glm::mat4 worldMatrix = glock.GetTransform().to_mat4() * player->m_camera.m_swayTransform.to_mat4() * BoneMatrix * offsetTransform.to_mat4();
+	//glm::mat4 worldMatrix = glock.GetTransform().to_mat4() * BoneMatrix * offsetTransform.to_mat4();
+
+    float x = worldMatrix[3][0];
+    float y = worldMatrix[3][1];
+    float z = worldMatrix[3][2];
+    glm::vec3 worldPosition = glm::vec3(x, y, z);
+
+    Camera* camera = &player->m_camera;
+
+    Transform t;
+    t.position = worldPosition;
+    t.rotation = camera->m_transform.rotation;
+   
+
+    glBindFramebuffer(GL_FRAMEBUFFER, s_gBuffer.ID);
+
+    SetViewport(playerIndex);
+
+
+
+    // draw to lighting shader
+    unsigned int attachments[1] = { GL_COLOR_ATTACHMENT4 };
+    glDrawBuffers(1, attachments);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+    glDisable(GL_CULL_FACE);
+
+    glm::mat4 proj = player->GetCameraProjectionMatrix();
+    glm::mat4 view = player->GetCameraViewMatrix();
+    glm::vec3 viewPos = player->GetViewPos();
+
+    Shader* shader = &s_animated_quad_shader;
+    shader->use();
+    shader->setMat4("u_MatrixProjection", proj);
+    shader->setMat4("u_MatrixView", view);
+    shader->setVec3("u_ViewPos", viewPos);
+
+    for (int i = 0; i < GameData::s_lights.size(); i++)
+    {
+        Light& light = GameData::s_lights[i];
+        shader->setVec3("lightPosition[" + std::to_string(i) + "]", light.m_position);
+        shader->setFloat("lightRadius[" + std::to_string(i) + "]", light.m_radius);
+        shader->setFloat("lightMagic[" + std::to_string(i) + "]", light.m_magic);
+        shader->setFloat("lightStrength[" + std::to_string(i) + "]", light.m_strength);
+        shader->setVec3("lightColor[" + std::to_string(i) + "]", light.m_color);
+    }
+
+   // Transform t;
+    //t.position = glm::vec3(0, 1, 0);
+    //t.position = worldPosition;
+    //t.rotation = gameState->p_camera->m_transform.rotation;
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, AssetManager::GetTexturePtr("Muzzle1")->ID);
+
+    s_muzzleFlash.Draw(shader, t, player->m_muzzleFlashRotation);
+    glDisable(GL_BLEND); 
+    glEnable(GL_CULL_FACE);
+    glDepthMask(GL_TRUE);
+
+    /*t.position = glm::vec3(0, 1, 0);
+    t.rotation = glm::vec3(0, 0, 0);
+    t.scale = glm::vec3(10);
+    */
+
+    /*glDisable(GL_DEPTH_TEST);
+
+    unsigned int attachments2[7] = { GL_COLOR_ATTACHMENT0,
+        GL_COLOR_ATTACHMENT1,
+        GL_COLOR_ATTACHMENT2,
+        GL_COLOR_ATTACHMENT3,
+        GL_COLOR_ATTACHMENT4,
+        GL_COLOR_ATTACHMENT5,
+        GL_COLOR_ATTACHMENT6 };
+    glDrawBuffers(7, attachments2);
+
+    glEnable(GL_DEPTH_TEST);
+   */
+}
+
+void Renderer::PostProcessingPass(int player)
+{ 
+    SetViewport(player);
+
+    // DEPTH OF FIELD
+    glBindFramebuffer(GL_FRAMEBUFFER, s_gBuffer.ID);
+    bool DOF_showFocus = false;		//show debug focus point and focal range (red = focal point, green = focal range)
+    bool DOF_vignetting = true;		//use optical lens vignetting?
+    float DOF_vignout = 1.0;			//vignetting outer border
+    float DOF_vignin = 0.0;			//vignetting inner border
+    float DOF_vignfade = 122.0;		//f-stops till vignete fades
+    float DOF_CoC = 0.03;				//circle of confusion size in mm (35mm film = 0.03mm)
+    float DOF_maxblur = 0.35;			//clamp value of max blur (0.0 = no blur,1.0 default)
+    int DOF_samples = 1;				//samples on the first ring
+    int DOF_rings = 4;				//ring count
+    float DOF_threshold = 0.5;		//highlight threshold;
+    float DOF_gain = 2.0;				//highlight gain;
+    float DOF_bias = 0.5;				//bokeh edge bias
+    float DOF_fringe = 0.7;			//bokeh chromatic aberration/fringing
+    Shader* shader = &s_postProcessingShader;
+    shader->use();
+    shader->setFloat("screenWidth", GetViewportWidth(player));
+    shader->setFloat("screenHeight", GetViewportHeight(player));
+    shader->setBool("showFocus", DOF_showFocus);
+    shader->setBool("vignetting", DOF_vignetting);
+    shader->setFloat("vignout", DOF_vignout);
+    shader->setFloat("vignin", DOF_vignin);
+    shader->setFloat("vignfade", DOF_vignfade);
+    shader->setFloat("CoC", DOF_CoC);
+    shader->setFloat("maxblur", DOF_maxblur);
+    shader->setInt("samples", DOF_samples);
+    shader->setInt("samples", DOF_samples);
+    shader->setInt("rings", DOF_rings);
+    shader->setFloat("threshold", DOF_threshold);
+    shader->setFloat("gain", DOF_gain);
+    shader->setFloat("bias", DOF_bias);
+    shader->setFloat("fringe", DOF_fringe);
+    shader->setFloat("znear", NEAR_PLANE);
+    shader->setFloat("zfar", FAR_PLANE);
+
+    int splitscreen_mode = 0;
+    if (GameData::s_splitScreen && player == 1)
+        splitscreen_mode = 1;
+    else if (GameData::s_splitScreen && player == 2)
+        splitscreen_mode = 2;
+    shader->setInt("u_splitscreen_mode", splitscreen_mode);
+
+    // Draw into gPostProcessing
+    glDrawBuffer(GL_COLOR_ATTACHMENT5);
+    glDisable(GL_DEPTH_TEST);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, s_gBuffer.gLighting);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, s_gBuffer.rboDepth);
+    DrawViewportQuad(shader, GetViewportSize(player));
+
+}
+
 void Renderer::DrawScene(Shader* shader, RenderPass renderPass, int player)
 {
     if (renderPass == RenderPass::INDIRECT_SHADOW_MAP)
@@ -1142,7 +1428,7 @@ void Renderer::DrawScene(Shader* shader, RenderPass renderPass, int player)
     }
 
     // Draw scene
-    for (EntityStatic entityStatic : Scene::s_staticEntities)
+    for (EntityStatic entityStatic : GameData::s_staticEntities)
         entityStatic.DrawEntity(shader);
 
     // Draw Rooms
@@ -1163,8 +1449,8 @@ void Renderer::DrawScene(Shader* shader, RenderPass renderPass, int player)
         for (auto& light : GameData::s_lights)
             light.Draw(shader);
 
-        for (BloodPool bloodPool : Scene::s_bloodPools)
-            bloodPool.Draw(shader);
+     //   for (BloodPool bloodPool : Scene::s_bloodPools)
+        //    bloodPool.Draw(shader);
     }
 
 
@@ -1184,16 +1470,22 @@ void Renderer::DrawScene(Shader* shader, RenderPass renderPass, int player)
     shader->setBool("hasAnimation", true);
     shader->setMat4("model", glm::mat4(1));
 
-   
-    // corpse ragolls
+
+	Player* playerPtr = GetPlayerFromIndex(player);
+
+    // corpse ragdolls
     if (renderPass != RenderPass::ENV_MAP)
         for (GameCharacter& gameCharacter : Scene::s_gameCharacters)
-            gameCharacter.RenderSkinnedModel(shader);
+        {
+			if (!playerPtr || playerPtr->m_corpse != &gameCharacter)  // don't draw your own corpse or you will see it while you got red vision
+				gameCharacter.RenderSkinnedModel(shader);
+        }
+           
 
     // Player models
-    if (player == 2)
+    if (player == 2 && GameData::s_player1.m_isAlive)
         GameData::s_player1.RenderCharacterModel(shader);
-    if (player == 1)
+    if (player == 1 && GameData::s_player2.m_isAlive)
         GameData::s_player2.RenderCharacterModel(shader);
    
 

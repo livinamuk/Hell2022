@@ -5,12 +5,13 @@
 
 class Door
 { 
+public:
 	enum class State { CLOSED, CLOSING, OPEN, OPENING};
 
 	// Static shit
 public:
-	static physx::PxShape* s_doorShape;
-	static physx::PxShape* s_frameShape;
+	//static physx::PxShape* s_doorShape;
+	//static physx::PxShape* s_frameShape;
 	static void CreateShapes();
 
 	// Member shit
@@ -23,12 +24,16 @@ public:
 	unsigned int m_parentIndexVertexB;
 	unsigned int m_parentRoomIndex;
 
+	float m_swing = 0;
+	bool m_closed = true;
+
 	physx::PxRigidDynamic* m_rigid = nullptr;
 	physx::PxRigidStatic* m_frameRigid;
 	physx::PxD6Joint* m_joint;
 	PxTransform m_restPose;
+	PxShape* m_shape;
 
-	Door::State m_state = State::CLOSED;
+	Door::State m_state = State::CLOSING;
 
 
 	Door();
@@ -47,8 +52,10 @@ public:
 	glm::vec3* GetPointerToParentVert2();
 
 	void Interact();
-	void Update();
+	void Update(float deltaTime);
 
 	void CreateCollisionObject();
 	void RemoveCollisionObject();
+
+	glm::mat4 GetModelMatrix();
 };

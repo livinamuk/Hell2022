@@ -4,8 +4,8 @@
 
 #include "Core/GameData.h"
 
-physx::PxShape* Door::s_doorShape;
-physx::PxShape* Door::s_frameShape;
+//physx::PxShape* Door::s_doorShape;
+//physx::PxShape* Door::s_frameShape;
 
 #define SHAPE_WIDTH (DOOR_WIDTH * 0.5f)
 #define SHAPE_HEIGHT (DOOR_HEIGHT * 0.5f)
@@ -20,8 +20,13 @@ void Door::CreateShapes()
     physx::PxScene* scene = PhysX::GetScene();
 
     float graceFactor = 0.05;
-    s_doorShape = physics->createShape(physx::PxBoxGeometry(SHAPE_WIDTH, SHAPE_HEIGHT, SHAPE_DEPTH), *material);
-    s_frameShape = physics->createShape(physx::PxBoxGeometry(0.025, SHAPE_HEIGHT * 0.005, 0.05), *material);
+  //  s_doorShape = physics->createShape(physx::PxBoxGeometry(SHAPE_WIDTH, SHAPE_HEIGHT * 0.95, SHAPE_DEPTH), *material);
+  //  s_frameShape = physics->createShape(physx::PxBoxGeometry(0.025, SHAPE_HEIGHT * 0.005, 0.05), *material);
+
+	PxFilterData filterData;
+	//filterData.word1 = PhysX::CollisionGroup::DOOR;							 //bitmask of the object
+    //filterData.word2 = PhysX::CollisionGroup::PLAYER;// PhysX::CollisionGroup::PLAYER || PhysX::CollisionGroup::RAGDOLL; //bitmask for groups it collides with
+   // s_doorShape->setQueryFilterData(filterData);
 }
 
 Door::Door()
@@ -46,8 +51,9 @@ void Door::Draw(Shader* shader)
     AssetManager::GetMaterialPtr("Door")->Bind();
     //AssetManager::m_models["Door"].Draw(shader, m_transform.to_mat4() * m_OffsetTransform.to_mat4() * m_physicalDoorOffsetTransform.to_mat4());
 
-    glm::mat4 modelMatrix = Util::PxMat44ToGlmMat4(m_rigid->getGlobalPose());
-    AssetManager::m_models["Door"].Draw(shader, modelMatrix);
+    //glm::mat4 modelMatrix = Util::PxMat44ToGlmMat4(m_rigid->getGlobalPose());
+
+    AssetManager::m_models["Door"].Draw(shader, GetModelMatrix());
 
 
     AssetManager::GetMaterialPtr("DoorFrame")->Bind();
@@ -162,6 +168,20 @@ glm::vec3* Door::GetPointerToParentVert2()
 
 void Door::Interact()
 {
+	if (m_state == State::CLOSING) {
+		m_state = State::OPENING;
+		Audio::PlayAudio("Door_Open.wav", 0.5f);
+        m_closed = false;
+        return;
+	}
+
+	if (m_state == State::OPENING) {
+		m_state = State::CLOSING;
+		m_closed = false;
+		Audio::PlayAudio("Door_Open.wav", 0.5f);
+		return;
+	}
+    /*
     if (m_state == State::CLOSED) {
         m_state = State::OPENING;
         Audio::PlayAudio("Door_Open.wav");
@@ -170,11 +190,36 @@ void Door::Interact()
     if (m_state == State::OPEN) {
         m_state = State::CLOSING;
         Audio::PlayAudio("Door_Open.wav");
-    }
+    }*/
 }
 
-void Door::Update()
+void Door::Update(float deltaTime)
 {
+	float swingMaxAngle = 2.0f;
+	float swingOverShoot = 0.75f;
+
+    float amount = deltaTime + Util::RandomFloat(-deltaTime*0.5, deltaTime*0.5);
+
+	if (m_state == State::OPENING)
+		m_swing = Util::FInterpTo(m_swing, swingMaxAngle + 0.5, amount, 3.5);
+	if (m_state == State::CLOSING)
+		m_swing = Util::FInterpTo(m_swing, 0 - swingOverShoot, amount, 2.5);
+
+    // Actually cap to  the range
+	m_swing = std::min(m_swing, swingMaxAngle);
+	m_swing = std::max(m_swing, 0.0f);
+
+    m_rigid->setGlobalPose(PxTransform(Util::GlmMat4ToPxMat44(GetModelMatrix())));
+
+
+    // Play latch sound on door close
+    if (!m_closed && m_state == State::CLOSING && m_swing < 0.2) {
+        m_closed = true;
+		Audio::PlayAudio("Door_Latch.wav", 0.9f);
+    }
+
+    return;
+
     if (m_state == State::OPENING)
     {
         glm::mat4 mat = Util::PxMat44ToGlmMat4(m_rigid->getGlobalPose());
@@ -216,23 +261,33 @@ void Door::CreateCollisionObject()
     PxMaterial* material = PhysX::GetDefaultMaterial();
     PxScene* scene = PhysX::GetScene();
 
+	m_shape = PhysX::GetPhysics()->createShape(physx::PxBoxGeometry(SHAPE_WIDTH, SHAPE_HEIGHT * 0.95, SHAPE_DEPTH), *material);
+	//PxFilterData filterData;
+	//filterData.word1 = PhysX::CollisionGroup::DOOR;
+  //  filterData.word2 = PhysX::CollisionGroup::PLAYER;
+  //  m_shape->setQueryFilterData(filterData);
+
+
+	PxFilterData filterData;
+	filterData.word1 = PhysX::CollisionGroup::MISC_OBSTACLE;
+	m_shape->setQueryFilterData(filterData);
 
     glm::mat4 spawnMat = m_transform.to_mat4() * m_OffsetTransform.to_mat4() * m_physicalDoorOffsetTransform.to_mat4();
     PxMat44 spawnMatrix = Util::GlmMat4ToPxMat44(spawnMat);
     m_rigid = physX->createRigidDynamic(PxTransform(spawnMatrix));
-    m_rigid->attachShape(*s_doorShape);
+    m_rigid->attachShape(*m_shape);
     m_rigid->userData = new EntityData(PhysicsObjectType::DOOR, this);
 
     float mass = 0.5f;
     PxRigidBodyExt::setMassAndUpdateInertia(*m_rigid, mass);
     //s_doorShape->release();
 
-    /*PxFilterData data;
-    data.word0 = CollisionGroups::NONE;
-    data.word1 = CollisionGroups::;
-    s_doorShape->setQueryFilterData(data);*/
+    PxFilterData data;
+    //data.word0 = CollisionGroups::NONE;
+    //data.word1 = PhysX::CollisionGroup::DOOR;
+   // m_shape->setQueryFilterData(data);
 
-    PhysX::EnableRayCastingForShape(s_doorShape);
+    PhysX::EnableRayCastingForShape(m_shape);
 
     PxShape* frameShape = physX->createShape(PxBoxGeometry(0.025, DOOR_HEIGHT * 0.005, 0.05), *material);
     m_frameRigid = physX->createRigidStatic(PxTransform(spawnMatrix));
@@ -261,4 +316,16 @@ void Door::RemoveCollisionObject()
 {      
     m_state = State::CLOSED;
     m_rigid->release();
+}
+
+glm::mat4 Door::GetModelMatrix()
+{
+	Transform rotTransform;;
+	rotTransform.position.y += 1;
+	rotTransform.rotation.y = -m_swing;
+
+	Transform transIn(glm::vec3(DOOR_WIDTH / 2, 0, 0));
+	Transform transOut(glm::vec3(-DOOR_WIDTH / 2, 0, 0));
+
+	return m_transform.to_mat4() * transOut.to_mat4() * rotTransform.to_mat4() * transIn.to_mat4();
 }

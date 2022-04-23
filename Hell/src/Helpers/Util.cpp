@@ -6,6 +6,24 @@
 #include <sstream>
 
 
+std::string Util::WeaponStateToString(HUDWeaponAnimationState state)
+{
+	if (state == HUDWeaponAnimationState::EQUIPPING)
+		return "EQUIPPING";
+	else if (state == HUDWeaponAnimationState::FIRING)
+		return "FIRING";
+	else if (state == HUDWeaponAnimationState::HOLSTERING)
+		return "HOLSTERING";
+	else if (state == HUDWeaponAnimationState::IDLE)
+		return "IDLE";
+	else if (state == HUDWeaponAnimationState::RELOADING)
+		return "RELOADING";
+	else if (state == HUDWeaponAnimationState::WALKING)
+		return "WALKING";
+
+	return "BUGGG";
+}
+
 float Util::YRotationBetweenTwoPoints(glm::vec3 a, glm::vec3 b)
 {
 	float delta_x = b.x - a.x;
@@ -37,6 +55,14 @@ float Util::FInterpTo(float Current, float Target, float DeltaTime, float Interp
 	// Delta Move, Clamp so we do not over shoot.
 	const float DeltaMove = Dist * std::clamp(DeltaTime * InterpSpeed, 0.0f, 1.0f);
 	return Current + DeltaMove;
+}
+
+glm::vec3 Util::Vec3InterpTo(glm::vec3 Current, glm::vec3 Target, float DeltaTime, float InterpSpeed)
+{
+	float x = FInterpTo(Current.x, Target.x, DeltaTime, InterpSpeed);
+	float y = FInterpTo(Current.y, Target.y, DeltaTime, InterpSpeed);
+	float z = FInterpTo(Current.z, Target.z, DeltaTime, InterpSpeed);
+	return glm::vec3(x, y, z);
 }
 
 void Util::DrawUpFacingPlane(Shader* shader, const glm::mat4& modelMatrix)

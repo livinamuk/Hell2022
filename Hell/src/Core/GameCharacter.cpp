@@ -15,9 +15,12 @@ void GameCharacter::RenderSkinnedModel(Shader* shader)
 {   
     // SKIN THE MODEL
 
-    m_animatedTransforms.resize(m_skinnedModel->m_BoneInfo.size());
-    m_animatedDebugTransforms_Animated.resize(m_skinnedModel->m_BoneInfo.size());
-    
+    // Resize the vectors to the right size 
+    if (m_skinningMethod != SkinningMethod::LAST_ANIMATED_STATE) {
+        m_animatedTransforms.resize(m_skinnedModel->m_BoneInfo.size());
+        m_animatedDebugTransforms_Animated.resize(m_skinnedModel->m_BoneInfo.size());
+    }
+
     glm::mat4 modelMatrix;
 
     if (m_skinningMethod == SkinningMethod::BINDPOSE)
@@ -34,6 +37,10 @@ void GameCharacter::RenderSkinnedModel(Shader* shader)
     {
         modelMatrix = m_transform.to_mat4();
         // animation is updated in Update() function
+    }
+    else if (m_skinningMethod == LAST_ANIMATED_STATE)
+    {
+        modelMatrix = glm::mat4(1);
     }
 
    // return;
@@ -60,6 +67,30 @@ void GameCharacter::RenderSkinnedModel(Shader* shader)
     }
 
     shader->setInt("hasAnimation", false);
+}
+
+void GameCharacter::Update(float deltaTime)
+{
+    m_lifeTimeInSeconds += deltaTime;
+
+    // Optimisation for phasing out old ragdolls
+    // any that are no longer moving or have been in existence for more than 10 seconds
+    if (m_skinningMethod == SkinningMethod::RAGDOLL)
+    {
+        bool isAtRest = true;
+
+        for (auto& r : m_ragdoll.m_rigidComponents) {
+            if (!r.pxRigidBody->isSleeping()) {
+                isAtRest = false;
+                break;
+            }
+        }
+
+        if (isAtRest || m_lifeTimeInSeconds > 10.0f) {
+            m_skinningMethod = SkinningMethod::LAST_ANIMATED_STATE;
+            m_ragdoll.RemovePhysicsObjects();
+        }
+    }
 }
 
 void GameCharacter::UpdateAnimation(float deltaTime)

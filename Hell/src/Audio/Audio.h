@@ -14,7 +14,7 @@ class Audio
 public: // functions
 	static void Init();
 	static void LoadAudio(const char* name);
-	static void PlayAudio(const char* name, float volume = 1.0f);
+	static SoLoud::handle PlayAudio(const char* name, float volume = 1.0f);
 	static SoLoud::handle LoopAudio(const char* name, float volume = 1.0f);
 
 

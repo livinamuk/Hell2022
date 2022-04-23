@@ -573,7 +573,7 @@ void Editor::Render(float screenWidth, float screenHeight)
     }
 
     // Draw static entities
-    for (EntityStatic entityStatic : Scene::s_staticEntities)
+    for (EntityStatic entityStatic : GameData::s_staticEntities)
         entityStatic.DrawEntity(shader);
 
 

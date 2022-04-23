@@ -9,10 +9,15 @@ Ragdoll::Ragdoll()
 void Ragdoll::RemovePhysicsObjects()
 {
 	for (RigidComponent& rigid : m_rigidComponents)
-		rigid.pxRigidBody->release();
+		if (rigid.pxRigidBody)
+			rigid.pxRigidBody->release();
 	
 	for (JointComponent& joint : m_jointComponents)
-		joint.pxD6->release();
+		if(joint.pxD6)
+			joint.pxD6->release();
+
+	m_rigidComponents.clear();
+	m_jointComponents.clear();
 }
 
 
@@ -170,7 +175,13 @@ void Ragdoll::BuildFromJsonFile(std::string filename, Transform spawnLocation, v
 			PhysX::EnableRayCastingForShape(shape);
 
 
-			shape->release();
+			PxFilterData filterData;
+			filterData.word1 = PhysX::CollisionGroup::NO_GROUP;
+			filterData.word2 = PhysX::CollisionGroup::NO_GROUP;
+			shape->setQueryFilterData(filterData);
+			shape->setSimulationFilterData(filterData);
+
+			//shape->release();
 
 			//PxFilterData data;
 			//data.word0 = 1452323;
@@ -219,13 +230,13 @@ void Ragdoll::BuildFromJsonFile(std::string filename, Transform spawnLocation, v
 			joint.limit_linearDampening
 		};
 
-			std::cout << "\n" << joint.name << "\n";
+			//std::cout << "\n" << joint.name << "\n";
 
 			PxMat44 m = PxMat44(parentFrame);
 
-			std::cout << m[0][0] << ", " << m[0][1] << ", " << m[0][2] << "\n";
+			/*	std::cout << m[0][0] << ", " << m[0][1] << ", " << m[0][2] << "\n";
 			std::cout << m[1][0] << ", " << m[1][1] << ", " << m[1][2] << "\n";
-			std::cout << m[2][0] << ", " << m[2][1] << ", " << m[2][2] << "\n";
+			std::cout << m[2][0] << ", " << m[2][1] << ", " << m[2][2] << "\n";*/
 
 
 		const PxJointLinearLimitPair limitX{

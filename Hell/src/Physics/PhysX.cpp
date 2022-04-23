@@ -19,27 +19,45 @@ PxControllerManager* PhysX::s_characterControllerManager;
 
 
 
-PxFilterFlags contactReportFilterShader(PxFilterObjectAttributes attributes0, PxFilterData filterData0,
-    PxFilterObjectAttributes attributes1, PxFilterData filterData1,
-    PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize)
-{
-    PX_UNUSED(attributes0);
-    PX_UNUSED(attributes1);
-    PX_UNUSED(filterData0);
-    PX_UNUSED(filterData1);
-    PX_UNUSED(constantBlockSize);
-    PX_UNUSED(constantBlock);
 
-    pairFlags = PxPairFlag::eSOLVE_CONTACT
-        | PxPairFlag::eDETECT_DISCRETE_CONTACT
-        | PxPairFlag::eNOTIFY_TOUCH_FOUND
-        | PxPairFlag::eNOTIFY_TOUCH_PERSISTS
-        | PxPairFlag::eNOTIFY_CONTACT_POINTS
-        | PxPairFlag::eDETECT_CCD_CONTACT;
-    return PxFilterFlag::eDEFAULT;
+
+PxFilterFlags contactReportFilterShader(PxFilterObjectAttributes attributes0, PxFilterData filterData0,
+	PxFilterObjectAttributes attributes1, PxFilterData filterData1,
+	PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize)
+{
+	PX_UNUSED(attributes0);
+	PX_UNUSED(attributes1);
+	//PX_UNUSED(filterData0);
+	//PX_UNUSED(filterData1);
+	PX_UNUSED(constantBlockSize);
+	PX_UNUSED(constantBlock);
+
+	//if (!(filterData0.word1 & filterData1.word1)) {
+	if (!(filterData0.word1 & filterData1.word1) && !(filterData0.word2 & filterData1.word2)) {
+		return PxFilterFlag::eKILL;
+	}
+
+	pairFlags = PxPairFlag::eSOLVE_CONTACT
+		| PxPairFlag::eDETECT_DISCRETE_CONTACT
+		| PxPairFlag::eNOTIFY_TOUCH_FOUND
+		| PxPairFlag::eNOTIFY_TOUCH_PERSISTS
+		| PxPairFlag::eNOTIFY_CONTACT_POINTS
+		| PxPairFlag::eDETECT_CCD_CONTACT;
+	return PxFilterFlag::eDEFAULT;
 }
 
-
+PxFilterFlags PhysicsMainFilterShader(PxFilterObjectAttributes attributes0, PxFilterData filterData0,
+	PxFilterObjectAttributes attributes1, PxFilterData filterData1,
+	PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize)
+{
+	//if (!(filterData0.word1 & filterData1.word2) || !(filterData1.word1 & filterData0.word2)) {
+//	if (!(filterData0.word2 & filterData1.word1) || !(filterData0.word1 & filterData1.word2)) {
+		//	return PxFilterFlag::eKILL;
+	//}
+	// generate contacts for all that were not filtered above
+	pairFlags = PxPairFlag::eCONTACT_DEFAULT | PxPairFlag::eTRIGGER_DEFAULT | PxPairFlag::eNOTIFY_CONTACT_POINTS;
+	return PxFilterFlag::eDEFAULT;
+}
 
 void PhysX::Init()
 {
@@ -52,20 +70,21 @@ void PhysX::Init()
     mPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *mFoundation, PxTolerancesScale(), true, mPvd);
     PxInitExtensions(*mPhysics, mPvd);
 
-    PxSceneDesc sceneDesc(mPhysics->getTolerancesScale());
-    sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
-    sceneDesc.filterShader = contactReportFilterShader;
+	PxSceneDesc sceneDesc(mPhysics->getTolerancesScale());
+	//sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
+	sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
+	//sceneDesc.filterShader = PhysicsMainFilterShader;
+	sceneDesc.filterShader = contactReportFilterShader;
     sceneDesc.simulationEventCallback = &gContactReportCallback;
-
+    
     mDispatcher = PxDefaultCpuDispatcherCreate(2);
     sceneDesc.cpuDispatcher = mDispatcher;
    // u were using this, but switched for above //  sceneDesc.filterShader = PxDefaultSimulationFilterShader;
     mScene = mPhysics->createScene(sceneDesc);
 
 
-    s_characterControllerManager = PxCreateControllerManager(*mScene);
-
-
+	s_characterControllerManager = PxCreateControllerManager(*mScene);
+	
 
     PxPvdSceneClient* pvdClient = mScene->getScenePvdClient();
     if (pvdClient)
@@ -81,10 +100,21 @@ void PhysX::Init()
     groundPlane->setName("Ground");
     groundPlane->userData = new EntityData(PhysicsObjectType::FLOOR, nullptr);
 
+
     // enable raycasting for this shape
     PxShape* shape;
     groundPlane->getShapes(&shape, 1);
     EnableRayCastingForShape(shape);
+
+
+    // word 1 is this shapes group
+    // word 2 is shapes it collides with
+
+	PxFilterData filterData;
+	filterData.word1 = PhysX::CollisionGroup::MISC_OBSTACLE;
+	filterData.word2 = PhysX::CollisionGroup::RAGDOLL_GROUP;
+	shape->setQueryFilterData(filterData);
+	shape->setSimulationFilterData(filterData); // sim is for ragz
 
     mScene->addActor(*groundPlane);
 
@@ -215,7 +245,7 @@ void PhysX::Shutdown()
     mFoundation->release();
 }
 
-void PhysX::StepPhysics()
+void PhysX::StepPhysics(float deltaTime)
 {
    /* PxScene* scene;
     const PxPhysics& physX = PxGetPhysics();
@@ -239,7 +269,13 @@ void PhysX::StepPhysics()
         pxscene->fetchResults(true);*/
     
 
-    mScene->simulate(1.0f / 60.0f);
+    //mScene->simulate(1.0f / 60.0f);
+
+    //return;
+
+    float maxSimulateTime = (1.0f / 60.0f) * 4.0f;
+
+    mScene->simulate(std::min(deltaTime, maxSimulateTime));
     mScene->fetchResults(true);
 }
 
@@ -253,7 +289,46 @@ void PhysX::StepPhysics()
 
 PxController* PhysX::CreateCharacterController(Transform transform)
 {
-    static const float gScaleFactor = 1.5f;
+	glm::vec3 pos = transform.position;
+
+	PxMaterial* mat = GetDefaultMaterial();
+	PxCapsuleControllerDesc* desc = new PxCapsuleControllerDesc;
+	desc->setToDefault();
+	desc->height = 0.3;
+	desc->radius = 0.1;
+	desc->position = PxExtendedVec3(pos.x, pos.y + 0.4, pos.z);
+	desc->material = mat; 
+    desc->stepOffset = 0.35;
+
+
+    //desc->
+
+   // desc->upDirection = PxVec3(0, 1, 0);
+
+   // desc->
+
+   // descmReportCallback = nullptr;// this;
+	//desc.mBehaviorCallback = nullptr;// this;
+	std::printf("VALID: %d \n", desc->isValid());
+
+	PxController* c = s_characterControllerManager->createController(*desc);
+	if (!c)
+	{
+        std::printf("Failed to instance a controller\n");
+	}
+
+	if (c)
+	{
+
+		//chr->userData = c;
+		//chr->moving.connect(sigc::mem_fun(this, &PhysicsSystemPhysX::TestCharacterMove));
+        std::printf("PhysX validated an actor's character controller\n");
+	}
+    EntityData* userData = new EntityData(PhysicsObjectType::UNDEFINED, nullptr);
+    c->setUserData(userData);
+
+    return c;
+  /*  static const float gScaleFactor = 1.5f;
     static const float gStandingSize = 1.0f * gScaleFactor;
     static const float gCrouchingSize = 0.25f * gScaleFactor;
     static const float gControllerRadius = 0.3f * gScaleFactor;
@@ -308,9 +383,10 @@ PxController* PhysX::CreateCharacterController(Transform transform)
     PxController* ctrl = static_cast<PxBoxController*>(s_characterControllerManager->createController(*cDesc));
     PX_ASSERT(ctrl);
 
+    std::cout << "\n\nhello\n\n";
     std::cout << "Controller count: " << s_characterControllerManager->getNbControllers() << "\n";
 
-    return ctrl;
+    return ctrl;*/
 
 
    /* PxControllerDesc* cDesc;
@@ -517,14 +593,16 @@ PxShape* PhysX::GetShapeFromPxRigidDynamic(PxRigidDynamic* rigid)
 
 void PhysX::EnableRayCastingForShape(PxShape* shape)
 {
-    PxFilterData filterData;
+   // return;
+    PxFilterData filterData = shape->getQueryFilterData();
     filterData.word0 = GROUP_RAYCAST;
     shape->setQueryFilterData(filterData);
 }
 
 void PhysX::DisableRayCastingForShape(PxShape* shape)
 {
-    PxFilterData filterData;
+//	return;
+    PxFilterData filterData = shape->getQueryFilterData();
     filterData.word0 = 0;
     shape->setQueryFilterData(filterData);
 }

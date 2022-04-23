@@ -8,6 +8,7 @@ public:	// Methods
 	Camera();
 	void CalculateMatrices(glm::mat4 animatedCameraMatrix = glm::mat4(1));
 	void CalculateProjectionMatrix(int screenWidth, int screenHeight);
+	void CalculateWeaponSway(float deltaTime, float xOffset, float yOffset, float xMax);
 	//void CalculateWeaponSwayTransform(float deltatime);
 	//void Update(float deltaTime);
 
@@ -16,6 +17,7 @@ private: // Methods
 public: // Fields
 
 	Transform m_transform;
+	Transform m_swayTransform;
 
 	glm::vec3 m_Front = glm::vec3(0, 1, 0);
 	glm::vec3 m_Up;

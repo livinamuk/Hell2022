@@ -60,6 +60,11 @@ void EntityStatic::UpdateCollisionObject()
 	PxShape* shape;
 	m_actor->getShapes(&shape, 1);
 	PhysX::EnableRayCastingForShape(shape);
+
+	PxFilterData filterData;
+	filterData.word1 = PhysX::CollisionGroup::MISC_OBSTACLE;
+	shape->setQueryFilterData(filterData);
+	shape->setSimulationFilterData(filterData);
 }
 
 /*

@@ -33,6 +33,43 @@ void Camera::CalculateMatrices(glm::mat4 animatedCameraMatrix)
 
 void Camera::CalculateProjectionMatrix(int screenWidth, int screenHeight)
 {
-	m_projectionMatrix = glm::perspective(1.0f, (float)screenWidth / (float)screenHeight, NEAR_PLANE, FAR_PLANE);
+	m_projectionMatrix = glm::perspective(1.0125f, (float)screenWidth / (float)screenHeight, NEAR_PLANE, FAR_PLANE);
 	m_inversePprojectionMatrix = glm::inverse(m_projectionMatrix);
+}
+
+void Camera::CalculateWeaponSway(float deltaTime, float xOffset, float yOffset, float xMax)
+{
+	float SWAY_AMOUNT = 0.125f;
+	float SMOOTH_AMOUNT = 4.0f;
+	float SWAY_MIN_X = -2.25f;
+	float SWAY_MAX_X = xMax;//;
+	float SWAY_MIN_Y = -1;
+	float SWAY_MAX_Y = 0.5f;
+
+	float swayAmount = 1;
+	float movementX = -xOffset * SWAY_AMOUNT;
+	float movementY = -yOffset * SWAY_AMOUNT;
+
+	
+
+	movementX = std::min(movementX, SWAY_MAX_X);
+	movementX = std::max(movementX, SWAY_MIN_X);
+	movementY = std::min(movementY, SWAY_MAX_Y);
+	movementY = std::max(movementY, SWAY_MIN_Y);
+
+	glm::vec3 finalPosition = glm::vec3(movementX, movementY, 0);
+
+/*	static float rotAmount = 0;
+
+	rotAmount += -Input::m_xoffset * deltaTime * 0.01;
+
+	float limit = 0.025f;
+	rotAmount = std::min(rotAmount, limit);
+	rotAmount = std::max(rotAmount, -limit);*/
+
+	//m_swayTransform.rotation.y = Util::FInterpTo(rotAmount, m_swayTransform.rotation.y, deltaTime, 1.0f);
+
+	m_swayTransform.position = Util::Vec3InterpTo(m_swayTransform.position, finalPosition, deltaTime, SMOOTH_AMOUNT);
+	//m_swayTransform.rotation = Util::Vec3InterpTo(m_swayTransform.rotation, finalPosition, deltaTime, SMOOTH_AMOUNT);
+
 }

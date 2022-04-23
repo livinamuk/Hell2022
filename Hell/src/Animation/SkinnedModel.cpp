@@ -123,31 +123,37 @@ int SkinnedModel::FindAnimatedNodeIndex(float AnimationTime, const AnimatedNode*
 {
     // bail if current animation time is earlier than the this nodes first keyframe time
     if (AnimationTime < animatedNode->m_nodeKeys[0].timeStamp)
-        return -1;
+        return -1; // you WERE returning -1 here
 
-    for (unsigned int i = 0; i < animatedNode->m_nodeKeys.size() - 1; i++) {
-        if (AnimationTime < animatedNode->m_nodeKeys[i + 1].timeStamp)
-            return i;
+    for (unsigned int i = 1; i < animatedNode->m_nodeKeys.size(); i++) {
+        if (AnimationTime < animatedNode->m_nodeKeys[i].timeStamp)
+            return i-1;
     }
-    return -1;
+    return animatedNode->m_nodeKeys.size() - 1;
 }
 
 
 void SkinnedModel::CalcInterpolatedPosition(glm::vec3& Out, float AnimationTime, const AnimatedNode* animatedNode)
 {
-    int PositionIndex = FindAnimatedNodeIndex(AnimationTime, animatedNode);
-    int NextPositionIndex = (PositionIndex + 1);
+    int Index = FindAnimatedNodeIndex(AnimationTime, animatedNode);
+    int NextIndex = (Index + 1);
+
+	// Is next frame out of range?
+	if (NextIndex == animatedNode->m_nodeKeys.size()) {
+		Out = animatedNode->m_nodeKeys[Index].positon;
+		return;
+	}
 
     // Nothing to report
-    if (PositionIndex == -1 || animatedNode->m_nodeKeys.size() == 1) {
+    if (Index == -1 || animatedNode->m_nodeKeys.size() == 1) {
         Out = animatedNode->m_nodeKeys[0].positon;
         return;
     }       
-    float DeltaTime = animatedNode->m_nodeKeys[NextPositionIndex].timeStamp - animatedNode->m_nodeKeys[PositionIndex].timeStamp;
-    float Factor = (AnimationTime - animatedNode->m_nodeKeys[PositionIndex].timeStamp) / DeltaTime;
+    float DeltaTime = animatedNode->m_nodeKeys[NextIndex].timeStamp - animatedNode->m_nodeKeys[Index].timeStamp;
+    float Factor = (AnimationTime - animatedNode->m_nodeKeys[Index].timeStamp) / DeltaTime;
 
-    glm::vec3 start = animatedNode->m_nodeKeys[PositionIndex].positon;
-    glm::vec3 end = animatedNode->m_nodeKeys[NextPositionIndex].positon;
+    glm::vec3 start = animatedNode->m_nodeKeys[Index].positon;
+    glm::vec3 end = animatedNode->m_nodeKeys[NextIndex].positon;
     glm::vec3 delta = end - start;
     Out = start + Factor * delta;
 }
@@ -157,6 +163,12 @@ void SkinnedModel::CalcInterpolatedRotation(glm::quat& Out, float AnimationTime,
 {
     int Index = FindAnimatedNodeIndex(AnimationTime, animatedNode);
     int NextIndex = (Index + 1);
+    
+    // Is next frame out of range?
+    if (NextIndex == animatedNode->m_nodeKeys.size()) {
+        Out = animatedNode->m_nodeKeys[Index].rotation;
+        return;
+    }
 
     // Nothing to report
     if (Index == -1 || animatedNode->m_nodeKeys.size() == 1) {
@@ -178,6 +190,12 @@ void SkinnedModel::CalcInterpolatedScaling(glm::vec3& Out, float AnimationTime, 
 {
     int Index = FindAnimatedNodeIndex(AnimationTime, animatedNode);
     int NextIndex = (Index + 1);
+
+	// Is next frame out of range?
+	if (NextIndex == animatedNode->m_nodeKeys.size()) {
+        Out = glm::vec3(animatedNode->m_nodeKeys[Index].scale);
+		return;
+	}
 
     // Nothing to report
     if (Index == -1 || animatedNode->m_nodeKeys.size() == 1) {
@@ -201,8 +219,9 @@ void SkinnedModel::UpdateBoneTransformsFromAnimation(float animTime, Animation* 
     if (m_animations.size() > 0) {
         float TicksPerSecond = animation->m_ticksPerSecond != 0 ? animation->m_ticksPerSecond : 25.0f;
         // float TimeInTicks = TimeInSeconds * TicksPerSecond; chek thissssssssssssss could be a seconds thing???
-        float TimeInTicks = animTime * TicksPerSecond;
-        AnimationTime = fmod(TimeInTicks, animation->m_duration);
+		float TimeInTicks = animTime * TicksPerSecond;
+		AnimationTime = fmod(TimeInTicks, animation->m_duration);
+		AnimationTime = std::min(TimeInTicks, animation->m_duration);
     }
 
     // Traverse the tree 
