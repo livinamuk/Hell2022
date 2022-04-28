@@ -183,6 +183,7 @@ void Input::UpdateControllerInput(int controllerIndex)
 	int buttonCount;
 	int axesCount;
 
+
 	// Controller 1
 	if (glfwGetGamepadState(controllerIndex, &state))
 	{

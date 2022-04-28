@@ -20,6 +20,7 @@ SkinnedModel* FileImporter::LoadSkinnedModel(const char* filename)
 {
     const aiScene* m_pScene;
     Assimp::Importer m_Importer;
+   // m_Importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
 
     SkinnedModel* skinnedModel = new SkinnedModel();
 
@@ -85,8 +86,18 @@ SkinnedModel* FileImporter::LoadSkinnedModel(const char* filename)
 
     GrabSkeleton(skinnedModel, m_pScene->mRootNode, -1);
 
+
      std::cout << "Loaded model " << skinnedModel->m_filename << " ("  << skinnedModel->m_BoneInfo.size() << " bones)\n";
-        
+     
+     std::cout << "m_GlobalInverseTransform\n";
+	 Util::PrintMat4(skinnedModel->m_GlobalInverseTransform);
+
+	 skinnedModel->CalculateCameraBindposeTransform();
+
+     for (auto b : skinnedModel->m_BoneInfo)
+     {
+         std::cout << "-" << b.BoneName << "\n";
+     }
 
     m_Importer.FreeScene();
 
@@ -262,6 +273,11 @@ void FileImporter::GrabSkeleton(SkinnedModel* skinnedModel, const aiNode* pNode,
     joint.m_name = Util::CopyConstChar(pNode->mName.C_Str());
     joint.m_inverseBindTransform = Util::aiMatrix4x4ToGlm(pNode->mTransformation);
     joint.m_parentIndex = parentIndex;
+
+
+	//std::cout << "--" << joint.m_name << "\n";
+   // Util::PrintMat4(joint.m_inverseBindTransform);
+	
 
     parentIndex = skinnedModel->m_joints.size(); // don't do your head in with why this works, just be thankful it does.
 

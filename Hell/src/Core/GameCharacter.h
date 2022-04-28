@@ -38,8 +38,11 @@ public:
     SkinnedModel* m_skinnedModel;
     SkinningMethod m_skinningMethod;
 
-    std::vector<glm::mat4> m_animatedTransforms; 
-    std::vector<glm::mat4> m_animatedDebugTransforms_Animated;
+   // std::vector<glm::mat4> m_animatedTransforms; 
+   // std::vector<glm::mat4> m_animatedDebugTransforms_Animated;
+
+	AnimatedTransforms m_animatedTransforms;
+
 
 private: 
    // void FindBindPoseTransforms(const aiNode* pNode);

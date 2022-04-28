@@ -4,7 +4,7 @@ layout (location = 0) out vec4 FragColor;
 layout (binding = 0) uniform sampler2D ALB_TEXTURE;  // actually not used    
 layout (binding = 1) uniform sampler2D FINAL_TEXTURE; // ligthing + DOF
 layout (binding = 2) uniform sampler2D test;
-//layout (binding = 3) uniform sampler2D RMA_TEXTURE;    
+layout (binding = 3) uniform sampler2D RMA_TEXTURE;    
 
 in vec2 TexCoords;
 in vec2 SplitscreenAdjustedCoords;
@@ -92,7 +92,6 @@ void main()
 	
 	//vec4 baseColor = texture(ALB_TEXTURE, TexCoords) + color;
 	//FragColor = texture(LIGHTING_TEXTURE, TexCoords) + color;
-	//vec4 LightingColor = texture(LIGHTING_TEXTURE, TexCoords);
 
 	FragColor.xyz = chromo_ABZ_color.xyz; 
 	//FragColor += baseColor * 0.1;
@@ -117,6 +116,7 @@ void main()
     
     vec3 color2 = FragColor.rgb;
 
+
     // HDR tonemapping
 //   color2 = color2 / (color2 + vec3(1.0));
     // gamma correct
@@ -124,7 +124,9 @@ void main()
 
     FragColor.rgb = color2;
 
-
+    
+	//vec4 RMA = texture(RMA_TEXTURE, TexCoords);
+   // FragColor.rgb = vec3(RMA.a);
 
  //   FragColor.g = 0;
 

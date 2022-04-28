@@ -25,6 +25,8 @@ void Player::UpdateCamera(int renderWidth, int renderHeight)
 
 void Player::Update(float deltaTime)
 {
+	m_remainingBloodDecalsAllowedThisFrame = m_maxBloodDecalPerFrame;
+
 	if (m_muzzleFlashTimer >= 0)
 		m_muzzleFlashTimer += deltaTime * 15;
 
@@ -91,7 +93,7 @@ void Player::Respawn()
 	Audio::PlayAudio(file.c_str(), 0.5f);
 
 
-	int spawnLoc = Util::RandomFloat(0, 9);
+	int spawnLoc = std::rand() % 9;// Util::RandomFloat(0, 9);
 
 	if (spawnLoc == 8) {
 		m_transform.position = glm::vec3(3.32548, -0.00066999, 0.162508);
@@ -857,12 +859,42 @@ void Player::FireBullet(float variance, float bulletForce)
 			if (physicsData->type == PhysicsObjectType::RAGDOLL || physicsData->type == PhysicsObjectType::PLAYER_RAGDOLL)
 			{
 				bodyHit = true;
+
+				// make blood
+				if (m_remainingBloodDecalsAllowedThisFrame > 0) {
+					static int counter = 0;
+					GameData::s_bloodDecals.push_back(BloodDecal());
+					BloodDecal* decal = &GameData::s_bloodDecals.back();
+					decal->m_type = counter;// std::rand() % 4 + 0;
+					decal->m_randomRotation = Util::RandomFloat(0, HELL_PI * 2);
+					decal->m_transform.position.x = m_bulletRay.m_hitPosition.x;
+					decal->m_transform.position.y = 0.01f;
+					decal->m_transform.position.z = m_bulletRay.m_hitPosition.z;
+					decal->m_transform.rotation.y = m_camera.m_transform.rotation.y + HELL_PI;
+					decal->m_transform.scale = glm::vec3(2);
+					m_remainingBloodDecalsAllowedThisFrame--;
+					counter++;
+					if (counter > 3)
+						counter = 0;
+
+					std::cout << "blood\n";
+				}
 			}
 
 			// kill em if it's player
 			if (physicsData->type == PhysicsObjectType::PLAYER_RAGDOLL) {
 
 				Player* p = (Player*)physicsData->parent;
+
+				// make blood
+			/*	GameData::s_bloodDecals.push_back(BloodDecal());
+				BloodDecal* decal = &GameData::s_bloodDecals.back();
+				decal->m_type = std::rand() % 4 + 0;
+				decal->m_transform.position.x = m_bulletRay.m_hitPosition.x;
+				decal->m_transform.position.y = 0.01f;
+				decal->m_transform.position.z = m_bulletRay.m_hitPosition.z;
+				decal->m_transform.rotation.y = m_camera.m_transform.rotation.y + HELL_PI;
+				decal->m_transform.scale = glm::vec3(2);*/
 
 				// kill em
 				if (m_bulletRay.m_hitObjectName == "RAGDOLL_HEAD" && p->m_isAlive) {
@@ -956,10 +988,16 @@ void Player::CheckForWeaponInput()
 				m_HUD_Weapon.PlayAnimation("Glock_Holster.fbx");
 				m_HUDWeaponAnimationState = HUDWeaponAnimationState::HOLSTERING;
 			}
+			else
+				if (Input::KeyPressed(HELL_KEY_K))
+				{
+					m_gun = Gun::AXE;
+					Audio::PlayAudio("Glock_Equip.wav", 0.5f);
+					m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Axe"));
+				}
 		//}
 	}
 
-	
 	// Finished holstering
 	if (m_HUD_Weapon.AnimationIsComplete() && m_HUDWeaponAnimationState == HUDWeaponAnimationState::HOLSTERING)			
 	{
@@ -978,7 +1016,13 @@ void Player::CheckForWeaponInput()
 			m_HUD_Weapon.PlayAnimation("Shotgun_Equip.fbx", 1.25f);
 			m_gunToChangeTo = Gun::NONE;
 		}
-	}		
+	}	
+
+
+	if (m_gun == Gun::SHOTGUN)
+	{
+		m_HUD_Weapon.PlayAndLoopAnimation("Axe.fbx");
+	}
 
 
 	if (m_gun == Gun::SHOTGUN) {

@@ -46,6 +46,8 @@ uniform float screenHeight;
 
 uniform vec3 camPos;
 
+in vec2 vertexShaderTexCoords;
+
   
 // array of offset direction for sampling
 vec3 gridSamplingDisk[20] = vec3[]
@@ -259,12 +261,25 @@ vec3 CalculateFresnel(
     return fresnel0 + ((1.0 - fresnel0) * pow(2.0, p));
 }
 
-float CaclulateAttenuation(vec3 worldPos, vec3 lightPosition, float radius, float magic) {
+/*float CaclulateAttenuation(vec3 worldPos, vec3 lightPosition, float radius, float magic) {
     float dist = length(worldPos - lightPosition);
     float num = saturate(1 - (dist / radius) * (dist / radius) * (dist / radius) * (dist / radius));
     return num * num / (dist * dist + magic);
-}
+}*/
 
+float CaclulateAttenuation(vec3 worldPos, vec3 lightPosition, float radius, float magic) {
+
+
+    float dist = length(worldPos - lightPosition);
+
+	
+	//float att = clamp(1.0 - dist*dist/(radius*radius), 0.0, 1.0);
+	//att *= att;
+	//return att;
+
+    float num = saturate(1 - (dist / radius) * (dist / radius) * (dist / radius) * (dist / radius));
+    return num * num / (dist * dist + magic);
+}
 
 
 // The following equation models the Fresnel reflectance term of the spec equation (aka F())
@@ -317,45 +332,61 @@ vec3 T(float s) { // It doesn't matter, positive or negative value.
 
 
 
+// your inverse view and inverse projection aren't being sent
 
-
-void main2()
+void main()
 {
-	vec3 albedo = pow(texture(ALB_Texture, TexCoords).rgb, vec3(2.2));
-	float roughness = texture(RMA_Texture, TexCoords).r;	
-	float metallic  = texture(RMA_Texture, TexCoords).g;
-	float ao = texture(RMA_Texture, TexCoords).b;
-	vec3 n = normalize(texture(NRM_Texture, TexCoords).rgb);
+    // get light uniform data
+	Light light = lights[lightIndex];
+	vec3 lightPos   = light.position_radius.xyz;
+    vec3 lightColor = light.color_strength.xyz;
+    float lightRadius = light.position_radius.w;
+    float lightStrength = light.color_strength.w;
+    float lightMagic = light.magic_padding.x;
+	
+	//lightColor = vec3(1, 0.7799999713897705, 0.5289999842643738);
+	//lightRadius *= 1.125;
+	lightStrength *= 0.725;
+	lightMagic = 4;//4;
+	//lightPos.y = 2;// = vec3(0, 2, 0);
 
-	vec2 gScreenSize = vec2(screenWidth, screenHeight);
-    vec2 TexCoord = gl_FragCoord.xy / gScreenSize;
-	vec2 TexCoords = TexCoord;
+	vec3 test = vec3(0,0,0);
 
-    
+//	lightStrength *= 1.5;
+	lightMagic *= 0.5;
 
-    // Get the Fragment Z position (from the depth buffer)
+    // Reconstruc pos from depth
+    vec2 TexCoord = vec2(gl_FragCoord.x / screenWidth, gl_FragCoord.y / screenHeight);   
     float z = texture(Depth_Texture, vec2(TexCoord.s, TexCoord.t)).x * 2.0f - 1.0f;
     vec4 clipSpacePosition = vec4(vec2(TexCoord.s, TexCoord.t) * 2.0 - 1.0, z, 1.0);
-    vec4 viewSpacePosition = inverseProjection * clipSpacePosition;
-    
-	// Get the Fragment XYZ position (perspective division, via it's depth value)
+    if (player == 1)      
+        clipSpacePosition = vec4(vec2(TexCoord.s * 2.0 - 1.0, ((TexCoord.t * 2 + -1) * 2.0 - 1.0) ), z, 1.0);
+    if (player == 2)      
+        clipSpacePosition = vec4(vec2(TexCoord.s * 2.0 - 1.0, ((TexCoord.t * 2 + 0) * 2.0 - 1.0) ), z, 1.0);
+    vec4 viewSpacePosition = inverse(projection) * clipSpacePosition;
     viewSpacePosition /= viewSpacePosition.w;
-    vec4 worldSpacePosition = inverseView * viewSpacePosition;
+    vec4 worldSpacePosition = inverse(view) * viewSpacePosition;    
     vec3 WorldPos = worldSpacePosition.xyz;
 
-    // Light data
-	Light light = lights[lightIndex];
+    // Get textures
+	vec4 RMA = texture(RMA_Texture, TexCoords);
+	vec3 albedo = pow(texture(ALB_Texture, TexCoords).rgb, vec3(2.2));
+	float roughness = RMA.r;	
+	float metallic  = RMA.g;
+	float ao = RMA.b;
+    vec3 n = texture(NRM_Texture, TexCoords).rgb * 2 - 1;//normalize(Normal);
+    
+	
+	//test = vec3(gl_FragCoord.x, gl_FragCoord.y, 0);
 
-	vec3 lightPosition = light.position_radius.xyz;
-	float lightRadius = light.position_radius.w;
-	vec3 lightColor = light.color_strength.xyz;
-	float lightStrength = light.color_strength.w;
-	float lightMagic = light.magic_padding.x;
-
-	float attenuation = CaclulateAttenuation(WorldPos, lightPosition, lightRadius, lightMagic) * lightStrength;
-	vec3 radiance = lightColor * attenuation;
-
-	/////////
+	//test = WorldPos;
+	//n.r = clamp(n.r, 0, 1);
+	//n.g = clamp(n.g, 0, 1);
+	//n.b = clamp(n.b, 0, 1);
+	
+	//n = clamp(n, 0, 1);
+    n = normalize(n);
+    /////////
 	// PBR //
 	/////////
 	
@@ -367,6 +398,9 @@ void main2()
 	float alphaRoughness = roughness * roughness;
 	vec3 specularColor = mix(f0, albedo, metallic);
 
+
+
+
 	// Compute reflectance.
 	float reflectance = max(max(specularColor.r, specularColor.g), specularColor.b);
 
@@ -376,14 +410,17 @@ void main2()
 	vec3 specularEnvironmentR0 = specularColor.rgb;
 	vec3 specularEnvironmentR90 = vec3(1.0, 1.0, 1.0) * reflectance90;
 
-    vec3 viewPos = vec3(inverseView * vec4(0, 0, 0, 1));
+    vec3 viewPos = vec3(inverse(view) * vec4(0, 0, 0, 1));//vec3(inverseView * vec4(0, 0, 0, 1));
 
 	vec3 v = normalize(viewPos - WorldPos);			// Vector from surface point to camera
 	
-    vec3 l = normalize(lightPosition - WorldPos);  // Vector from surface point to light
+    vec3 l = normalize(lightPos - WorldPos);  // Vector from surface point to light
 	vec3 h = normalize(v + l);						// Half vector between both l and v            
 	vec3 reflection = -normalize(reflect(v, n));
 	reflection.y *= -1.0f;
+
+	
+    //vec3 test = vec3(viewPos);
 
 	float NdotL = clamp(dot(n, l), 0.001, 1.0);
 	float NdotV = clamp(abs(dot(n, v)), 0.001, 1.0);
@@ -410,11 +447,31 @@ void main2()
 	float G = geometricOcclusion(pbrInputs);
 	float D = microfacetDistribution(pbrInputs);
 
-	// Calculation of analytical lighting contribution
+
+
+    // light
+    vec3 V = normalize(camPos - WorldPos);
+    vec3 L = normalize(lightPos - WorldPos);
+    vec3 H = normalize(V + L);
+    float distance = length(lightPos - WorldPos);
+
+        
+    //float attenuation = CaclulateAttenuation(WorldPos, lightPos, lightRadius, lightMagic) * lightStrength;
+   // vec3 radiance = lightColor * attenuation; 
+
+//		lightColor.r = 0;
+
+	float attenuation = CaclulateAttenuation(WorldPos, lightPos, lightRadius, lightMagic) * lightStrength;
+	vec3 radiance = lightColor * attenuation;
+
+	
+    // Calculation of analytical lighting contribution
 	vec3 diffuseContrib = (1.0 - F) * diffuse(pbrInputs);
 	vec3 specContrib = F * G * D / (4.0 * NdotL * NdotV);
 	// Obtain final intensity as reflectance (BRDF) scaled by the energy of the light (cosine law)
 	vec3 directLighting = NdotL * (diffuseContrib + specContrib) * radiance;
+
+	
 
     // Spherical Harmonics
 	mat3 shR, shG, shB;
@@ -443,327 +500,70 @@ void main2()
 	vec3 irradiance = shToColor(shRD, shGD, shBD, n); 
 	vec3 indirectDiffuse = irradiance * diffuseColor;
     
+	
+
 	vec3 kS = F;
 	vec3 kD = 1.0 - kS;
 	kD *= 1.0 - metallic;	
     //vec3 indirectLighting = (kD * indirectDiffuse + indirectSpecular) * ao;
 	vec3 indirectLighting = (kD * indirectDiffuse) * ao ; // no specular!!!!!!!!!!!!
 
-	float shadowFactor = ShadowCalculation(ShadowMap, lightPosition, WorldPos, viewPos, NdotL); 
 
-	float shadow = (1 - shadowFactor) ;// (NdotL);
+
+	float gunMask = RMA.a;
+
+
+    float indirectShadow = 1 - ShadowCalculation(IndirectShadowMap, lightPos, WorldPos, camPos, NdotL);
+	
+	float shadow = 1 - ShadowCalculation(ShadowMap, lightPos, WorldPos, camPos, NdotL);
+	shadow += indirectShadow * gunMask;
+
+	//float shadowFactor = ShadowCalculation(lightPos, WorldPos, viewPos, NdotL); 
+
+	//float shadow = (1 - shadowFactor) ;// (NdotL);
 		
-	indirectLighting *= attenuation;// * 10 ;
+	//indirectLighting *= attenuation;// * 10 ;
+//	indirectLighting *= min(1, attenuation);
+	//indirectLighting *= attenuation;
+	//indirectLighting = vec3(attenuation);
 	
-	indirectLighting *= vec3(shadow+0.1);// * NdotL;
-
-	color = ((shadow * directLighting) + indirectLighting) * attenuation;
-	
-//	vec3 v = normalize(viewPos - WorldPos);    // Vector from surface point to camera
-	
-   // vec3 l = normalize(lightPosition - WorldPos);   // Vector from surface point to light
-//	vec3 h = normalize(v + l);    // Half vector between both
-
-
-	float _Power = 3;
-	float _Scale = 1;
-	float _Distortion = -0.1;
-
-
-	vec3 L = l;//gi.light.dir;
-    vec3 V = v;//viewDir;
-    vec3 N = n;//float3 N = s.Normal;
-    vec3 H = normalize(L + N * _Distortion);
-    
-	
-	float I = pow(saturate(dot(V, -H)), _Power) * _Scale;
-   
-   // Final add
-
-   // color =  color +  (lightColor * I);
-
-   
-	vec3 transmit = vec3(0.0);
-
-	vec3 light_pos = lightPosition;
-	vec3 light_dir = normalize(WorldPos - light_pos); 
-	light_dir = normalize(light_pos - WorldPos); 
-
-	//uvec2 shadow_handle = lightList[i].shadow_handle;
-
-	//ShadowResult sr = shadowCalculation(frag_pos, light_pos, samplerCube(shadow_handle));     
-
-	float distance_scale = 4;
-	float translucency = 10;
-
-//	float S = sr.delta * distance_scale;
-	float S = distance_scale;
-	float irradiance2 = max(0.3 + dot(N, light_dir), 0.0);
-	vec3 transmittance = T(S) * lightColor * translucency * irradiance2;
-
-		transmit += transmittance;
-	
-	//color += (transmit + specContrib) * albedo;
-
-//	color = lights[3].position_radius.rgb;
-
-	//color *= albedo;
-	//color = vec3(shadow);
-    FragColor = vec4(color, 1.0);
-   // FragColor = vec4(WorldPos, 1.0);
-} 
-
-
-
-
-
-
-
-
-
-float DistributionGGX(vec3 N, vec3 H, float roughness)
-{
-    float a = roughness*roughness;
-    float a2 = a*a;
-    float NdotH = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH*NdotH;
-
-    float nom   = a2;
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    denom = PI * denom * denom;
-
-    return nom / denom;
-}
-// ----------------------------------------------------------------------------
-float GeometrySchlickGGX(float NdotV, float roughness)
-{
-    float r = (roughness + 1.0);
-    float k = (r*r) / 8.0;
-
-    float nom   = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
-
-    return nom / denom;
-}
-// ----------------------------------------------------------------------------
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
-{
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
-    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
-    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
-
-    return ggx1 * ggx2;
-}
-// ----------------------------------------------------------------------------
-vec3 fresnelSchlick(float cosTheta, vec3 F0)
-{
-    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
-}
-
-
-// your inverse view and inverse projection aren't being sent
-
-void main()
-{
-    // get light uniform data
-	Light light = lights[lightIndex];
-	vec3 lightPos   = light.position_radius.xyz;
-    vec3 lightColor = light.color_strength.xyz;
-    float lightRadius = light.position_radius.w;
-    float lightStrength = light.color_strength.w;
-    float lightMagic = light.magic_padding.w;
-
-	vec3 albedo = pow(texture(ALB_Texture, TexCoords).rgb, vec3(2.2));
-	float roughness = texture(RMA_Texture, TexCoords).r;	
-	float metallic  = texture(RMA_Texture, TexCoords).g;
-	float ao = texture(RMA_Texture, TexCoords).b;
-    
-    vec3 f0 = vec3(0.04);
-    vec3 diffuseColor = albedo * (vec3(1.0) - f0);
-	diffuseColor *= 1.0 - metallic;
-
-	//vec3 Normal = texture(NRM_Texture, TexCoords).rgb;
-    	
-    vec2 TexCoord = vec2(gl_FragCoord.x / screenWidth, gl_FragCoord.y / screenHeight);
-    
-
-   // if (player == 1)
-    //    TexCoord.y = TexCoord.y / 2;
-
-    // Get the Fragment Z position (from the depth buffer)
-    float z = texture(Depth_Texture, vec2(TexCoord.s, TexCoord.t)).x * 2.0f - 1.0f;
-
-    vec4 clipSpacePosition = vec4(vec2(TexCoord.s, TexCoord.t) * 2.0 - 1.0, z, 1.0);
-
-    if (player == 1)      
-        clipSpacePosition = vec4(vec2(TexCoord.s * 2.0 - 1.0, ((TexCoord.t * 2 + -1) * 2.0 - 1.0) ), z, 1.0);
-    if (player == 2)      
-        clipSpacePosition = vec4(vec2(TexCoord.s * 2.0 - 1.0, ((TexCoord.t * 2 + 0) * 2.0 - 1.0) ), z, 1.0);
-
-
-/*       
-
-        -1 to 1
-        looks like its doing
-        -1 to 2
-
-*/
-
-    vec4 viewSpacePosition = inverse(projection) * clipSpacePosition;
-    viewSpacePosition /= viewSpacePosition.w;
-
-    vec4 worldSpacePosition = inverse(view) * viewSpacePosition;
-    
-    vec3 WorldPos = worldSpacePosition.xyz;
-
-    vec3 testt = clipSpacePosition.xyz;
-
-  /*  vec3 clip_space_position = vec3(TexCoord, depth) * 2.0 - vec3(1.0);
-
-    mat4 biased_inverse_projection_matrix = inverse(projection);
-    vec4 view_position = vec4(biased_inverse_projection_matrix[0][0] * TexCoords.x + biased_inverse_projection_matrix[3][0],
-                          biased_inverse_projection_matrix[1][1] * TexCoords.y + biased_inverse_projection_matrix[3][1],
-                          -1.0,
-                          biased_inverse_projection_matrix[2][3] * depth + biased_inverse_projection_matrix[3][3]);
-*/
-
-    //vec3 WorldPos = (view_position.xyz / view_position.w);
-   // WorldPos = WorldPos2;
-    
-    vec3 test = vec3(WorldPos);
-
-    vec3 N = texture(NRM_Texture, TexCoords).rgb * 2 - 1;//normalize(Normal);
-    //vec3 viewPos = view[3].xyz;
-    vec3 V = normalize(camPos - WorldPos);
-   // vec3 V = normalize(viewPos - WorldPos);
-
-    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
-    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
-    vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
-
-
-    // reflectance equation
-    vec3 Lo = vec3(0.0);
-    for(int i = 0; i < 1; ++i) 
-    {
-        // calculate per-light radiance
-        
-        vec3 L = normalize(lightPos - WorldPos);
-        vec3 H = normalize(V + L);
-        float distance = length(lightPos - WorldPos);
-
-        
-        float attenuation = CaclulateAttenuation(WorldPos, lightPos, lightRadius, lightMagic) * lightStrength;
-        vec3 radiance = lightColor * attenuation; 
-     //   radiance *= 10;
-    // radiance = vec3(attenuation);
-
-
-       // vec3 L = normalize(lightPositions[i] - WorldPos);
-       // vec3 H = normalize(V + L);
-       // float distance = length(lightPositions[i] - WorldPos);
-       //float attenuation = 1.0 / (distance * distance);
-        //vec3 radiance = lightColors[i] * attenuation;
-
-        // Cook-Torrance BRDF
-        float NDF = DistributionGGX(N, H, roughness);   
-        float G   = GeometrySmith(N, V, L, roughness);      
-        vec3 F    = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
-           
-           
-
-        vec3 numerator    = NDF * G * F; 
-        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001; // + 0.0001 to prevent divide by zero
-        vec3 specular = numerator / denominator;
-        
-        // kS is equal to Fresnel
-        vec3 kS = F;
-        // for energy conservation, the diffuse and specular light can't
-        // be above 1.0 (unless the surface emits light); to preserve this
-        // relationship the diffuse component (kD) should equal 1.0 - kS.
-        vec3 kD = vec3(1.0) - kS;
-        // multiply kD by the inverse metalness such that only non-metals 
-        // have diffuse lighting, or a linear blend if partly metal (pure metals
-        // have no diffuse light).
-        kD *= 1.0 - metallic;	  
-
-        // scale light by NdotL
-        float NdotL = max(dot(N, L), 0.0);        
-
-
-        // add to outgoing radiance Lo
-        Lo = (kD * albedo / PI + specular) * radiance * NdotL;  // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
-   
-   
-
-
-
-    // Spherical Harmonics
-	mat3 shR, shG, shB;
-    #define SH_FILL(x, y) \
-    { \
-        vec3 samp = texelFetch(Env_LUT, ivec2(x, y), 0).rgb; \
-        shR[x][y] = samp.r; \
-        shG[x][y] = samp.g; \
-        shB[x][y] = samp.b; \
-    }
-    SH_FILL(0, 0)
-    SH_FILL(0, 1)
-    SH_FILL(0, 2)
-    SH_FILL(1, 0)
-    SH_FILL(1, 1)
-    SH_FILL(1, 2)
-    SH_FILL(2, 0)
-    SH_FILL(2, 1)
-    SH_FILL(2, 2)
-    #undef SH_FILL		
-	mat3 shRD = shDiffuseConvolution(shR);
-    mat3 shGD = shDiffuseConvolution(shG);
-    mat3 shBD = shDiffuseConvolution(shB);
-
-	// Indirect diffuse
-	vec3 irradiance = shToColor(shRD, shGD, shBD, N); 
-	vec3 indirectDiffuse = irradiance * diffuseColor;
-    
-	//vec3 kS = F;
-	//vec3 kD = 1.0 - kS;
-	//kD *= 1.0 - metallic;	
-    //vec3 indirectLighting = (kD * indirectDiffuse + indirectSpecular) * ao;
-	vec3 indirectLighting = (kD * indirectDiffuse) * ao ; // no specular!!!!!!!!!!!!
-
-    
-        float indirectShadow = 1 - ShadowCalculation(IndirectShadowMap, lightPos, WorldPos, camPos, NdotL);
-        float shadow = 1 - ShadowCalculation(IndirectShadowMap, lightPos, WorldPos, camPos, NdotL);
+	indirectLighting *= vec3(shadow + 0.5);// * NdotL;
+	//indirectLighting *= 0.5;
+	//indirectLighting *= 0.5;
+
+	//float indirectShadow = 1 - ShadowCalculation(IndirectShadowMap, lightPos, WorldPos, camPos, NdotL);
+     //   float shadow = 1 - ShadowCalculation(ShadowMap, lightPos, WorldPos, camPos, NdotL);
 
        // Lo *= 1 - shadow;
 
       //  Lo += indirectLighting * (1 - indirectShadow);
 
-        vec3 directLighting = Lo;
-        indirectLighting *= 0.75;
+       // vec3 directLighting = Lo;
+      //  indirectLighting *= 0.75;
+        color = ((shadow * directLighting) + (indirectLighting * indirectShadow)) * attenuation;
+  //      color = ((shadow * directLighting) ) * attenuation;
 
-        Lo = ((shadow * directLighting) + (indirectLighting * indirectShadow)) * attenuation;
+ // color = vec3(shadow );
 
-     //   Lo = vec3(1-shadow);
-   	    //vec3 directLighting = NdotL * (diffuseContrib + specContrib) * radiance;
-   
-   }   
-    
-    // ambient lighting (note that the next IBL tutorial will replace 
-    // this ambient lighting with environment lighting).
-    vec3 ambient = vec3(0.03) * albedo * ao;
+		test = vec3(color);
 
-    vec3 color = Lo;
-
-    
     // HDR tonemapping
     color = color / (color + vec3(1.0));
     // gamma correct
     color = pow(color, vec3(1.0/2.2)); 
-   
+
+	//color = indirectLighting;
+	
     FragColor = vec4(color, 1.0);
+
+
+	FragColor.rgb = test;
+        
+
+  
+
+ //   FragColor = vec4(WorldPos, 1.0);
+	//FragColor.rgb = vec3(z,z,z);
 
  //FragColor = vec4(clipSpacePosition.y, 0, 0, 1.0);
 }

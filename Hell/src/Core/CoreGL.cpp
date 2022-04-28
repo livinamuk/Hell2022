@@ -183,10 +183,6 @@ void CoreGL::InitGL(int windowWidth, int windowHeight)
 	//int width_mm, height_mm;
 	//glfwGetMonitorPhysicalSize(s_monitor, &width_mm, &height_mm);
 
-
-
-
-
 	// commenting this out starts windowed and increases framerate some how. or at least physics
 	//glfwSetWindowMonitor(s_window, nullptr, windowedPosX, windowedPosY, s_windowedWidth, s_windowedHeight, 0);
 }

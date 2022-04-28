@@ -74,6 +74,9 @@ enum class InputType {KEYBOARD_AND_MOUSE, CONTROLLER};
 enum class CharacterModelAnimationState{ STOPPED, WALKING, STOPPED_CROUCHED, WALKING_CROUCHED };
 enum class HUDWeaponAnimationState {IDLE, WALKING, FIRING, RELOADING, EQUIPPING, HOLSTERING};
 
+
+enum class ControllerType { UNKNOWN_TYPE, PS4, XBOX};
+
 /*enum ClipState {
 	PLAYING,
 	FINISHED,

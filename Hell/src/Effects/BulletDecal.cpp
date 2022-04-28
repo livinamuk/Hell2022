@@ -2,6 +2,11 @@
 #include "Helpers/AssetManager.h"
 #include <math.h>
 
+BulletDecal::BulletDecal()
+{
+	m_randomRotation = Util::RandomFloat(0, HELL_PI * 2);
+}
+
 void BulletDecal::Draw(Shader* shader)
 {
 	glDisable(GL_CULL_FACE);
@@ -18,6 +23,12 @@ void BulletDecal::Draw(Shader* shader)
 
 
 
+	Transform trans;
+	trans.position = m_position;
+	trans.scale = glm::vec3(0.02);
+
+	Transform rotTrans;
+	rotTrans.rotation.z = m_randomRotation;
 
 	glm::vec3 n = m_normal;
 
@@ -27,16 +38,13 @@ void BulletDecal::Draw(Shader* shader)
 	glm::vec3 b1 = glm::vec3(1.0f + sign * n.x * n.x * a, sign * b, -sign * n.x);
 	glm::vec3 b2 = glm::vec3(b, sign + n.y * n.y * a, -n.y);
 
-	modelMatrix[0] = glm::vec4(b1, 0);
-	modelMatrix[1] = glm::vec4(b2, 0);
-	modelMatrix[2] = glm::vec4(m_normal, 0);
+	glm::mat4 rotationMatrix = glm::mat4(1);
+	rotationMatrix[0] = glm::vec4(b1, 0);
+	rotationMatrix[1] = glm::vec4(b2, 0);
+	rotationMatrix[2] = glm::vec4(n, 0);
 
-	modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1));
+	modelMatrix = trans.to_mat4() * rotationMatrix * rotTrans.to_mat4();
 
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, AssetManager::GetTexturePtr("BulletHole_Plaster")->ID);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, AssetManager::GetTexturePtr("BulletHole_Plaster_Mask")->ID);
 
 	glDepthFunc(GL_LEQUAL);
 
@@ -53,8 +61,20 @@ void BulletDecal::Draw(Shader* shader)
 		vert1.TexCoords = glm::vec2(1, 1);
 		vert2.TexCoords = glm::vec2(1, 0);
 		vert3.TexCoords = glm::vec2(0, 0);
-		Util::SetNormalsAndTangentsFromVertices(&vert0, &vert1, &vert2);
-		Util::SetNormalsAndTangentsFromVertices(&vert3, &vert0, &vert1);
+		vert0.Normal = glm::vec3(0, 0, 1);
+		vert1.Normal = glm::vec3(0, 0, 1);
+		vert2.Normal = glm::vec3(0, 0, 1);
+		vert3.Normal = glm::vec3(0, 0, 1);
+		vert0.Bitangent = glm::vec3(0, 1, 0);
+		vert1.Bitangent = glm::vec3(0, 1, 0);
+		vert2.Bitangent = glm::vec3(0, 1, 0);
+		vert3.Bitangent = glm::vec3(0, 1, 0);
+		vert0.Tangent = glm::vec3(1, 0, 0);
+		vert1.Tangent = glm::vec3(1, 0, 0);
+		vert2.Tangent = glm::vec3(1, 0, 0);
+		vert3.Tangent = glm::vec3(1, 0, 0);
+		//Util::SetNormalsAndTangentsFromVertices(&vert0, &vert1, &vert2);
+		//Util::SetNormalsAndTangentsFromVertices(&vert3, &vert0, &vert1);
 		std::vector<Vertex> vertices;
 		std::vector<unsigned int> indices;
 		unsigned int i = vertices.size();
@@ -94,7 +114,8 @@ void BulletDecal::Draw(Shader* shader)
 	// Draw
 	glBindVertexArray(upFacingPlaneVAO);
 	shader->setMat4("model", modelMatrix);
-	shader->setVec3("norm", m_normal);
+	shader->setVec3("u_decalNormal", m_normal);
+	shader->setVec3("u_decalPos", m_position);
 	glDrawElements(GL_TRIANGLES, 8, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }

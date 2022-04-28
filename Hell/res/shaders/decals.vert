@@ -1,11 +1,9 @@
 #version 330 core
-layout(location = 0) in vec3 aPos;
-layout(location = 1) in vec3 aNormal;
-layout(location = 2) in vec2 aTexCoords;
-layout(location = 3) in vec3 aTangent;
-layout(location = 4) in vec3 aBitangent;
-layout(location = 5) in ivec4 aBoneID;
-layout(location = 6) in vec4 aBoneWeight;
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aNormal;
+layout (location = 2) in vec2 aTexCoord;
+layout (location = 3) in vec3 aTangent;
+layout (location = 4) in vec3 aBitangent;
 
 uniform mat4 pv;
 uniform mat4 model;
@@ -16,40 +14,27 @@ out vec2 TexCoords;
 out vec3 Normal;
 out mat3 TBN;
 
+out vec3 attrNormal;
+out vec3 attrTangent;
+out vec3 attrBiTangent;
+
+out vec3 worldPosition;
+
 void main()
 {
-	// Instancing?
-	mat4 modelMatrix = model;
+	// Normal
+	attrNormal = (model * vec4(aNormal, 0.0)).xyz;
+	attrTangent = (model * vec4(aTangent, 0.0)).xyz;
+	attrBiTangent = (model * vec4(aBitangent, 0.0)).xyz;	
+	mat3 tbn = mat3(normalize(attrTangent), normalize(attrBiTangent), normalize(attrNormal));
+	Normal = normalize(tbn * vec3(0, 0, 1));
+	
+	// Tex coords
+	TexCoords = aTexCoord;	
 
-	vec4 worldPos;
-	vec4 totalLocalPos = vec4(0.0);
-	vec4 totalNormal = vec4(0.0);
-	mat3 normalMatrix = transpose(inverse(mat3(modelMatrix)));
-
-
-	worldPos = modelMatrix * vec4(aPos, 1.0);
-	Normal = aNormal;
-
-	vec3 T = normalize(vec3(modelMatrix * vec4(aTangent, 0.0)));
-	vec3 B = normalize(vec3(modelMatrix * vec4(aBitangent, 0.0)));
-	vec3 N = normalize(vec3(modelMatrix * vec4(Normal, 0.0)));
-	TBN = mat3(T, B, N);
-
-	Normal = normalMatrix * Normal;
-
-	TexCoords = aTexCoords;
-	FragPos = worldPos.xyz;
-	gl_Position = pv * worldPos;
-
-
-	//SplitscreenAdjustedCoords = aTexCoords;	
-	// get from 1 to 0.5 range to 1 to 0
-	//if (u_playerIndex == 1)
-	//	SplitscreenAdjustedCoords.y = (aTexCoords.y * 2)  - 1;
-	// get from 0.5 to 0 range to 1 to 0
-	//if (u_playerIndex == 2)
-	//	SplitscreenAdjustedCoords.y = (aTexCoords.y * 2);
+	// Position
+	worldPosition = (model * vec4(aPos, 1.0)).xyz;
+	gl_Position = pv * vec4(worldPosition, 1.0);
 }
-//Normal = mat3(model) * aNormal;		// PBR 
 
 

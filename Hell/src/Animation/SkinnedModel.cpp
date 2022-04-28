@@ -266,7 +266,16 @@ void SkinnedModel::UpdateBoneTransformsFromAnimation(float animTime, Animation* 
       //  std::cout << i << " " << NodeName << "\n";
 
        if (Util::StrCmp(NodeName, "Camera001") || Util::StrCmp(NodeName, "Camera")) {
-            animatedTransforms.cameraMatrix = GlobalTransformation;
+		   animatedTransforms.cameraMatrix = GlobalTransformation;
+		   //glm::mat4 cameraMatrix = glm::inverse(m_cameraBindPose) * GlobalTransformation;
+		   glm::mat4 cameraMatrix = GlobalTransformation;
+		   //glm::mat4 cameraMatrix = m_joints[i].m_inverseBindTransform * GlobalTransformation;
+		   cameraMatrix[3][0] = 0;
+		   cameraMatrix[3][1] = 0;
+		   cameraMatrix[3][2] = 0;
+            animatedTransforms.cameraMatrix =  cameraMatrix;
+
+       //     std::cout << i << " found\n";
             //std::cout << i << " found it /n";
        //     Util::PrintMat4(animatedTransforms.cameraMatrix);
         }
@@ -311,4 +320,50 @@ const AnimatedNode* SkinnedModel::FindAnimatedNode(Animation* animation, const c
         }
     }
     return nullptr;
+}
+
+void SkinnedModel::CalculateCameraBindposeTransform()
+{
+	glm::mat4 camera = glm::mat4(1);
+	glm::mat4 Camera001_$AssimpFbx$_Translation = glm::mat4(1);
+	glm::mat4 Camera001_$AssimpFbx$_Rotation = glm::mat4(1);
+	glm::mat4 Camera001_$AssimpFbx$_PostRotation = glm::mat4(1);
+	glm::mat4 Camera001_$AssimpFbx$_Scaling = glm::mat4(1);
+
+	std::string name = "Camera001";
+
+	for (Joint& joint : m_joints)
+	{
+		if (joint.m_name == name)
+			camera = joint.m_inverseBindTransform;
+		else if (joint.m_name == name + "_$AssimpFbx$_Translation")
+			Camera001_$AssimpFbx$_Translation = joint.m_inverseBindTransform;
+		else if (joint.m_name == name + "_$AssimpFbx$_Rotation")
+			Camera001_$AssimpFbx$_Rotation = joint.m_inverseBindTransform;
+		else if (joint.m_name == name + "_$AssimpFbx$_PostRotation")
+			Camera001_$AssimpFbx$_PostRotation = joint.m_inverseBindTransform;
+		else if (joint.m_name == name + "_$AssimpFbx$_Scaling")
+			Camera001_$AssimpFbx$_Scaling = joint.m_inverseBindTransform;
+	}
+
+	//glm::mat4 final = Camera001_$AssimpFbx$_Scaling * Camera001_$AssimpFbx$_PostRotation * Camera001_$AssimpFbx$_Rotation * Camera001_$AssimpFbx$_Translation;
+    glm::mat4 final;// = Camera001_$AssimpFbx$_Translation * Camera001_$AssimpFbx$_Rotation * Camera001_$AssimpFbx$_PostRotation * Camera001_$AssimpFbx$_Scaling;
+
+	final = camera;
+	final *= Camera001_$AssimpFbx$_Translation;
+	final *= Camera001_$AssimpFbx$_Rotation;
+	final *= Camera001_$AssimpFbx$_PostRotation;
+	m_cameraBindPose = final;
+
+	std::cout << "Camera\n";
+	Util::PrintMat4(camera);
+	std::cout << "Camera001_$AssimpFbx$_Translation\n";
+	Util::PrintMat4(Camera001_$AssimpFbx$_Translation);
+	std::cout << "Camera001_$AssimpFbx$_Rotation\n";
+	Util::PrintMat4(Camera001_$AssimpFbx$_Rotation);
+	std::cout << "Camera001_$AssimpFbx$_PostRotation\n";
+	Util::PrintMat4(Camera001_$AssimpFbx$_PostRotation);
+
+	std::cout << "Camera bind pose\n";
+	Util::PrintMat4(m_cameraBindPose);
 }

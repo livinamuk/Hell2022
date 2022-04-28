@@ -24,6 +24,7 @@ public:
 	unsigned int m_parentIndexVertexB;
 	unsigned int m_parentRoomIndex;
 
+	float m_swingMaxAngle = 2.0f;
 	float m_swing = 0;
 	bool m_closed = true;
 

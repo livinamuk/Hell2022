@@ -18,6 +18,11 @@
 #include "Core/Player.h"
 #include "Editor/Editor.h"
 
+struct Controller {
+	int m_index;
+	ControllerType m_type;
+};
+
 class HellEngine
 {
 public: // methods
@@ -43,7 +48,7 @@ public: // fields
 
 	int m_currentPlayer = 1;
 
-	std::vector<int> m_controllers;
+	std::vector<Controller> m_controllers;
 
 	//bool m_controller_1_connected = false;
 

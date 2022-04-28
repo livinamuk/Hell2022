@@ -17,8 +17,9 @@ void GameCharacter::RenderSkinnedModel(Shader* shader)
 
     // Resize the vectors to the right size 
     if (m_skinningMethod != SkinningMethod::LAST_ANIMATED_STATE) {
-        m_animatedTransforms.resize(m_skinnedModel->m_BoneInfo.size());
-        m_animatedDebugTransforms_Animated.resize(m_skinnedModel->m_BoneInfo.size());
+        m_animatedTransforms.Resize(m_skinnedModel->m_BoneInfo.size());
+        //m_animatedTransforms.resize(m_skinnedModel->m_BoneInfo.size());
+        //m_animatedDebugTransforms_Animated.resize(m_skinnedModel->m_BoneInfo.size());
     }
 
     glm::mat4 modelMatrix;
@@ -26,16 +27,23 @@ void GameCharacter::RenderSkinnedModel(Shader* shader)
     if (m_skinningMethod == SkinningMethod::BINDPOSE)
     {
         modelMatrix = m_transform.to_mat4();
-        m_skinnedModel->UpdateBoneTransformsFromBindPose(m_animatedTransforms, m_animatedDebugTransforms_Animated);
+        m_skinnedModel->UpdateBoneTransformsFromBindPose(m_animatedTransforms.local, m_animatedTransforms.worldspace);
     }
     else if (m_skinningMethod == SkinningMethod::RAGDOLL) {
         modelMatrix = glm::mat4(1);
-        m_skinnedModel->UpdateBoneTransformsFromRagdoll(m_animatedTransforms, m_animatedDebugTransforms_Animated, &m_ragdoll);
+        m_skinnedModel->UpdateBoneTransformsFromRagdoll(m_animatedTransforms.local, m_animatedTransforms.worldspace, &m_ragdoll);
         //return;
     }
     else if (m_skinningMethod == SkinningMethod::ANIMATED)
     {
         modelMatrix = m_transform.to_mat4();
+
+		static float testTime = 0;
+		testTime += 0.1f;
+
+		Animation* animation = m_skinnedModel->m_animations[0];
+		m_skinnedModel->UpdateBoneTransformsFromAnimation(testTime, animation, m_animatedTransforms);
+      
         // animation is updated in Update() function
     }
     else if (m_skinningMethod == LAST_ANIMATED_STATE)
@@ -47,8 +55,8 @@ void GameCharacter::RenderSkinnedModel(Shader* shader)
 
     shader->setInt("hasAnimation", true);
 
-    for (unsigned int i = 0; i < m_animatedTransforms.size(); i++)
-        shader->setMat4("skinningMats[" + std::to_string(i) + "]", modelMatrix * m_animatedTransforms[i]);
+    for (unsigned int i = 0; i < m_animatedTransforms.local.size(); i++)
+        shader->setMat4("skinningMats[" + std::to_string(i) + "]", modelMatrix * m_animatedTransforms.local[i]);
 
     glBindVertexArray(m_skinnedModel->m_VAO);
     glActiveTexture(GL_TEXTURE0);
@@ -91,13 +99,25 @@ void GameCharacter::Update(float deltaTime)
             m_ragdoll.RemovePhysicsObjects();
         }
     }
+
+    if (m_skinningMethod == ANIMATED)
+    {
+
+    }
 }
 
 void GameCharacter::UpdateAnimation(float deltaTime)
 {
-    m_animTime += deltaTime;
+    return;
 
-    m_skinnedModel->UpdateBoneTransformsFromAnimation(m_animTime, m_animIndex, m_animatedTransforms, m_animatedDebugTransforms_Animated);
+	static float testTime = 0;
+    testTime += deltaTime;
+
+	m_animTime += deltaTime;
+
+    int animIndex = 2;
+
+    m_skinnedModel->UpdateBoneTransformsFromAnimation(testTime, animIndex, m_animatedTransforms.local, m_animatedTransforms.worldspace);
     ForceRagdollToMatchAnimation();
 }
 
@@ -114,7 +134,7 @@ void GameCharacter::ForceRagdollToMatchAnimation()
     for (RigidComponent& rigidComponent : m_ragdoll.m_rigidComponents)
     {
         int index = m_skinnedModel->m_BoneMapping[rigidComponent.correspondingJointName];  
-        PxMat44 matrix = Util::GlmMat4ToPxMat44(m_transform.to_mat4() * m_animatedDebugTransforms_Animated[index]);
+        PxMat44 matrix = Util::GlmMat4ToPxMat44(m_transform.to_mat4() * m_animatedTransforms.worldspace[index]);
         rigidComponent.pxRigidBody->setGlobalPose(PxTransform(matrix));
         rigidComponent.pxRigidBody->putToSleep();
     }

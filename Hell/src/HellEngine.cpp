@@ -43,16 +43,30 @@ void HellEngine::Init()
 	for (int i = 0; i < 16; i++)
 	{
 		if (glfwJoystickIsGamepad(i)) {
-			std::cout << "CONTROLLER " << (i+1) << " FOUND: " << glfwGetGamepadName(i) << "\n";
-			m_controllers.push_back(i);
+			std::cout << "CONTROLLER " << (i + 1) << " FOUND: " << glfwGetJoystickName(i) << "\n";
+			std::cout << "CONTROLLER " << (i + 1) << " FOUND: " << glfwGetGamepadName(i) << "\n"; 
+
+			Controller controller;
+			controller.m_index = i;
+			controller.m_type = ControllerType::UNKNOWN_TYPE;
+
+			m_controllers.push_back(controller);
 		}
 	}
 
+	/*
+	
+	CONTROLLER 1 FOUND: Xbox Controller
+	CONTROLLER 1 FOUND: XInput Gamepad (GLFW)
+	CONTROLLER 2 FOUND: Wireless Controller
+	CONTROLLER 2 FOUND: PS4 Controller
+	
+	*/
 	
 	if (m_controllers.size() > 0)
-		GameData::s_player2.SetControllerIndex(m_controllers[0]);
+		GameData::s_player2.SetControllerIndex(m_controllers[0].m_index);
 	if (m_controllers.size() > 1)
-		GameData::s_player1.SetControllerIndex(m_controllers[1]);
+		GameData::s_player1.SetControllerIndex(m_controllers[1].m_index);
 
 	std::cout << "CONTROLLERS FOUND: " << m_controllers.size() << "\n";
 
@@ -311,6 +325,7 @@ void HellEngine::Render()
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, GameData::s_lights[0].m_indirectShadowMap.m_depthTexture);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, GameData::s_lights[0].m_envMap.m_TexID);
 
 		AssetManager::m_models["Cube"].Draw(shader, trans.to_mat4());
 	}

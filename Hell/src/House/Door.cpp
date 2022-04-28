@@ -188,18 +188,17 @@ void Door::Interact()
 
 void Door::Update(float deltaTime)
 {
-	float swingMaxAngle = 2.0f;
 	float swingOverShoot = 0.75f;
 
     float amount = deltaTime + Util::RandomFloat(-deltaTime*0.5, deltaTime*0.5);
 
 	if (m_state == State::OPENING)
-		m_swing = Util::FInterpTo(m_swing, swingMaxAngle + 0.5, amount, 3.5);
+		m_swing = Util::FInterpTo(m_swing, m_swingMaxAngle + 0.5, amount, 3.5);
 	if (m_state == State::CLOSING)
 		m_swing = Util::FInterpTo(m_swing, 0 - swingOverShoot, amount, 2.5);
 
     // Actually cap to  the range
-	m_swing = std::min(m_swing, swingMaxAngle);
+	m_swing = std::min(m_swing, m_swingMaxAngle);
 	m_swing = std::max(m_swing, 0.0f);
 
     m_rigid->setGlobalPose(PxTransform(Util::GlmMat4ToPxMat44(GetModelMatrix())));

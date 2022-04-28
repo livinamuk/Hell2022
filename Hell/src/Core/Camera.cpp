@@ -33,7 +33,8 @@ void Camera::CalculateMatrices(glm::mat4 animatedCameraMatrix)
 
 void Camera::CalculateProjectionMatrix(int screenWidth, int screenHeight)
 {
-	m_projectionMatrix = glm::perspective(1.0125f, (float)screenWidth / (float)screenHeight, NEAR_PLANE, FAR_PLANE);
+	//m_projectionMatrix = glm::perspective(1.0125f, (float)screenWidth / (float)screenHeight, NEAR_PLANE, FAR_PLANE);
+	m_projectionMatrix = glm::perspective(1.0f, (float)screenWidth / (float)screenHeight, NEAR_PLANE, FAR_PLANE);
 	m_inversePprojectionMatrix = glm::inverse(m_projectionMatrix);
 }
 

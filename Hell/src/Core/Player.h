@@ -29,7 +29,7 @@ public: // methods
 
 
 	enum class Gun {
-		NONE, GLOCK, SHOTGUN
+		NONE, AXE, GLOCK, SHOTGUN
 	}; 
 	
 	enum class ShotgunReloadState { NOT_RELOADING, FROM_IDLE, SINGLE_RELOAD, DOUBLE_RELOAD, BACK_TO_IDLE };
@@ -62,6 +62,7 @@ public: // methods
 	void FireShotgun();
 	void SpawnGlockCasing();
 	void SetControlsToDefaultPS4Controls();
+	void SetControlsToDefaultXBoxControls();
 	void FootstepAudio(float deltaTime);
 	int GetControllerIndex();
 	void SetControllerIndex(int index);
@@ -140,6 +141,8 @@ public: // fields
 	float m_crouchDownSpeed = 17.5f;
 
 	unsigned int m_killCount = 0;
+	unsigned int m_maxBloodDecalPerFrame = 4;
+	unsigned int m_remainingBloodDecalsAllowedThisFrame;
 
 	PxController* m_characterController = nullptr;
 

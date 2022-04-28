@@ -14,6 +14,12 @@ Light::Light(glm::vec3 position, glm::vec3 color, float radius, float strength, 
 	m_magic = magic;
 	m_modelType = modelType;
 
+//	m_color = glm::vec3(1, 0.7799999713897705, 0.5289999842643738);
+//	m_radius = 6;
+	//m_strength = 10;
+	//m_magic = 4;
+	//m_position.y = 2;// = vec3(0, 2, 0);
+
 	m_modelTransform.position = glm::vec3(0, 0.22f, 0);
 	m_modelTransform.scale = glm::vec3(0.35f);
 

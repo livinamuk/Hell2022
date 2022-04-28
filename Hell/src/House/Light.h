@@ -17,6 +17,7 @@ public:
 	float m_magic = 0;
 	int m_modelType = 0;
 	std::vector<glm::mat4> m_projectionTransforms;
+	bool m_needsUpadte = false;
 
 	ShadowMap m_shadowMap;
 	ShadowMap m_indirectShadowMap;

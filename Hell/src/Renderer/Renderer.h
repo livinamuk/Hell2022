@@ -97,6 +97,7 @@ public: // variables
 	static Shader s_animated_quad_shader;
 	static Shader s_postProcessingShader;
 	static Shader s_decal_shader;
+	static Shader s_blood_decal_shader;
 	//static Shader s_textured_editor_shader;
 
 	static bool s_showBuffers;

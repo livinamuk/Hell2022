@@ -77,6 +77,8 @@ public:
     int FindAnimatedNodeIndex(float AnimationTime, const AnimatedNode* animatedNode);
         
     const AnimatedNode* FindAnimatedNode(Animation* animation, const char* NodeName);
+
+    void CalculateCameraBindposeTransform();
      
         
 public:
@@ -114,6 +116,8 @@ public:
     unsigned int m_NumBones;
     std::vector<BoneInfo> m_BoneInfo;
     glm::mat4 m_GlobalInverseTransform;
+
+    glm::mat4 m_cameraBindPose = glm::mat4(1);
 
    // unsigned int currentAnimationIndex = 0; // should probably delete this for safety and pass it in as param from the animated entity
 };

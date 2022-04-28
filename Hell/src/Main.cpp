@@ -15,8 +15,17 @@
 #include "Core/GameData.h"
 #include "Core/File.h"
 
+#ifdef _WIN32
+// Use discrete GPU by default.
+extern "C" {
+	__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+#endif
+
 int main()
 {
+
     Input::s_showCursor = false;
 
     HellEngine hellEngine;
@@ -76,6 +85,8 @@ int main()
 	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Shotgun"), "Shotgun_ReloadWetStart.fbx");
 	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Shotgun"), "Shotgun_ReloadEnd.fbx");
 
+	AssetManager::LoadSkinnedModel("Axe", "Axe_TPose.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Axe"), "Axe_Idle.fbx");
 
     // set nurse guy mesh materials
     SkinnedModel* nurseModel = AssetManager::GetSkinnedModelPtr("Nurse");
@@ -123,18 +134,28 @@ int main()
             meshEntry.material = AssetManager::GetMaterialPtr("BulletCasing");
         if (meshEntry.Name == "SM_40cal_01a001")
             meshEntry.material = AssetManager::GetMaterialPtr("BulletCasing");
-    }
+	}
 
 	SkinnedModel* shotgunModel = AssetManager::GetSkinnedModelPtr("Shotgun");
 	for (SkinnedModel::MeshEntry& meshEntry : shotgunModel->m_meshEntries)
 	{
-        //std::cout << meshEntry.Name << "\n";
+		//std::cout << meshEntry.Name << "\n";
 		if (meshEntry.Name == "Arms")
 			meshEntry.material = AssetManager::GetMaterialPtr("Hands");
 		if (meshEntry.Name == "Shotgun Mesh")
 			meshEntry.material = AssetManager::GetMaterialPtr("Shotgun");
 		if (meshEntry.Name == "shotgunshells")
-			meshEntry.material = AssetManager::GetMaterialPtr("BulletCasing");
+			meshEntry.material = AssetManager::GetMaterialPtr("Shell");
+	}
+
+	SkinnedModel* axeModel = AssetManager::GetSkinnedModelPtr("Axe");
+	for (SkinnedModel::MeshEntry& meshEntry : axeModel->m_meshEntries)
+	{
+		std::cout << meshEntry.Name << "\n";
+		if (meshEntry.Name == "manniquen1_2")
+			meshEntry.material = AssetManager::GetMaterialPtr("Hands");
+		if (meshEntry.Name == "A2_low")
+			meshEntry.material = AssetManager::GetMaterialPtr("Axe");
 	}
 
     Audio::Init();
@@ -212,6 +233,76 @@ int main()
 	GameData::s_player2.CreatePoormansCharacterController();
    
   //  GameData::s_doors.push_back(Door(glm::vec3(0, 0, 2)));
+
+   /* Scene::s_gameCharacters.push_back(GameCharacter());
+    GameCharacter* gc = &Scene::s_gameCharacters.back();
+
+	gc->m_skinnedModel = AssetManager::GetSkinnedModelPtr("Axe");
+	gc->m_transform.scale = glm::vec3(0.015);
+	gc->m_transform.position = glm::vec3(0, 1, 0);
+	gc->m_skinningMethod = SkinningMethod::ANIMATED;
+	gc->m_animIndex = 0;*/
+
+   // gc->m_
+
+
+
+    // print the fucking skeleton nodes
+    std::cout << "\n\n\n\n";
+
+
+
+	TextBlitter::BlitLine("\ncamera");
+
+    SkinnedModel* skinnedModel = AssetManager::GetSkinnedModelPtr("Axe"); GameData::s_player1.m_HUD_Weapon.GetSkinnedModelPtr();
+	//glm::mat4 BindPoseBoneMatrix = skinnedModel->m_joints[77].m_inverseBindTransform;
+	//auto& cam = GameData::s_player1.m_HUD_Weapon.m_animatedTransforms.cameraMatrix;
+	//auto str = Util::Mat4ToString(BindPoseBoneMatrix);
+
+	glm::mat4 camera = glm::mat4(1);
+	glm::mat4 Camera001_$AssimpFbx$_Translation = glm::mat4(1);
+	glm::mat4 Camera001_$AssimpFbx$_Rotation = glm::mat4(1);
+	glm::mat4 Camera001_$AssimpFbx$_PostRotation = glm::mat4(1);
+	glm::mat4 Camera001_$AssimpFbx$_Scaling = glm::mat4(1);
+
+    std::string name = "Camera001";
+
+    for (Joint& joint : skinnedModel->m_joints)
+	{
+		if (joint.m_name == name)
+			camera = joint.m_inverseBindTransform;
+		else if (joint.m_name == name + "_$AssimpFbx$_Translation")
+			Camera001_$AssimpFbx$_Translation = joint.m_inverseBindTransform;
+        else if (joint.m_name == name + "_$AssimpFbx$_Rotation")
+			Camera001_$AssimpFbx$_Rotation = joint.m_inverseBindTransform;
+        else if (joint.m_name == name + "_$AssimpFbx$_PostRotation")
+			Camera001_$AssimpFbx$_PostRotation = joint.m_inverseBindTransform;
+        else if (joint.m_name == name + "_$AssimpFbx$_Scaling")
+            Camera001_$AssimpFbx$_Scaling = joint.m_inverseBindTransform;
+    }
+
+	//glm::mat4 final = Camera001_$AssimpFbx$_Scaling * Camera001_$AssimpFbx$_PostRotation * Camera001_$AssimpFbx$_Rotation * Camera001_$AssimpFbx$_Translation;
+	glm::mat4 final = Camera001_$AssimpFbx$_Translation * Camera001_$AssimpFbx$_Rotation * Camera001_$AssimpFbx$_PostRotation * Camera001_$AssimpFbx$_Scaling;
+
+	final = camera;
+	final *= Camera001_$AssimpFbx$_Translation;
+	final *= Camera001_$AssimpFbx$_Rotation;
+	final *= Camera001_$AssimpFbx$_PostRotation;
+	//final *= Camera001_$AssimpFbx$_Scaling;
+	/*glm::mat4 m = glm::translate(glm::mat4(1), position);
+	glm::quat qt = glm::quat(rotation);
+	m *= glm::mat4_cast(qt);
+	m = glm::scale(m, scale);
+    */
+
+    std::cout << "--FINAL\n";
+	Util::PrintMat4(final);
+
+
+
+	//std::cout << "--" << joint.m_name << "\n";
+	//Util::PrintMat4(joint.m_inverseBindTransform);
+
 
     while (CoreGL::IsRunning() && !Input::s_keyDown[HELL_KEY_ESCAPE])
     {
@@ -312,7 +403,36 @@ int main()
             TextBlitter::BlitLine("P2 Kill count: " + std::to_string(GameData::s_player2.m_killCount));
             TextBlitter::BlitLine("");
             TextBlitter::BlitLine("Body count: " + std::to_string(Scene::s_gameCharacters.size()));
-            TextBlitter::BlitLine("Weapon State: " + Util::WeaponStateToString(GameData::s_player1.m_HUDWeaponAnimationState));
+            
+           //TextBlitter::BlitLine("Weapon State: " + Util::WeaponStateToString(GameData::s_player1.m_HUDWeaponAnimationState));
+
+			TextBlitter::BlitLine("");
+			for (int i = 0; i < GameData::s_lights.size(); i++)
+				TextBlitter::BlitLine("Light[" + std::to_string(i) + "]: " + std::to_string(GameData::s_lights[i].m_needsUpadte));
+
+			TextBlitter::BlitLine("");
+
+
+			glm::mat4 identity(1);
+			glm::mat4 invserse = glm::inverse(glm::mat4(1));
+			TextBlitter::BlitLine("identity");
+			TextBlitter::BlitLine(Util::Mat4ToString(identity));
+			TextBlitter::BlitLine("invserse");
+			TextBlitter::BlitLine(Util::Mat4ToString(invserse));
+
+			TextBlitter::BlitLine("\ncamera");
+           
+            SkinnedModel* skinnedModel = GameData::s_player1.m_HUD_Weapon.GetSkinnedModelPtr();
+            glm::mat4 BindPoseBoneMatrix = skinnedModel->m_joints[77].m_inverseBindTransform;
+            auto& cam = GameData::s_player1.m_HUD_Weapon.m_animatedTransforms.cameraMatrix;
+            auto str = Util::Mat4ToString(BindPoseBoneMatrix);
+			TextBlitter::BlitLine(str);
+           
+            
+
+            //for (int i = 0; i < GameData::s_doors.size(); i++)
+			//	TextBlitter::BlitLine("Door[" + std::to_string(i) + "]: " + std::to_string(GameData::s_doors[i].m_swing));
+
 
 			/*if (GameData::s_doors[0].m_state == Door::State::OPENING)
 				TextBlitter::BlitLine("OPENING");

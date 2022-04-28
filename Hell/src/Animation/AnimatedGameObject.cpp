@@ -132,6 +132,9 @@ void AnimatedGameObject::Render(Shader* shader, glm::mat4 modelMatrix)
 	shader->use();
 	shader->setBool("hasAnimation", true);
 
+
+
+
 	//glm::mat4 modelMatrix = glm::mat4(1);
 
 	for (unsigned int i = 0; i < m_animatedTransforms.local.size(); i++)

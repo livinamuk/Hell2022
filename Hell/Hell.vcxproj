@@ -158,6 +158,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Effects\BloodDecal.cpp" />
     <ClCompile Include="src\Effects\BulletDecal.cpp" />
     <ClCompile Include="src\Animation\Animation.cpp" />
     <ClCompile Include="src\Animation\AnimatedGameObject.cpp" />
@@ -207,6 +208,7 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Effects\BloodDecal.h" />
     <ClInclude Include="src\Effects\BulletDecal.h" />
     <ClInclude Include="src\Animation\Animation.h" />
     <ClInclude Include="src\Animation\AnimatedGameObject.h" />
@@ -264,6 +266,8 @@
     <None Include="res\ragdoll.json" />
     <None Include="res\shaders\animatedQuad.frag" />
     <None Include="res\shaders\animatedQuad.vert" />
+    <None Include="res\shaders\blood_decal_shader.frag" />
+    <None Include="res\shaders\blood_decal_shader.vert" />
     <None Include="res\shaders\decals.frag" />
     <None Include="res\shaders\decals.vert" />
     <None Include="res\shaders\envMap.frag" />

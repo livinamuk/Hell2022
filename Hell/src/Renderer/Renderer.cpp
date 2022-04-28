@@ -29,6 +29,7 @@ Shader Renderer::s_SH_shader;
 Shader Renderer::s_animated_quad_shader;
 Shader Renderer::s_postProcessingShader;
 Shader Renderer::s_decal_shader;
+Shader Renderer::s_blood_decal_shader;
 MuzzleFlash Renderer::s_muzzleFlash;
 
 
@@ -46,9 +47,10 @@ void Renderer::Init(int screenWidth, int screenHeight)
     s_env_map_shader = Shader("envMap.vert", "envMap.frag", "envMap.geom");
     s_SH_shader = Shader("SH.vert", "SH.frag");
 	s_animated_quad_shader = Shader("animatedQuad.vert", "animatedQuad.frag");
-    s_postProcessingShader = Shader("PostProcessing.vert", "PostProcessing.frag");
-    s_decal_shader = Shader("decals.vert", "decals.frag");
-
+	s_postProcessingShader = Shader("PostProcessing.vert", "PostProcessing.frag");
+	s_decal_shader = Shader("decals.vert", "decals.frag");
+    s_blood_decal_shader = Shader("blood_decal_shader.vert", "blood_decal_shader.frag");
+    
     s_gBuffer = GBuffer(screenWidth, screenHeight);
 
     float quadVertices[] = {
@@ -108,7 +110,6 @@ void Renderer::Init(int screenWidth, int screenHeight)
 
 void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, int player)
 {
-    //DrawGrid(camera->m_transform.position, true);
 
     if (Input::s_showBulletDebug) {
 
@@ -485,6 +486,7 @@ void Renderer::HotLoadShaders()
     s_animated_quad_shader.ReloadShader();
     s_postProcessingShader.ReloadShader();
     s_decal_shader.ReloadShader();
+    s_blood_decal_shader.ReloadShader();
 }
 
 void Renderer::DrawPoint(Shader* shader, glm::vec3 position, glm::vec3 color)
@@ -1102,7 +1104,10 @@ void Renderer::IndirectShadowMapPass()
     glDisable(GL_BLEND);
 
     for (Light& light : GameData::s_lights)
-    {
+	{
+		if (!light.m_needsUpadte)
+			continue;
+
         glViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
         glBindFramebuffer(GL_FRAMEBUFFER, light.m_indirectShadowMap.m_ID);
         glEnable(GL_DEPTH_TEST);
@@ -1130,6 +1135,9 @@ void Renderer::ShadowMapPass()
 
     for (Light& light : GameData::s_lights)
     {
+        if (!light.m_needsUpadte)
+            continue;
+
         glViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
         glBindFramebuffer(GL_FRAMEBUFFER, light.m_shadowMap.m_ID);
         glEnable(GL_DEPTH_TEST);
@@ -1169,81 +1177,100 @@ void Renderer::GeometryPass(int player, int renderWidth, int renderHeight)
 
     DrawScene(shader, RenderPass::GEOMETRY, player);
 
-    // render player weapons
-    if (player == 1)
-    {
-        if (GameData::s_player1.m_isAlive)
-            GameData::s_player1.m_HUD_Weapon.Render(&s_geometry_shader, GameData::s_player1.m_camera.m_swayTransform.to_mat4());
-    }
-    if (player == 2)
-    {
-        if (GameData::s_player2.m_isAlive)
-            GameData::s_player2.m_HUD_Weapon.Render(&s_geometry_shader, GameData::s_player2.m_camera.m_swayTransform.to_mat4());
-    }
+
+	// render player weapons
+    bool renderPlayerWeaponsAlways = true;
+    shader->setFloat("u_gunMask", 1.0f);
+    if (player == 1 && GameData::s_player1.m_isAlive || renderPlayerWeaponsAlways)
+        GameData::s_player1.m_HUD_Weapon.Render(&s_geometry_shader, GameData::s_player1.m_camera.m_swayTransform.to_mat4());
+    
+    if (player == 2 && GameData::s_player2.m_isAlive || renderPlayerWeaponsAlways)
+        GameData::s_player2.m_HUD_Weapon.Render(&s_geometry_shader, GameData::s_player2.m_camera.m_swayTransform.to_mat4());
+	shader->setFloat("u_gunMask", 0.0f);
 }
 
 void Renderer::DecalPass(int playerIndex, int renderWidth, int renderHeight)
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, s_gBuffer.ID);	
+    // Bullet holes
     SetViewport(playerIndex);
     Player* player = GetPlayerFromIndex(playerIndex);
-
-	// reset for the future. move this to whatever shader comes next
-	unsigned int attachments2[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2  };
-	glDrawBuffers(3, attachments2);
-	glEnable(GL_DEPTH_TEST);
-
-	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_FALSE);
-
     Shader* shader = &s_decal_shader;
 	shader->use();
-	
-    
     shader->setMat4("pv", player->m_camera.m_projectionViewMatrix);
-	shader->setMat4("inverseProjectionMatrix", player->m_camera.m_inversePprojectionMatrix);
-	shader->setMat4("inverseViewMatrix", player->m_camera.m_inverseViewMatrix);
-	shader->setFloat("screenWidth", GetViewportWidth(playerIndex));
-	shader->setFloat("screenHeight", GetViewportHeight(playerIndex));
-	//shader->setFloat("screenWidth", CoreGL::s_currentWidth);
-	//shader->setFloat("screenHeight", CoreGL::s_currentHeight);
-	//shader->setFloat("screenWidth", renderWidth);
-	//shader->setFloat("screenHeight", renderHeight);
+	shader->setMat4("inverseProjectionMatrix", glm::inverse(player->m_camera.m_projectionMatrix));
+	shader->setMat4("inverseViewMatrix", glm::inverse(player->m_camera.m_viewMatrix));
+	shader->setFloat("fullscreenWidth", CoreGL::s_currentWidth);
+	shader->setFloat("fullscreenHeight", CoreGL::s_currentHeight);
 	shader->setVec3("u_CameraFront", player->m_camera.m_Front);
-	shader->setVec3("u_ViewPos", player->m_camera.m_inverseViewMatrix[3]);
-    shader->setInt("u_playerIndex", playerIndex);
-
-	// Better pass in that light data too so u can get some nice ligthing ya dick head
-	/*for (int i = 0; i < GameData::p_house->m_lights.size(); i++)
-	{
-		Light& light = GameData::p_house->m_lights[i];
-		shader->setVec3("lightPosition[" + std::to_string(i) + "]", light.m_position);
-		shader->setFloat("lightRadius[" + std::to_string(i) + "]", light.m_radius);
-		shader->setFloat("lightMagic[" + std::to_string(i) + "]", light.m_magic);
-		shader->setFloat("lightStrength[" + std::to_string(i) + "]", light.m_strength);
-		shader->setVec3("lightColor[" + std::to_string(i) + "]", light.m_color);
-	}
-    */
+	shader->setFloat("u_alphaModifier", 0.5);
+	shader->setVec3("u_ViewPos", player->GetPosition() + glm::vec3(0, player->m_cameraViewHeight, 0));
+    if (!GameData::s_splitScreen)
+        shader->setInt("u_playerIndex", 0);
+    else
+        shader->setInt("u_playerIndex", playerIndex);
+	glBindFramebuffer(GL_FRAMEBUFFER, s_gBuffer.ID);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, s_gBuffer.rboDepth);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, s_gBuffer.gNormal);
-
-
-	//	unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-	//	glDrawBuffers(3, attachments);
-
-	//glEnable(GL_BLEND);
+	unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(2, attachments);
 	glDepthMask(GL_FALSE);
+	glEnable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, AssetManager::GetTexturePtr("BulletHole_Plaster")->ID);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, AssetManager::GetTexturePtr("BulletHole_Plaster_Mask")->ID);
+	for (BulletDecal decal : GameData::s_bulletDecals)
+		decal.Draw(shader);
+
+
+	///glDepthMask(GL_TRUE);
+    //return;
+
+
+    // Blood splatters
+	shader = &s_blood_decal_shader;
+	shader->use();
+	shader->setMat4("pv", player->m_camera.m_projectionViewMatrix);
+	shader->setMat4("inverseProjectionMatrix", glm::inverse(player->m_camera.m_projectionMatrix));
+	shader->setMat4("inverseViewMatrix", glm::inverse(player->m_camera.m_viewMatrix));
+	shader->setFloat("fullscreenWidth", CoreGL::s_currentWidth);
+	shader->setFloat("fullscreenHeight", CoreGL::s_currentHeight);
+	shader->setVec3("u_CameraFront", player->m_camera.m_Front);
+	shader->setFloat("u_alphaModifier", 0.5);
+	shader->setVec3("u_ViewPos", player->GetPosition() + glm::vec3(0, player->m_cameraViewHeight, 0));
+	if (!GameData::s_splitScreen)
+		shader->setInt("u_playerIndex", 0);
+	else
+		shader->setInt("u_playerIndex", playerIndex);
+	glBindFramebuffer(GL_FRAMEBUFFER, s_gBuffer.ID);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, s_gBuffer.rboDepth);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, s_gBuffer.gNormal);
+	unsigned int attachments2[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	glDrawBuffers(3, attachments2);
+	glDepthMask(GL_FALSE);
+	glEnable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	for (BulletDecal decal : GameData::s_bulletDecals) {
-		shader->setVec3("targetPlaneSurfaceNormal", decal.m_normal);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_DST_COLOR, GL_SRC_COLOR);
+	glBlendFunc(GL_DST_COLOR, GL_SRC_COLOR);
+	glBlendEquation(GL_FUNC_ADD);
+	glEnablei(GL_BLEND, 1);
+	glBlendFunci(1, GL_DST_COLOR, GL_SRC_COLOR);
+	glDisablei(GL_BLEND, 1);
+	glDisablei(GL_BLEND, 2);
+
+	for (BloodDecal decal : GameData::s_bloodDecals)
 		decal.Draw(shader);
-	}
 
-
+    // Reset
 	glDepthMask(GL_TRUE);
 }
 
@@ -1498,6 +1525,7 @@ void Renderer::PostProcessingPass(int player)
 
 void Renderer::DrawScene(Shader* shader, RenderPass renderPass, int player)
 {
+    // Indirect shadow map
     if (renderPass == RenderPass::INDIRECT_SHADOW_MAP)
     {
         for (auto& room : GameData::s_rooms) {
@@ -1509,6 +1537,34 @@ void Renderer::DrawScene(Shader* shader, RenderPass renderPass, int player)
             door.Draw(shader);
         return;
     }
+
+    // Shadow map
+	else if (renderPass == RenderPass::SHADOW_MAP)
+	{
+		for (auto& room : GameData::s_rooms) {
+			room.DrawFloor(shader);
+			room.DrawCeiling(shader);
+			room.DrawWalls(shader);
+		}
+		for (auto& door : GameData::s_doors)
+			door.Draw(shader);
+
+        for (EntityStatic entityStatic : GameData::s_staticEntities)
+	        entityStatic.DrawEntity(shader);
+
+		// Animated characters below
+		shader->setBool("hasAnimation", true);
+		shader->setMat4("model", glm::mat4(1));
+
+		//for (GameCharacter& gameCharacter : Scene::s_gameCharacters)
+		//    gameCharacter.RenderSkinnedModel(shader);
+			
+	//	glCullFace(GL_FRONT);
+		GameData::s_player1.RenderCharacterModel(shader);
+		GameData::s_player2.RenderCharacterModel(shader);
+	//	glCullFace(GL_BACK);
+		return;
+	}
 
     // Draw scene
     for (EntityStatic entityStatic : GameData::s_staticEntities)
@@ -1564,19 +1620,13 @@ void Renderer::DrawScene(Shader* shader, RenderPass renderPass, int player)
 				gameCharacter.RenderSkinnedModel(shader);
         }
            
+	// Player models
+	bool renderPlayerCharacterModels = false;
+    if (renderPlayerCharacterModels) {
+        if (player == 2 && GameData::s_player1.m_isAlive)
+            GameData::s_player1.RenderCharacterModel(shader);
+        if (player == 1 && GameData::s_player2.m_isAlive)
+            GameData::s_player2.RenderCharacterModel(shader);
+    }  
 
-    // Player models
-    if (player == 2 && GameData::s_player1.m_isAlive)
-        GameData::s_player1.RenderCharacterModel(shader);
-    if (player == 1 && GameData::s_player2.m_isAlive)
-        GameData::s_player2.RenderCharacterModel(shader);
-   
-
-    // shadow mapping
-    if (renderPass == RenderPass::SHADOW_MAP)  {
-        glCullFace(GL_FRONT);
-        GameData::s_player1.RenderCharacterModel(shader);
-        GameData::s_player2.RenderCharacterModel(shader);
-        glCullFace(GL_BACK);
-    }
 }

@@ -28,6 +28,8 @@ uniform bool hasAnimation;
 uniform mat4 skinningMats[128];
 uniform bool instanced;
 
+out vec3 RMA_modifier;
+
 out vec3 test;
 
 void main()
@@ -69,12 +71,16 @@ void main()
 	//worldPos = vec4(model * vec4(aPos, 1.0));
 	//gl_Position = projection * view * worldPos;
 
+	RMA_modifier = vec3(0, 0, 0);
+
     // tex coords
 	TexCoord = aTexCoord;
-	if (u_TEXCOORD_FLAG == 1)								
+	if (u_TEXCOORD_FLAG == 1)	{							
 		TexCoord = vec2(worldPos.x, worldPos.z) * 0.4;		// Floor Regular
-	if (u_TEXCOORD_FLAG == 2)								
-		TexCoord = vec2(worldPos.z, worldPos.x) * 0.4;		// Flooor Rotated 90 degrees
+		//RMA_modifier = vec3(-0.125, 0.125, 0);
+	}
+	//if (u_TEXCOORD_FLAG == 2)								
+	//	TexCoord = vec2(worldPos.z, worldPos.x) * 0.4;		// Flooor Rotated 90 degrees
 		
 	test = vec3(1, 0, 1);
 	test = aBitangent + 0.5;
