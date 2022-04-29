@@ -184,6 +184,7 @@
     <ClCompile Include="src\Physics\PhysX.cpp" />
     <ClCompile Include="src\Physics\Ragdoll.cpp" />
     <ClCompile Include="src\Physics\RayCast.cpp" />
+    <ClCompile Include="src\Renderer\BlurBuffer.cpp" />
     <ClCompile Include="src\Renderer\Decal.cpp" />
     <ClCompile Include="src\Renderer\EnvMap.cpp" />
     <ClCompile Include="src\Renderer\GBuffer.cpp" />
@@ -234,6 +235,7 @@
     <ClInclude Include="src\Physics\PhysX.h" />
     <ClInclude Include="src\Physics\Ragdoll.h" />
     <ClInclude Include="src\Physics\RayCast.h" />
+    <ClInclude Include="src\Renderer\BlurBuffer.h" />
     <ClInclude Include="src\Renderer\Decal.h" />
     <ClInclude Include="src\Renderer\EnvMap.h" />
     <ClInclude Include="src\Renderer\GBuffer.h" />
@@ -268,6 +270,9 @@
     <None Include="res\shaders\animatedQuad.vert" />
     <None Include="res\shaders\blood_decal_shader.frag" />
     <None Include="res\shaders\blood_decal_shader.vert" />
+    <None Include="res\shaders\blur.frag" />
+    <None Include="res\shaders\blurHorizontal.vert" />
+    <None Include="res\shaders\blurVertical.vert" />
     <None Include="res\shaders\decals.frag" />
     <None Include="res\shaders\decals.vert" />
     <None Include="res\shaders\envMap.frag" />

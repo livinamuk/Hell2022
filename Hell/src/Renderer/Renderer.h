@@ -3,6 +3,7 @@
 #include "Renderer/Shader.h"
 #include "Renderer/Texture.h"
 #include "Renderer/Model.h"
+#include "Renderer/BlurBuffer.h"
 #include "Core/Camera.h"
 #include "Core/Player.h"
 #include "Core/CoreGL.h"
@@ -44,6 +45,8 @@ public: // functions
 	static void LightingPass(int player, int renderWidth, int renderHeight);
 	static void MuzzleFlashPass(int player, int renderWidth, int renderHeight);
 	static void PostProcessingPass(int player);
+	static void EmissiveBlurPass(int player, int renderWidth, int renderHeight, int levels);
+
 
 	static void DrawScene(Shader* shader, RenderPass renderPass, int player = 0);
 
@@ -98,10 +101,14 @@ public: // variables
 	static Shader s_postProcessingShader;
 	static Shader s_decal_shader;
 	static Shader s_blood_decal_shader;
+	static Shader s_horizontal_blur_shader;
+	static Shader s_vertical_blur_shader;
 	//static Shader s_textured_editor_shader;
 
 	static bool s_showBuffers;
 	static GBuffer s_gBuffer;
+	static BlurBuffer s_BlurBuffers_p1[4];
+	static BlurBuffer s_BlurBuffers_p2[4];
 
 	static unsigned int m_uboMatrices;
 	static unsigned int m_uboLights;

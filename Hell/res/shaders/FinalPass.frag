@@ -4,7 +4,7 @@ layout (location = 0) out vec4 FragColor;
 layout (binding = 0) uniform sampler2D ALB_TEXTURE;  // actually not used    
 layout (binding = 1) uniform sampler2D FINAL_TEXTURE; // ligthing + DOF
 layout (binding = 2) uniform sampler2D NRM_TEXTURE;
-layout (binding = 3) uniform sampler2D RMA_TEXTURE;    
+layout (binding = 3) uniform sampler2D EMISSIVE_TEXTURE;    
 
 in vec2 TexCoords;
 in vec2 SplitscreenAdjustedCoords;
@@ -126,12 +126,12 @@ void main()
 
     
 	vec4 NRM = texture(NRM_TEXTURE, TexCoords);
-    vec4 RMA = texture(RMA_TEXTURE, TexCoords);
+    vec4 E = texture(EMISSIVE_TEXTURE, TexCoords);
    // FragColor.rgb = vec3(RMA.a);
 
  //   FragColor.g = 0;
 
- FragColor.rgb = vec3(NRM.a);
+ FragColor.rgb = E.rgb;
 
 	//FragColor = vec4(destCoord.x, destCoord.y, 0, 0);
 } 

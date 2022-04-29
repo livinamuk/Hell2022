@@ -178,8 +178,10 @@ void HellEngine::CheckForDebugKeyPresses()
 	if (Input::KeyPressed(HELL_KEY_2))
 		m_currentPlayer = 2;
 
-	if (Input::KeyPressed(HELL_KEY_T))
+	if (Input::KeyPressed(HELL_KEY_T)) {
 		GameData::s_splitScreen = !GameData::s_splitScreen;
+		Renderer::ReconfigureFrameBuffers(CoreGL::s_currentWidth, CoreGL::s_currentHeight);
+	}
 
 
 }
@@ -263,6 +265,11 @@ void HellEngine::Render()
 	GLint buffer1 = Renderer::s_gBuffer.gNormal;
 	GLint buffer2 = Renderer::s_gBuffer.gFinal;
 	GLint buffer3 = Renderer::s_gBuffer.gRMA;
+
+	buffer0 = Renderer::s_BlurBuffers_p1[0].textureA;
+	buffer1 = Renderer::s_BlurBuffers_p1[0].textureB;
+	buffer2 = Renderer::s_gBuffer.gAlbedo;
+	buffer3 = Renderer::s_gBuffer.gEmissive;
 
 	if (Renderer::s_showBuffers)
 	{

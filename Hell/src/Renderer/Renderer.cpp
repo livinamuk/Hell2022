@@ -17,6 +17,8 @@ Shader Renderer::s_solid_color_shader_editor;
 Shader Renderer::s_shadow_map_shader;
 Shader Renderer::s_skybox_shader;
 GBuffer Renderer::s_gBuffer;
+BlurBuffer Renderer::s_BlurBuffers_p1[4];
+BlurBuffer Renderer::s_BlurBuffers_p2[4];
 unsigned int Renderer::m_uboMatrices;
 unsigned int Renderer::m_uboLights;
 bool Renderer::s_showBuffers = false;
@@ -30,6 +32,8 @@ Shader Renderer::s_animated_quad_shader;
 Shader Renderer::s_postProcessingShader;
 Shader Renderer::s_decal_shader;
 Shader Renderer::s_blood_decal_shader;
+Shader Renderer::s_horizontal_blur_shader;
+Shader Renderer::s_vertical_blur_shader;
 MuzzleFlash Renderer::s_muzzleFlash;
 
 
@@ -49,9 +53,25 @@ void Renderer::Init(int screenWidth, int screenHeight)
 	s_animated_quad_shader = Shader("animatedQuad.vert", "animatedQuad.frag");
 	s_postProcessingShader = Shader("PostProcessing.vert", "PostProcessing.frag");
 	s_decal_shader = Shader("decals.vert", "decals.frag");
-    s_blood_decal_shader = Shader("blood_decal_shader.vert", "blood_decal_shader.frag");
+	s_blood_decal_shader = Shader("blood_decal_shader.vert", "blood_decal_shader.frag");
+	s_horizontal_blur_shader = Shader("blurHorizontal.vert", "blur.frag");
+    s_vertical_blur_shader = Shader("blurVertical.vert", "blur.frag");
     
     s_gBuffer = GBuffer(screenWidth, screenHeight);
+
+    // Note the width and heights of P1 are for fullscreen only
+    // and the p2 widths and heights are by default tinybut this is updated in the subsequent function
+    // and then again whenever switching between full screen and split screen
+	s_BlurBuffers_p1[0] = BlurBuffer(screenWidth / 2, screenHeight / 2);
+	s_BlurBuffers_p1[1] = BlurBuffer(screenWidth / 4, screenHeight / 4);
+	s_BlurBuffers_p1[2] = BlurBuffer(screenWidth / 8, screenHeight / 8);
+	s_BlurBuffers_p1[3] = BlurBuffer(screenWidth / 16, screenHeight / 16);
+	s_BlurBuffers_p2[0] = BlurBuffer(0, 1);
+	s_BlurBuffers_p2[1] = BlurBuffer(0, 1);
+	s_BlurBuffers_p2[2] = BlurBuffer(0, 1);
+	s_BlurBuffers_p2[3] = BlurBuffer(0, 1);
+
+    ReconfigureFrameBuffers(screenWidth, screenHeight);
 
     float quadVertices[] = {
         // positions         texcoords
@@ -145,7 +165,8 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
         DecalPass(player, renderWidth, renderHeight);
         LightingPass(player, renderWidth, renderHeight);
         MuzzleFlashPass(player, renderWidth, renderHeight);
-        PostProcessingPass(player);
+        PostProcessingPass(player); 
+        EmissiveBlurPass(player, renderWidth, renderHeight, 4);
 
 
      //   glDrawBuffer(GL_COLOR_ATTACHMENT3);
@@ -238,9 +259,9 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, s_gBuffer.gPostProcessed);
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, s_gBuffer.gNormal);
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, s_gBuffer.gRMA);
+	glBindTexture(GL_TEXTURE_2D, s_gBuffer.gNormal);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, s_gBuffer.gEmissive);
 
     int CHROM_ABZ_mode = 0;
 
@@ -487,6 +508,8 @@ void Renderer::HotLoadShaders()
     s_postProcessingShader.ReloadShader();
     s_decal_shader.ReloadShader();
     s_blood_decal_shader.ReloadShader();
+	s_horizontal_blur_shader.ReloadShader();
+	s_vertical_blur_shader.ReloadShader();
 }
 
 void Renderer::DrawPoint(Shader* shader, glm::vec3 position, glm::vec3 color)
@@ -646,9 +669,32 @@ void Renderer::DrawPhysicsWorld(int player)
     }
 }
 
-void Renderer::ReconfigureFrameBuffers(int height, int width)
+void Renderer::ReconfigureFrameBuffers(int width, int height)
 {
-    s_gBuffer.Configure(height, width);
+	s_gBuffer.Configure(width, height);
+
+    // If fullscreen, you only need to do p1 and its just half the screen size
+	if (!GameData::s_splitScreen) {
+		s_BlurBuffers_p1[0].Configure(width / 2, height / 2);
+		s_BlurBuffers_p1[1].Configure(width / 4, height / 4);
+		s_BlurBuffers_p1[2].Configure(width / 8, height / 8);
+		s_BlurBuffers_p1[3].Configure(width / 16, height / 16);
+		s_BlurBuffers_p2[0].Configure(0, 1);
+		s_BlurBuffers_p2[1].Configure(0, 1);
+		s_BlurBuffers_p2[2].Configure(0, 1);
+		s_BlurBuffers_p2[3].Configure(0, 1);
+	}    
+    // If split screen then heights are divded by 2
+	else {
+		s_BlurBuffers_p1[0].Configure(width / 2, height / 2 / 2);
+		s_BlurBuffers_p1[1].Configure(width / 4, height / 4 / 2);
+		s_BlurBuffers_p1[2].Configure(width / 8, height / 8 / 2);
+		s_BlurBuffers_p1[3].Configure(width / 16, height / 16 / 2);
+		s_BlurBuffers_p2[0].Configure(width / 2, height / 2 / 2);
+		s_BlurBuffers_p2[1].Configure(width / 4, height / 4 / 2);
+		s_BlurBuffers_p2[2].Configure(width / 8, height / 8 / 2);
+		s_BlurBuffers_p2[3].Configure(width / 16, height / 16 / 2);
+	}
 }
 
 
@@ -868,7 +914,15 @@ void Renderer::ClearFBOs(int screenWidth, int screenHeight)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, s_gBuffer.ID);
 
-    unsigned int attachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 , GL_COLOR_ATTACHMENT4 };
+    unsigned int attachments[7] = { 
+        GL_COLOR_ATTACHMENT0, 
+        GL_COLOR_ATTACHMENT1, 
+		GL_COLOR_ATTACHMENT2,
+		GL_COLOR_ATTACHMENT3,
+		GL_COLOR_ATTACHMENT4,
+		GL_COLOR_ATTACHMENT5,
+		GL_COLOR_ATTACHMENT6 };
+
     glDrawBuffers(5, attachments);
 
     glViewport(0, 0, screenWidth, screenHeight);
@@ -1159,8 +1213,8 @@ void Renderer::GeometryPass(int player, int renderWidth, int renderHeight)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, s_gBuffer.ID);
 
-    unsigned int attachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 , GL_COLOR_ATTACHMENT4 };
-    glDrawBuffers(5, attachments);
+    unsigned int attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT6 };
+    glDrawBuffers(4, attachments);
 
     if(!GameData::s_splitScreen)
         glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight);
@@ -1523,6 +1577,176 @@ void Renderer::PostProcessingPass(int player)
 
 }
 
+void Renderer::EmissiveBlurPass(int player, int renderWidth, int renderHeight, int levels)
+{
+	if (levels < 1)
+		return;
+
+    std::cout << "\n\nPLAYER: " << player << "\n";
+
+    // down scale and blur the emissive texture thru ping pong shit 
+
+	glDisable(GL_DEPTH_TEST);
+
+    // Declare a pointer to an array of 4 blur buffres
+    BlurBuffer* blurBuffers[4];
+
+	Shader* horizontalShader = &s_horizontal_blur_shader;
+    Shader* verticalShader = &s_vertical_blur_shader;
+
+	// Source
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, s_gBuffer.ID);
+	glReadBuffer(GL_COLOR_ATTACHMENT6);
+	int factor = 2;
+
+	// Destination
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, &blurBuffers[0].ID);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+    int origin_X = 0;
+    int origin_Y = 0;
+	int viewportWidth = CoreGL::s_currentWidth;
+	int viewportHeight = CoreGL::s_currentHeight;
+    s_horizontal_blur_shader.use();
+	s_horizontal_blur_shader.setInt("u_playerIndex", 0);
+	s_vertical_blur_shader.use();
+    s_vertical_blur_shader.setInt("u_playerIndex", 0);
+
+    if (GameData::s_splitScreen)
+	{
+		if (player == 1) {
+			origin_X = 0;
+			origin_Y = CoreGL::s_currentHeight / 2;
+			viewportWidth = CoreGL::s_currentWidth;
+			viewportHeight = CoreGL::s_currentHeight / 2;
+			s_horizontal_blur_shader.use();
+			s_horizontal_blur_shader.setInt("u_playerIndex", 1);
+			s_vertical_blur_shader.use();
+			s_vertical_blur_shader.setInt("u_playerIndex", 1);
+		}
+		else if (player == 2) {
+			origin_X = 0;
+			origin_Y = 0;
+			viewportWidth = CoreGL::s_currentWidth;
+			viewportHeight = CoreGL::s_currentHeight / 2;
+			s_horizontal_blur_shader.use();
+			s_horizontal_blur_shader.setInt("u_playerIndex", 2);
+            s_vertical_blur_shader.use();
+			s_vertical_blur_shader.setInt("u_playerIndex", 2);
+		}
+    }
+
+	// Blit from the original gEmissive texture into the first blur buffer
+	int srcX_1 = origin_X;
+	int srcY_1 = origin_Y;
+	int srcX_2 = viewportWidth;
+	int srcY_2 = origin_Y + viewportHeight;	
+    int destX_1 = srcX_1 / factor;
+	int destY_1 = srcY_1 / factor;
+	int destX_2 = srcX_2 / factor;
+	int destY_2 = srcY_2 / factor;
+	glBlitFramebuffer(srcX_1, srcY_1, srcX_2, srcY_2, destX_1, destY_1, destX_2, destY_2, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+	std::cout << " srcX_1 " << srcX_1 << "\n";
+	std::cout << " srcY_1 " << srcY_1 << "\n";
+	std::cout << " srcX_2 " << srcX_2 << "\n";
+	std::cout << " srcY_2 " << srcY_2 << "\n\n";
+
+	std::cout << " destX_1 " << destX_1 << "\n";
+	std::cout << " destY_1 " << destY_1 << "\n";
+	std::cout << " destX_2 " << destX_2 << "\n";
+	std::cout << " destY_2 " << destY_2 << "\n\n";
+
+    return;
+	// Blur horizontal
+	/*glViewport(destX_1, destY_1, destX_2 - destX_1, destY_2 - destY_1);
+	glBindFramebuffer(GL_FRAMEBUFFER, s_BlurBuffers[0].ID);
+
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+	glDrawBuffer(GL_COLOR_ATTACHMENT1);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, s_BlurBuffers[0].textureA);
+	horizontalShader->use();
+	horizontalShader->setFloat("targetWidth", viewportWidth / factor);
+    DrawViewportQuad(horizontalShader, GetViewportSize(player));
+	// Blur vertical
+	glViewport(destX_1, destY_1, destX_2 - destX_1, destY_2 - destY_1);
+	glBindFramebuffer(GL_FRAMEBUFFER, s_BlurBuffers[0].ID);
+	glReadBuffer(GL_COLOR_ATTACHMENT1);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, s_BlurBuffers[0].textureB);
+	verticalShader->use();
+	verticalShader->setFloat("targetHeight", viewportHeight / factor);
+	DrawViewportQuad(verticalShader, GetViewportSize(player));
+
+
+	// second downscale //
+	for (int i = 1; i < levels; i++)
+	{
+		// Source
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, s_BlurBuffers[i - 1].ID);
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+		// Destination
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, s_BlurBuffers[i].ID);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+		// Blit
+		srcX_1 = destX_1;
+		srcY_1 = destY_1;
+		srcX_2 = destX_2;
+		srcY_2 = destY_2;
+		destX_1 = srcX_1 / 2;
+		destY_1 = srcY_1 / 2;
+		destX_2 = destX_1 + ((destX_2 - destX_1) / 2);
+		destY_2 = destY_1 + ((destY_2 - destY_1) / 2);
+		//destX_2 = srcX_2 / factor * (factor / 2);
+		//destY_2 = srcY_2 / factor * (factor / 2);
+		glBlitFramebuffer(srcX_1, srcY_1, srcX_2, srcY_2, destX_1, destY_1, destX_2, destY_2, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+        		
+		std::cout << " srcX_1 " << srcX_1 << "\n";
+		std::cout << " srcY_1 " << srcY_1 << "\n";
+		std::cout << " srcX_2 " << srcX_2 << "\n";
+		std::cout << " srcY_2 " << srcY_2 << "\n\n";
+
+		std::cout << " destX_1 " << destX_1 << "\n";
+		std::cout << " destY_1 " << destY_1 << "\n";
+		std::cout << " destX_2 " << destX_2 << "\n";
+		std::cout << " destY_2 " << destY_2 << "\n\n";
+
+		// Blur horizontal
+		int destinationViewportWidth = destX_2 - destX_1;
+		int destinationViewportHeight = destY_2 - destY_1;
+		glViewport(destX_1, destY_1, destinationViewportWidth, destinationViewportHeight);
+		//glViewport(0, 0, CoreGL::s_windowWidth / factor, CoreGL::s_windowHeight / factor);
+		glBindFramebuffer(GL_FRAMEBUFFER, s_BlurBuffers[i].ID);
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		glDrawBuffer(GL_COLOR_ATTACHMENT1);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, s_BlurBuffers[i].textureA);
+		horizontalShader->use();
+		horizontalShader->setFloat("targetWidth", viewportWidth / factor);
+		DrawViewportQuad(verticalShader, GetViewportSize(player));
+
+		// Blur vertical
+		glViewport(destX_1, destY_1, destinationViewportWidth, destinationViewportHeight);
+		glBindFramebuffer(GL_FRAMEBUFFER, s_BlurBuffers[i].ID);
+		glReadBuffer(GL_COLOR_ATTACHMENT1);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, s_BlurBuffers[i].textureB);
+		verticalShader->use();
+		verticalShader->setFloat("targetHeight", viewportHeight / factor);
+		DrawViewportQuad(verticalShader, GetViewportSize(player));
+
+		factor *= 2;
+        std::cout << i << "\n";
+	}
+	// return the viewport to it's orginal fucking size. this has stumped you for so long twice now. adding this will stop it.
+	//glViewport(0, 0, CoreGL::s_windowWidth, CoreGL::s_windowHeight);*/
+}
+
 void Renderer::DrawScene(Shader* shader, RenderPass renderPass, int player)
 {
     // Indirect shadow map
@@ -1588,7 +1812,7 @@ void Renderer::DrawScene(Shader* shader, RenderPass renderPass, int player)
 		shader->setBool("u_hasEmissive", true);
         for (int i = 0; i < GameData::s_lights.size(); i++) {
 			Light* light = &GameData::s_lights[i];
-			shader->setBool("u_lightIndex", i);
+			shader->setVec3("u_emissiveColor", light->m_color);
             light->Draw(shader);
         }
 		shader->setBool("u_hasEmissive", false);

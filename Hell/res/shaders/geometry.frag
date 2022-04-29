@@ -3,6 +3,7 @@
 layout (location = 0) out vec4 gAlbedo;
 layout (location = 1) out vec4 gNormal;
 layout (location = 2) out vec4 gRMA;
+layout (location = 3) out vec4 gEmissive;
 
 layout (binding = 0) uniform sampler2D ALB_Texture;
 layout (binding = 1) uniform sampler2D NRM_Texture;
@@ -17,7 +18,7 @@ in vec3 attrTangent;
 in vec3 attrBiTangent;
 uniform float u_gunMask;
 uniform bool u_hasEmissive;
-uniform int u_lightIndex;
+uniform vec3 u_emissiveColor;
 
 void main()
 {
@@ -51,6 +52,5 @@ void main()
 	gRMA.rgb = RMA.rgb;
 	gRMA.a = u_gunMask;
 	
-	gNormal.a = u_hasEmissive ? EMISSIVE.r : 0;
-//	gNormal.a = EMISSIVE.a;
+	gEmissive.rgb = u_hasEmissive ? EMISSIVE.rgb * u_emissiveColor : vec3(0,0,0);
 }  

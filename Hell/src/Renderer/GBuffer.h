@@ -12,7 +12,7 @@ public:
 	// gEmissve
 
 	unsigned int ID;
-	unsigned int gAlbedo, gNormal, gRMA, gFinal, rboDepth, gLighting, gPostProcessed;
+	unsigned int gAlbedo, gNormal, gRMA, gFinal, rboDepth, gLighting, gPostProcessed, gEmissive;
 
 	void Configure(int width, int height);
 };
