@@ -368,8 +368,9 @@ HellEngine/vendor/Glad/bin-int
 HellEngine/vendor/GLFW/bin-int
 HellEngine/vendor/imgui/bin-int
 
-# x64/
+x64/
 
 bin-int
+
 
 
