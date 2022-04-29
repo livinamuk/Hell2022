@@ -107,8 +107,8 @@ public: // variables
 
 	static bool s_showBuffers;
 	static GBuffer s_gBuffer;
-	static BlurBuffer s_BlurBuffers_p1[4];
-	static BlurBuffer s_BlurBuffers_p2[4];
+	static std::vector<BlurBuffer> s_BlurBuffers_p1;
+	static std::vector<BlurBuffer> s_BlurBuffers_p2;
 
 	static unsigned int m_uboMatrices;
 	static unsigned int m_uboLights;

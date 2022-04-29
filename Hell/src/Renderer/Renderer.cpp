@@ -17,8 +17,8 @@ Shader Renderer::s_solid_color_shader_editor;
 Shader Renderer::s_shadow_map_shader;
 Shader Renderer::s_skybox_shader;
 GBuffer Renderer::s_gBuffer;
-BlurBuffer Renderer::s_BlurBuffers_p1[4];
-BlurBuffer Renderer::s_BlurBuffers_p2[4];
+std::vector<BlurBuffer> Renderer::s_BlurBuffers_p1;
+std::vector<BlurBuffer> Renderer::s_BlurBuffers_p2;
 unsigned int Renderer::m_uboMatrices;
 unsigned int Renderer::m_uboLights;
 bool Renderer::s_showBuffers = false;
@@ -59,18 +59,15 @@ void Renderer::Init(int screenWidth, int screenHeight)
     
     s_gBuffer = GBuffer(screenWidth, screenHeight);
 
-    // Note the width and heights of P1 are for fullscreen only
-    // and the p2 widths and heights are by default tinybut this is updated in the subsequent function
-    // and then again whenever switching between full screen and split screen
-	s_BlurBuffers_p1[0] = BlurBuffer(screenWidth / 2, screenHeight / 2);
-	s_BlurBuffers_p1[1] = BlurBuffer(screenWidth / 4, screenHeight / 4);
-	s_BlurBuffers_p1[2] = BlurBuffer(screenWidth / 8, screenHeight / 8);
-	s_BlurBuffers_p1[3] = BlurBuffer(screenWidth / 16, screenHeight / 16);
-	s_BlurBuffers_p2[0] = BlurBuffer(0, 1);
-	s_BlurBuffers_p2[1] = BlurBuffer(0, 1);
-	s_BlurBuffers_p2[2] = BlurBuffer(0, 1);
-	s_BlurBuffers_p2[3] = BlurBuffer(0, 1);
-
+    // Create the blur buffers FBOs
+    // width and height of 1 cause you are only making the FBO ID and shit here
+    // the real sizes are made in ReconfigureFrameBuffers()
+	s_BlurBuffers_p1.clear();
+	s_BlurBuffers_p2.clear();
+    for (int i = 0; i < 4; i++) {
+		s_BlurBuffers_p1.push_back(BlurBuffer(1, 1));
+		s_BlurBuffers_p2.push_back(BlurBuffer(1, 1));
+    }
     ReconfigureFrameBuffers(screenWidth, screenHeight);
 
     float quadVertices[] = {
@@ -1589,7 +1586,10 @@ void Renderer::EmissiveBlurPass(int player, int renderWidth, int renderHeight, i
 	glDisable(GL_DEPTH_TEST);
 
     // Declare a pointer to an array of 4 blur buffres
-    BlurBuffer* blurBuffers[4];
+    std::vector<BlurBuffer>* blurBuffers;// [4] ;
+    
+    if (player == 1)
+        blurBuffers = &s_BlurBuffers_p1;
 
 	Shader* horizontalShader = &s_horizontal_blur_shader;
     Shader* verticalShader = &s_vertical_blur_shader;
@@ -1600,7 +1600,7 @@ void Renderer::EmissiveBlurPass(int player, int renderWidth, int renderHeight, i
 	int factor = 2;
 
 	// Destination
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, &blurBuffers[0].ID);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, (*blurBuffers[0]).ID);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
     int origin_X = 0;
