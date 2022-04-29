@@ -11,13 +11,13 @@ void main(void){
 	gl_Position = vec4(position, 0.0, 1.0);
 	vec2 centerTexCoords = position * 0.5 + 0.5;
 
-	if (u_playerIndex == 1) {
+	/*if (u_playerIndex == 1) {
 		centerTexCoords.y *= 0.5;
 		centerTexCoords.y += 0.5;
 	}
 
 	if (u_playerIndex == 2) 
-		centerTexCoords.y *= 0.5;
+		centerTexCoords.y *= 0.5;*/
 
 	float pixelSize = 1.0 / targetWidth;
 

@@ -265,8 +265,7 @@ void Player::UpdateMovement(float deltaTime)
 
 	PxControllerFilters data;
 	data.mFilterData = &filterData;
-
-
+	
 	if (Input::KeyPressed(HELL_KEY_G)) {
 		m_characterController->setPosition(PxExtendedVec3(2, 2, 2));
 	}
@@ -275,7 +274,14 @@ void Player::UpdateMovement(float deltaTime)
 	PxVec3 disp = PxVec3(displacement.x, -9.8f, displacement.z);
 	PxF32 minDist = 0.001;
 
-	m_characterController->move(PxVec3(displacement.x, -9.8f, displacement.z), minDist, deltaTime, data);
+	if (PressedJump()) {
+		m_yVelocity = 9.90;
+	}
+
+	m_yVelocity -= deltaTime / 2.25f;
+	m_yVelocity = max(0.0f, m_yVelocity);
+
+	m_characterController->move(PxVec3(displacement.x, -9.8f + m_yVelocity, displacement.z), minDist, deltaTime, data);
 
 	//std::cout << disp.x << " " << disp.y << " " << disp.z << "\n";
 	//std::cout << deltaTime << "\n";
@@ -1392,7 +1398,7 @@ void Player::SetControlsToDefaultPS4Controls()
 	m_controls.INTERACT =		HELL_PS_4_CONTROLLER_TRIANGLE;
 	m_controls.RELOAD =			HELL_PS_4_CONTROLLER_SQUARE;
 	m_controls.FIRE =			HELL_PS_4_CONTROLLER_TRIGGER_R;
-	m_controls.JUMP =			HELL_PS_4_CONTROLLER_CROSS;
+	m_controls.JUMP =			HELL_PS_4_CONTROLLER_L1;
 	m_controls.CROUCH =			HELL_PS_4_CONTROLLER_TRIGGER_L;
 	m_controls.NEXT_WEAPON =	HELL_PS_4_CONTROLLER_CROSS;
 }

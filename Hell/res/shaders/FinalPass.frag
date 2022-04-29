@@ -1,10 +1,16 @@
 #version 420 core
 
 layout (location = 0) out vec4 FragColor;
-layout (binding = 0) uniform sampler2D ALB_TEXTURE;  // actually not used    
-layout (binding = 1) uniform sampler2D FINAL_TEXTURE; // ligthing + DOF
-layout (binding = 2) uniform sampler2D NRM_TEXTURE;
-layout (binding = 3) uniform sampler2D EMISSIVE_TEXTURE;    
+
+layout (binding = 0) uniform sampler2D FINAL_TEXTURE; // ligthing + DOF
+layout (binding = 1) uniform sampler2D blur0;
+layout (binding = 2) uniform sampler2D blur1;
+layout (binding = 3) uniform sampler2D blur2;
+layout (binding = 4) uniform sampler2D blur3;
+
+//layout (binding = 1) uniform sampler2D ALB_TEXTURE;  // actually not used    
+//layout (binding = 2) uniform sampler2D NRM_TEXTURE;
+//layout (binding = 3) uniform sampler2D EMISSIVE_TEXTURE;    
 
 in vec2 TexCoords;
 in vec2 SplitscreenAdjustedCoords;
@@ -125,13 +131,14 @@ void main()
     FragColor.rgb = color2;
 
     
-	vec4 NRM = texture(NRM_TEXTURE, TexCoords);
-    vec4 E = texture(EMISSIVE_TEXTURE, TexCoords);
-   // FragColor.rgb = vec3(RMA.a);
 
- //   FragColor.g = 0;
 
- FragColor.rgb = E.rgb;
+     // Add light bulbs	
+    vec3 blurBulbs = texture(blur0, SplitscreenAdjustedCoords).rgb;
+	blurBulbs += texture(blur1, SplitscreenAdjustedCoords).rgb;
+	blurBulbs += texture(blur2, SplitscreenAdjustedCoords).rgb;
+	blurBulbs += texture(blur3, SplitscreenAdjustedCoords).rgb;
+    FragColor.rgb += blurBulbs;
 
-	//FragColor = vec4(destCoord.x, destCoord.y, 0, 0);
+
 } 

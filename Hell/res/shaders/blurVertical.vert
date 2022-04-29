@@ -13,13 +13,13 @@ void main(void){
 
 	float pixelSize = 1.0 / targetHeight;
 
-	if (u_playerIndex == 1) {
+	/*if (u_playerIndex == 1) {
 		centerTexCoords.y *= 0.5;
 		centerTexCoords.y += 0.5;
 	}
 
 	if (u_playerIndex == 2)
-		centerTexCoords.y *= 0.5;
+		centerTexCoords.y *= 0.5;*/
 
 	for (int i=-5; i<=5; i++)
 		blurTextureCoords[i+5] = centerTexCoords + vec2(0.0, pixelSize * i);

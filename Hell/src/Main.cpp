@@ -226,7 +226,7 @@ int main()
 	GameData::s_lights.push_back(Light(glm::vec3(4, 2.2f, 3.5), DEFAULT_LIGHT_COLOR, 4, 10, 0.1, 0));
 	GameData::s_lights.push_back(Light(glm::vec3(-3.9, 2.2f, 5), DEFAULT_LIGHT_COLOR, 4, 10, 0.1, 0));
 	GameData::s_lights.push_back(Light(glm::vec3(-7.9, 2.2f, -1), COLOR_RED, 5, 50, 0.1, 0));
-	GameData::s_lights.push_back(Light(glm::vec3(-3.6, 2.2f, -5.2), DEFAULT_LIGHT_COLOR, 4, 5, 0.1, 0));
+	GameData::s_lights.push_back(Light(glm::vec3(-3.7, 2.2f, -5.2), DEFAULT_LIGHT_COLOR, 4, 5, 0.1, 0));
 	GameData::s_lights.push_back(Light(glm::vec3(3.2, 2.2f, -3.0), COLOR_RED, 4, 50, 0.1, 0));
 
 	GameData::s_player1.CreatePoormansCharacterController();

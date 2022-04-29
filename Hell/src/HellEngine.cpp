@@ -266,10 +266,10 @@ void HellEngine::Render()
 	GLint buffer2 = Renderer::s_gBuffer.gFinal;
 	GLint buffer3 = Renderer::s_gBuffer.gRMA;
 
-	buffer0 = Renderer::s_BlurBuffers_p1[0].textureA;
-	buffer1 = Renderer::s_BlurBuffers_p1[0].textureB;
-	buffer2 = Renderer::s_gBuffer.gAlbedo;
-	buffer3 = Renderer::s_gBuffer.gEmissive;
+	buffer0 = Renderer::s_BlurBuffers_p2[1].textureA;
+	buffer1 = Renderer::s_BlurBuffers_p2[3].textureA;
+	buffer2 = Renderer::s_gBuffer.gFinal;
+	buffer3 = Renderer::s_gBuffer.gPostProcessed;
 
 	if (Renderer::s_showBuffers)
 	{

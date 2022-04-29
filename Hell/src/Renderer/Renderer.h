@@ -76,6 +76,7 @@ public: // functions
 
 	static void RenderDebugShit();
 
+	static void DrawFullScreenQuad(Shader* shader);
 	static void DrawViewportQuad(Shader* shader, ViewportSize viewportSize);
 	static void CreateBRDFLut();
 	static void SetViewport(int player);
@@ -112,6 +113,7 @@ public: // variables
 
 	static unsigned int m_uboMatrices;
 	static unsigned int m_uboLights;
+	static bool m_firstRenderLoop;;
 
 	PhysX* p_physX;
 	static GLuint s_centeredQuadVAO;

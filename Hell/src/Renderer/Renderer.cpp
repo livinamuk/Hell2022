@@ -35,6 +35,7 @@ Shader Renderer::s_blood_decal_shader;
 Shader Renderer::s_horizontal_blur_shader;
 Shader Renderer::s_vertical_blur_shader;
 MuzzleFlash Renderer::s_muzzleFlash;
+bool Renderer::m_firstRenderLoop = true;
 
 
 void Renderer::Init(int screenWidth, int screenHeight)
@@ -173,6 +174,12 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
 
     RenderDebugShit();
 
+
+
+
+	SetViewport(player);
+	glBindFramebuffer(GL_FRAMEBUFFER, s_gBuffer.ID);
+
     static unsigned int VAO = 0;
     if (VAO == 0) {
         unsigned int VBO;
@@ -252,7 +259,7 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
     glDrawBuffer(GL_COLOR_ATTACHMENT3);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, s_gBuffer.gAlbedo);
+    glBindTexture(GL_TEXTURE_2D, s_gBuffer.gPostProcessed);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, s_gBuffer.gPostProcessed);
     glActiveTexture(GL_TEXTURE2);
@@ -273,6 +280,16 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
     s_final_pass_shader.setFloat("u_time", CoreGL::GetGLTime());
 
     if (player == 1) {
+        // light bulbs
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, s_BlurBuffers_p1[0].textureA);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, s_BlurBuffers_p1[1].textureA);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, s_BlurBuffers_p1[2].textureA);
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, s_BlurBuffers_p1[3].textureA);
+
         s_final_pass_shader.setFloat("u_timeSinceDeath", GameData::s_player1.m_timeSinceDeath);
         if (GameData::s_splitScreen)
             DrawViewportQuad(&s_final_pass_shader, ViewportSize::SPLITSCREEN_TOP);
@@ -298,6 +315,15 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
         }
     }
     if (player == 2) {
+		// light bulbs
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, s_BlurBuffers_p2[0].textureA);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, s_BlurBuffers_p2[1].textureA);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, s_BlurBuffers_p2[2].textureA);
+		glActiveTexture(GL_TEXTURE4);
+		glBindTexture(GL_TEXTURE_2D, s_BlurBuffers_p2[3].textureA);
         s_final_pass_shader.use();
         s_final_pass_shader.setFloat("u_timeSinceDeath", GameData::s_player2.m_timeSinceDeath);
         //Draw_2_Player_Split_Screen_Quad_Bottom(&s_final_pass_shader);
@@ -335,6 +361,7 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
     }
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    m_firstRenderLoop = false;
 }
 
 void Renderer::RenderPlayerCrosshair(int renderWidth, int renderHeight, Player* player)
@@ -1072,6 +1099,38 @@ void Renderer::RenderDebugShit()
 
 }
 
+void Renderer::DrawFullScreenQuad(Shader* shader)
+{
+	static GLuint VAO_fullscreen = 0;
+
+	if (VAO_fullscreen == 0) {
+		float quadVertices[] = {
+			// positions         texcoords
+			-1.0f,  1.0f, 0.0f,  0.0f, 1.0f,
+			-1.0f, -1.0f, 0.0f,  0.0f, 0.0f,
+				1.0f,  1.0f, 0.0f,  1.0f, 1.0f,
+				1.0f, -1.0f, 0.0f,  1.0f, 0.0f,
+		};
+		unsigned int VBO;
+		glGenVertexArrays(1, &VAO_fullscreen);
+		glGenBuffers(1, &VBO);
+		glBindVertexArray(VAO_fullscreen);
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(1);
+	}
+
+	shader->use();
+	shader->setMat4("model", glm::mat4(1));
+
+	glBindVertexArray(VAO_fullscreen);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
+}
+
 Player* Renderer::GetPlayerFromIndex(int index)
 {
 	if (index == 1)
@@ -1156,7 +1215,7 @@ void Renderer::IndirectShadowMapPass()
 
     for (Light& light : GameData::s_lights)
 	{
-		if (!light.m_needsUpadte)
+		if (!light.m_needsUpadte && !m_firstRenderLoop)
 			continue;
 
         glViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
@@ -1186,7 +1245,7 @@ void Renderer::ShadowMapPass()
 
     for (Light& light : GameData::s_lights)
     {
-        if (!light.m_needsUpadte)
+        if (!light.m_needsUpadte && !m_firstRenderLoop)
             continue;
 
         glViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
@@ -1230,7 +1289,7 @@ void Renderer::GeometryPass(int player, int renderWidth, int renderHeight)
 
 
 	// render player weapons
-    bool renderPlayerWeaponsAlways = true;
+    bool renderPlayerWeaponsAlways = false;
     shader->setFloat("u_gunMask", 1.0f);
     if (player == 1 && GameData::s_player1.m_isAlive || renderPlayerWeaponsAlways)
         GameData::s_player1.m_HUD_Weapon.Render(&s_geometry_shader, GameData::s_player1.m_camera.m_swayTransform.to_mat4());
@@ -1579,17 +1638,16 @@ void Renderer::EmissiveBlurPass(int player, int renderWidth, int renderHeight, i
 	if (levels < 1)
 		return;
 
-    std::cout << "\n\nPLAYER: " << player << "\n";
-
     // down scale and blur the emissive texture thru ping pong shit 
-
 	glDisable(GL_DEPTH_TEST);
 
-    // Declare a pointer to an array of 4 blur buffres
-    std::vector<BlurBuffer>* blurBuffers;// [4] ;
-    
-    if (player == 1)
-        blurBuffers = &s_BlurBuffers_p1;
+    // Declare a pointer to a vector of blur buffres
+    std::vector<BlurBuffer>* blurBuffers;
+
+	if (player == 1)
+		blurBuffers = &s_BlurBuffers_p1;
+	else if (player == 2)
+		blurBuffers = &s_BlurBuffers_p2;
 
 	Shader* horizontalShader = &s_horizontal_blur_shader;
     Shader* verticalShader = &s_vertical_blur_shader;
@@ -1597,10 +1655,10 @@ void Renderer::EmissiveBlurPass(int player, int renderWidth, int renderHeight, i
 	// Source
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, s_gBuffer.ID);
 	glReadBuffer(GL_COLOR_ATTACHMENT6);
-	int factor = 2;
+	int factor = 2;        
 
 	// Destination
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, (*blurBuffers[0]).ID);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, (*blurBuffers)[0].ID);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
     int origin_X = 0;
@@ -1641,107 +1699,79 @@ void Renderer::EmissiveBlurPass(int player, int renderWidth, int renderHeight, i
 	int srcY_1 = origin_Y;
 	int srcX_2 = viewportWidth;
 	int srcY_2 = origin_Y + viewportHeight;	
-    int destX_1 = srcX_1 / factor;
-	int destY_1 = srcY_1 / factor;
-	int destX_2 = srcX_2 / factor;
-	int destY_2 = srcY_2 / factor;
+    int destX_1 = 0;
+	int destY_1 = 0;
+	int destX_2 = (*blurBuffers)[0].width;
+	int destY_2 = (*blurBuffers)[0].height;
 	glBlitFramebuffer(srcX_1, srcY_1, srcX_2, srcY_2, destX_1, destY_1, destX_2, destY_2, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-	std::cout << " srcX_1 " << srcX_1 << "\n";
-	std::cout << " srcY_1 " << srcY_1 << "\n";
-	std::cout << " srcX_2 " << srcX_2 << "\n";
-	std::cout << " srcY_2 " << srcY_2 << "\n\n";
-
-	std::cout << " destX_1 " << destX_1 << "\n";
-	std::cout << " destY_1 " << destY_1 << "\n";
-	std::cout << " destX_2 " << destX_2 << "\n";
-	std::cout << " destY_2 " << destY_2 << "\n\n";
-
-    return;
 	// Blur horizontal
-	/*glViewport(destX_1, destY_1, destX_2 - destX_1, destY_2 - destY_1);
-	glBindFramebuffer(GL_FRAMEBUFFER, s_BlurBuffers[0].ID);
-
+	glViewport(0, 0, (*blurBuffers)[0].width, (*blurBuffers)[0].height);
+	glBindFramebuffer(GL_FRAMEBUFFER, (*blurBuffers)[0].ID);
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
 	glDrawBuffer(GL_COLOR_ATTACHMENT1);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, s_BlurBuffers[0].textureA);
+	glBindTexture(GL_TEXTURE_2D, (*blurBuffers)[0].textureA);
 	horizontalShader->use();
 	horizontalShader->setFloat("targetWidth", viewportWidth / factor);
-    DrawViewportQuad(horizontalShader, GetViewportSize(player));
+    DrawFullScreenQuad(horizontalShader);
 	// Blur vertical
-	glViewport(destX_1, destY_1, destX_2 - destX_1, destY_2 - destY_1);
-	glBindFramebuffer(GL_FRAMEBUFFER, s_BlurBuffers[0].ID);
+	glViewport(0, 0, (*blurBuffers)[0].width, (*blurBuffers)[0].height);
+	glBindFramebuffer(GL_FRAMEBUFFER, (*blurBuffers)[0].ID);
 	glReadBuffer(GL_COLOR_ATTACHMENT1);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, s_BlurBuffers[0].textureB);
+	glBindTexture(GL_TEXTURE_2D, (*blurBuffers)[0].textureB);
 	verticalShader->use();
 	verticalShader->setFloat("targetHeight", viewportHeight / factor);
 	DrawViewportQuad(verticalShader, GetViewportSize(player));
 
-
+    
 	// second downscale //
 	for (int i = 1; i < levels; i++)
 	{
 		// Source
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, s_BlurBuffers[i - 1].ID);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, (*blurBuffers)[i - 1].ID);
 		glReadBuffer(GL_COLOR_ATTACHMENT0);
 
 		// Destination
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, s_BlurBuffers[i].ID);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, (*blurBuffers)[i].ID);
 		glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
 		// Blit
-		srcX_1 = destX_1;
-		srcY_1 = destY_1;
-		srcX_2 = destX_2;
-		srcY_2 = destY_2;
-		destX_1 = srcX_1 / 2;
-		destY_1 = srcY_1 / 2;
-		destX_2 = destX_1 + ((destX_2 - destX_1) / 2);
-		destY_2 = destY_1 + ((destY_2 - destY_1) / 2);
-		//destX_2 = srcX_2 / factor * (factor / 2);
-		//destY_2 = srcY_2 / factor * (factor / 2);
+		srcX_1 = 0;
+		srcY_1 = 0;
+		srcX_2 = (*blurBuffers)[i-1].width;
+		srcY_2 = (*blurBuffers)[i-1].height;
+		destX_1 = 0;
+		destY_1 = 0;
+		destX_2 = (*blurBuffers)[i].width;
+		destY_2 = (*blurBuffers)[i].height;
 		glBlitFramebuffer(srcX_1, srcY_1, srcX_2, srcY_2, destX_1, destY_1, destX_2, destY_2, GL_COLOR_BUFFER_BIT, GL_LINEAR);
         		
-		std::cout << " srcX_1 " << srcX_1 << "\n";
-		std::cout << " srcY_1 " << srcY_1 << "\n";
-		std::cout << " srcX_2 " << srcX_2 << "\n";
-		std::cout << " srcY_2 " << srcY_2 << "\n\n";
-
-		std::cout << " destX_1 " << destX_1 << "\n";
-		std::cout << " destY_1 " << destY_1 << "\n";
-		std::cout << " destX_2 " << destX_2 << "\n";
-		std::cout << " destY_2 " << destY_2 << "\n\n";
-
 		// Blur horizontal
-		int destinationViewportWidth = destX_2 - destX_1;
-		int destinationViewportHeight = destY_2 - destY_1;
-		glViewport(destX_1, destY_1, destinationViewportWidth, destinationViewportHeight);
-		//glViewport(0, 0, CoreGL::s_windowWidth / factor, CoreGL::s_windowHeight / factor);
-		glBindFramebuffer(GL_FRAMEBUFFER, s_BlurBuffers[i].ID);
+		glViewport(0, 0, (*blurBuffers)[i].width, (*blurBuffers)[i].height);
+		glBindFramebuffer(GL_FRAMEBUFFER, (*blurBuffers)[i].ID);
 		glReadBuffer(GL_COLOR_ATTACHMENT0);
 		glDrawBuffer(GL_COLOR_ATTACHMENT1);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, s_BlurBuffers[i].textureA);
+		glBindTexture(GL_TEXTURE_2D, (*blurBuffers)[i].textureA);
 		horizontalShader->use();
 		horizontalShader->setFloat("targetWidth", viewportWidth / factor);
-		DrawViewportQuad(verticalShader, GetViewportSize(player));
+		DrawFullScreenQuad(horizontalShader);
 
 		// Blur vertical
-		glViewport(destX_1, destY_1, destinationViewportWidth, destinationViewportHeight);
-		glBindFramebuffer(GL_FRAMEBUFFER, s_BlurBuffers[i].ID);
+		glViewport(0, 0, (*blurBuffers)[i].width, (*blurBuffers)[i].height);
+		glBindFramebuffer(GL_FRAMEBUFFER, (*blurBuffers)[i].ID);
 		glReadBuffer(GL_COLOR_ATTACHMENT1);
 		glDrawBuffer(GL_COLOR_ATTACHMENT0);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, s_BlurBuffers[i].textureB);
+		glBindTexture(GL_TEXTURE_2D, (*blurBuffers)[i].textureB);
 		verticalShader->use();
 		verticalShader->setFloat("targetHeight", viewportHeight / factor);
-		DrawViewportQuad(verticalShader, GetViewportSize(player));
+		DrawFullScreenQuad(verticalShader);
 
 		factor *= 2;
-        std::cout << i << "\n";
 	}
 	// return the viewport to it's orginal fucking size. this has stumped you for so long twice now. adding this will stop it.
 	//glViewport(0, 0, CoreGL::s_windowWidth, CoreGL::s_windowHeight);*/
@@ -1847,7 +1877,7 @@ void Renderer::DrawScene(Shader* shader, RenderPass renderPass, int player)
         }
            
 	// Player models
-	bool renderPlayerCharacterModels = false;
+	bool renderPlayerCharacterModels = true;
     if (renderPlayerCharacterModels) {
         if (player == 2 && GameData::s_player1.m_isAlive)
             GameData::s_player1.RenderCharacterModel(shader);

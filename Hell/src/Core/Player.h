@@ -116,6 +116,7 @@ public: // fields
 	bool m_createdBloodPool = false;
 
 	bool m_enableControl = true;
+	float m_yVelocity = 0;
 
 	SkinnedModel* m_currentWeaponSkinnedModel;
 
