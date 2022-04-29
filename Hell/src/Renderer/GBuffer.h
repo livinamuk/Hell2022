@@ -8,6 +8,9 @@ public:
 	GBuffer();
 	~GBuffer();
 
+	// gAlbedo: alpha channel has gun mask, used for using the indirect light shadowmap for gun models instead of reg shadowmap.
+	// gEmissve
+
 	unsigned int ID;
 	unsigned int gAlbedo, gNormal, gRMA, gFinal, rboDepth, gLighting, gPostProcessed;
 

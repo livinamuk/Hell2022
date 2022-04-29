@@ -8,6 +8,10 @@ void Material::Bind()
 	glBindTexture(GL_TEXTURE_2D, NRM);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, RMA);
+	//if (E != 0) {
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, E);
+	//}
 }
 void Material::BindToSecondSlot()
 {

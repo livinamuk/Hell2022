@@ -85,8 +85,9 @@ void AssetManager::CreateMaterials()
 
             Material material;
             material.ALB = texture.ID;
-            material.RMA = GetTexturePtr(name + "_RMA")->ID;
-            material.NRM = GetTexturePtr(name + "_NRM")->ID;
+			material.RMA = GetTexturePtr(name + "_RMA")->ID;
+			material.NRM = GetTexturePtr(name + "_NRM")->ID; 
+			material.E = GetTexturePtr(name + "_E")->ID;
             m_materials[name] = material;
 
             std::cout << "Created Material: " << name << "\n";

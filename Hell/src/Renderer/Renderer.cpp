@@ -1584,12 +1584,14 @@ void Renderer::DrawScene(Shader* shader, RenderPass renderPass, int player)
 
     if (renderPass == RenderPass::GEOMETRY) 
     {
-        // Light bulbs
-        for (auto& light : GameData::s_lights)
-            light.Draw(shader);
-
-     //   for (BloodPool bloodPool : Scene::s_bloodPools)
-        //    bloodPool.Draw(shader);
+		// Light bulbs
+		shader->setBool("u_hasEmissive", true);
+        for (int i = 0; i < GameData::s_lights.size(); i++) {
+			Light* light = &GameData::s_lights[i];
+			shader->setBool("u_lightIndex", i);
+            light->Draw(shader);
+        }
+		shader->setBool("u_hasEmissive", false);
     }
 
 

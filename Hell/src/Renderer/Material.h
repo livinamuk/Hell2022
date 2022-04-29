@@ -12,5 +12,5 @@ public: // fields
 	GLuint ALB = 0;
 	GLuint NRM = 0;
 	GLuint RMA = 0;
-	GLuint RME = 0;
+	GLuint E = 0;
 };
