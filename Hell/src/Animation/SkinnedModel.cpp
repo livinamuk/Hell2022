@@ -129,7 +129,7 @@ int SkinnedModel::FindAnimatedNodeIndex(float AnimationTime, const AnimatedNode*
         if (AnimationTime < animatedNode->m_nodeKeys[i].timeStamp)
             return i-1;
     }
-    return animatedNode->m_nodeKeys.size() - 1;
+    return (int)animatedNode->m_nodeKeys.size() - 1;
 }
 
 
@@ -355,7 +355,7 @@ void SkinnedModel::CalculateCameraBindposeTransform()
 	final *= Camera001_$AssimpFbx$_PostRotation;
 	m_cameraBindPose = final;
 
-	std::cout << "Camera\n";
+	/*std::cout << "Camera\n";
 	Util::PrintMat4(camera);
 	std::cout << "Camera001_$AssimpFbx$_Translation\n";
 	Util::PrintMat4(Camera001_$AssimpFbx$_Translation);
@@ -365,5 +365,5 @@ void SkinnedModel::CalculateCameraBindposeTransform()
 	Util::PrintMat4(Camera001_$AssimpFbx$_PostRotation);
 
 	std::cout << "Camera bind pose\n";
-	Util::PrintMat4(m_cameraBindPose);
+	Util::PrintMat4(m_cameraBindPose);*/
 }

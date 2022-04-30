@@ -40,7 +40,7 @@ void Audio::Init()
 	Audio::LoadAudio("FLY_Bullet_Impact_Flesh_06.wav");
 	Audio::LoadAudio("FLY_Bullet_Impact_Flesh_07.wav");
 	Audio::LoadAudio("FLY_Bullet_Impact_Flesh_08.wav");
-	Audio::LoadAudio("BuolletCasingBounce.wav");
+	Audio::LoadAudio("BulletCasingBounce.wav");
 	Audio::LoadAudio("FLY_Head_Explode_01.wav");
 	Audio::LoadAudio("GlassImpact.wav");
 	Audio::LoadAudio("UI_Beep.wav");

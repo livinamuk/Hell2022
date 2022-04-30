@@ -103,7 +103,7 @@ void Wall::BuildMeshFromVertices()
 	//m_actor->userData = new EntityData(PhysicsObjectType::MISC_MESH, this);
 
 	m_rigidStatic->setName("WALL");
-	m_rigidStatic->userData = new EntityData(PhysicsObjectType::MISC_MESH, this);
+	m_rigidStatic->userData = new EntityData(PhysicsObjectType::WALL, this);
 
 	PxShape* shape;
 	m_rigidStatic->getShapes(&shape, 1);

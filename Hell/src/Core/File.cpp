@@ -56,7 +56,7 @@ void File::LoadMap(std::string filename)
 			{
 				auto arr = rooms[i]["Vertices"].GetArray();
 
-				for (int i = 0; i < arr.Size(); i += 3)
+				for (auto i = 0; i < arr.Size(); i += 3)
 				{
 					float x = arr[i].GetFloat();
 					float y = arr[i+1].GetFloat();

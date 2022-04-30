@@ -158,6 +158,8 @@ int main()
 			meshEntry.material = AssetManager::GetMaterialPtr("Axe");
 	}
 
+    AssetManager::LoadVolumetricBloodTextures();
+
     Audio::Init();
 
     Transform tableTransform;
@@ -306,8 +308,8 @@ int main()
 
     while (CoreGL::IsRunning() && !Input::s_keyDown[HELL_KEY_ESCAPE])
     {
-        if (Input::KeyPressed(HELL_KEY_O))
-            File::LoadMap("Map.json");
+       // if (Input::KeyPressed(HELL_KEY_O))
+        //    File::LoadMap("Map.json");
 
         double deltaTime = glfwGetTime() - lastTime;
         accumulator += deltaTime;
@@ -401,19 +403,23 @@ int main()
             TextBlitter::BlitLine("");
             TextBlitter::BlitLine("P1 Kill count: " + std::to_string(GameData::s_player1.m_killCount));
             TextBlitter::BlitLine("P2 Kill count: " + std::to_string(GameData::s_player2.m_killCount));
-            TextBlitter::BlitLine("");
-            TextBlitter::BlitLine("Body count: " + std::to_string(Scene::s_gameCharacters.size()));
+			TextBlitter::BlitLine("");
+			TextBlitter::BlitLine("Blood splatters: " + std::to_string(GameData::s_bloodDecals.size()));
+			TextBlitter::BlitLine("Bullet holes: " + std::to_string(GameData::s_bulletDecals.size()));
+			TextBlitter::BlitLine("Projectiles: " + std::to_string(GameData::s_bulletCasings.size()));
+			TextBlitter::BlitLine("Body count: " + std::to_string(Scene::s_gameCharacters.size()));
             
            //TextBlitter::BlitLine("Weapon State: " + Util::WeaponStateToString(GameData::s_player1.m_HUDWeaponAnimationState));
 
-			TextBlitter::BlitLine("");
+		/*	TextBlitter::BlitLine("");
 			for (int i = 0; i < GameData::s_lights.size(); i++)
 				TextBlitter::BlitLine("Light[" + std::to_string(i) + "]: " + std::to_string(GameData::s_lights[i].m_needsUpadte));
 
 			TextBlitter::BlitLine("");
+            TextBlitter::BlitLine("Volumetric blood count: " + std::to_string(GameData::s_volumetricBloodSplatters.size()));
+            */
 
-
-			glm::mat4 identity(1);
+			/*glm::mat4 identity(1);
 			glm::mat4 invserse = glm::inverse(glm::mat4(1));
 			TextBlitter::BlitLine("identity");
 			TextBlitter::BlitLine(Util::Mat4ToString(identity));
@@ -427,7 +433,7 @@ int main()
             auto& cam = GameData::s_player1.m_HUD_Weapon.m_animatedTransforms.cameraMatrix;
             auto str = Util::Mat4ToString(BindPoseBoneMatrix);
 			TextBlitter::BlitLine(str);
-           
+           */
             
 
             //for (int i = 0; i < GameData::s_doors.size(); i++)

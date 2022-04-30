@@ -25,7 +25,6 @@ void Camera::CalculateMatrices(glm::mat4 animatedCameraMatrix)
 	m_Up = glm::vec3(m_inverseViewMatrix[1]);// *glm::vec3(-1, -1, -1);
 	m_Front = glm::vec3(m_inverseViewMatrix[2]) * glm::vec3(-1, -1, -1);
 
-	//glm::vec4 vP = (m_inverseViewMatrix * glm::vec4(0, 0, 0, 1));
 	m_viewPos = m_inverseViewMatrix[3];// glm::vec3(vP.x, vP.y, vP.z);
 
 	m_projectionViewMatrix = m_projectionMatrix * m_viewMatrix;
@@ -33,9 +32,8 @@ void Camera::CalculateMatrices(glm::mat4 animatedCameraMatrix)
 
 void Camera::CalculateProjectionMatrix(int screenWidth, int screenHeight)
 {
-	//m_projectionMatrix = glm::perspective(1.0125f, (float)screenWidth / (float)screenHeight, NEAR_PLANE, FAR_PLANE);
 	m_projectionMatrix = glm::perspective(1.0f, (float)screenWidth / (float)screenHeight, NEAR_PLANE, FAR_PLANE);
-	m_inversePprojectionMatrix = glm::inverse(m_projectionMatrix);
+	m_inverseProjectionMatrix = glm::inverse(m_projectionMatrix);
 }
 
 void Camera::CalculateWeaponSway(float deltaTime, float xOffset, float yOffset, float xMax)

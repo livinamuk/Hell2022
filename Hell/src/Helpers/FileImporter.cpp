@@ -89,14 +89,14 @@ SkinnedModel* FileImporter::LoadSkinnedModel(const char* filename)
 
      std::cout << "Loaded model " << skinnedModel->m_filename << " ("  << skinnedModel->m_BoneInfo.size() << " bones)\n";
      
-     std::cout << "m_GlobalInverseTransform\n";
-	 Util::PrintMat4(skinnedModel->m_GlobalInverseTransform);
+     //std::cout << "m_GlobalInverseTransform\n";
+	 //Util::PrintMat4(skinnedModel->m_GlobalInverseTransform);
 
 	 skinnedModel->CalculateCameraBindposeTransform();
 
      for (auto b : skinnedModel->m_BoneInfo)
      {
-         std::cout << "-" << b.BoneName << "\n";
+         //std::cout << "-" << b.BoneName << "\n";
      }
 
     m_Importer.FreeScene();
@@ -335,7 +335,7 @@ void FileImporter::LoadAnimation(SkinnedModel* skinnedModel, const char* Filenam
     // Success
     m_pAnimationScene = new aiScene(*tempAnimScene);
     if (m_pAnimationScene) {
-        animation->m_duration = m_pAnimationScene->mAnimations[0]->mDuration;
+        animation->m_duration = (float)m_pAnimationScene->mAnimations[0]->mDuration;
         animation->m_ticksPerSecond = m_pAnimationScene->mAnimations[0]->mTicksPerSecond;
          std::cout << "Loaded animation: " << Filename << "\n";
     }

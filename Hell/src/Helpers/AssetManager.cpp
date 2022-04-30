@@ -10,6 +10,19 @@ std::unordered_map<std::string, SkinnedModel*> AssetManager::m_skinnedModelPtrs;
 std::vector<FileInfo> AssetManager::s_assetFilesToLoad;
 std::string AssetManager::s_loadLog;
 
+ExrTexture AssetManager::s_ExrTexture_pos;
+ExrTexture AssetManager::s_ExrTexture_norm;
+ExrTexture AssetManager::s_ExrTexture_pos4;
+ExrTexture AssetManager::s_ExrTexture_norm4;
+ExrTexture AssetManager::s_ExrTexture_pos6;
+ExrTexture AssetManager::s_ExrTexture_norm6;
+ExrTexture AssetManager::s_ExrTexture_pos7;
+ExrTexture AssetManager::s_ExrTexture_norm7;
+ExrTexture AssetManager::s_ExrTexture_pos8;
+ExrTexture AssetManager::s_ExrTexture_norm8;
+ExrTexture AssetManager::s_ExrTexture_pos9;
+ExrTexture AssetManager::s_ExrTexture_norm9;
+
 void AssetManager::DiscoverAssetFilenames()
 {
     // load compressed texutures first
@@ -25,8 +38,12 @@ void AssetManager::DiscoverAssetFilenames()
         
     // then check regular file, and if name doesn't already exist, load it...
     path = "res/textures/";
-    for (const auto& entry : std::filesystem::directory_iterator(path))            
-        s_assetFilesToLoad.emplace_back(GetFileInfo(entry));
+    for (const auto& entry : std::filesystem::directory_iterator(path)) 
+    {        
+        FileInfo info = GetFileInfo(entry);
+        if (info.filetype != "exr")
+            s_assetFilesToLoad.emplace_back(info);
+    }
 
     path = "res/models/";
     for (const auto& entry : std::filesystem::directory_iterator(path))
@@ -99,6 +116,22 @@ void AssetManager::CreateMaterials()
 void AssetManager::LoadRagdoll(std::string filepath)
 {
 
+}
+
+void AssetManager::LoadVolumetricBloodTextures()
+{
+	s_ExrTexture_pos = ExrTexture("res/textures/blood_pos.exr");
+	s_ExrTexture_norm = ExrTexture("res/textures/blood_norm.exr");
+	s_ExrTexture_pos4 = ExrTexture("res/textures/blood_pos4.exr");
+	s_ExrTexture_norm4 = ExrTexture("res/textures/blood_norm4.exr");
+	s_ExrTexture_pos6 = ExrTexture("res/textures/blood_pos6.exr");
+	s_ExrTexture_norm6 = ExrTexture("res/textures/blood_norm6.exr");
+	s_ExrTexture_pos7 = ExrTexture("res/textures/blood_pos7.exr");
+	s_ExrTexture_norm7 = ExrTexture("res/textures/blood_norm7.exr");
+	s_ExrTexture_pos8 = ExrTexture("res/textures/blood_pos8.exr");
+	s_ExrTexture_norm8 = ExrTexture("res/textures/blood_norm8.exr");
+	s_ExrTexture_pos9 = ExrTexture("res/textures/blood_pos9.exr");
+	s_ExrTexture_norm9 = ExrTexture("res/textures/blood_norm9.exr");
 }
 
 void AssetManager::LoadAssets()

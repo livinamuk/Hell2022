@@ -46,6 +46,7 @@ public: // functions
 	static void MuzzleFlashPass(int player, int renderWidth, int renderHeight);
 	static void PostProcessingPass(int player);
 	static void EmissiveBlurPass(int player, int renderWidth, int renderHeight, int levels);
+	static void VolumetricBloodPass(int player, int renderWidth, int renderHeight);
 
 
 	static void DrawScene(Shader* shader, RenderPass renderPass, int player = 0);
@@ -104,6 +105,8 @@ public: // variables
 	static Shader s_blood_decal_shader;
 	static Shader s_horizontal_blur_shader;
 	static Shader s_vertical_blur_shader;
+	static Shader s_volumetric_blood_shader;
+	static Shader s_instanced_geometry_shader;
 	//static Shader s_textured_editor_shader;
 
 	static bool s_showBuffers;

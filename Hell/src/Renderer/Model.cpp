@@ -26,7 +26,7 @@ Model::~Model()
 
 void Model::ReadFromDisk(bool createCollisionMesh)
 {
-	//std::cout << "Loading obj model: " << this->name << "\n";
+	std::cout << "Loading obj model: " << this->name << "\n";
 
 	// Check file exists
 	if (!FileExists(this->m_filePath.c_str()))

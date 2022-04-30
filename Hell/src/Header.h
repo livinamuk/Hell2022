@@ -184,7 +184,7 @@ enum ActiveGroup
 	//GROUP4 = (1 << 3),
 };
 
-#define WORLD_GROUND_SIZE
+//#define WORLD_GROUND_SIZE
 
 #define DONT_INTERSECT 0
 #define DO_INTERSECT 1

@@ -34,13 +34,17 @@ Shader Renderer::s_decal_shader;
 Shader Renderer::s_blood_decal_shader;
 Shader Renderer::s_horizontal_blur_shader;
 Shader Renderer::s_vertical_blur_shader;
+Shader Renderer::s_volumetric_blood_shader;
+Shader Renderer::s_instanced_geometry_shader;
+
 MuzzleFlash Renderer::s_muzzleFlash;
 bool Renderer::m_firstRenderLoop = true;
 
 
 void Renderer::Init(int screenWidth, int screenHeight)
 {
-    s_geometry_shader = Shader("geometry.vert", "geometry.frag");
+	s_geometry_shader = Shader("geometry.vert", "geometry.frag");
+    s_instanced_geometry_shader = Shader("geometryInstanced.vert", "geometry.frag");
     s_solid_color_shader = Shader("solidColor.vert", "solidColor.frag");
     s_solid_color_shader_editor = Shader("solidColorEditor.vert", "solidColorEditor.frag");
     s_textued_2D_quad_shader = Shader("textured2DquadShader.vert", "textured2DquadShader.frag");
@@ -56,7 +60,8 @@ void Renderer::Init(int screenWidth, int screenHeight)
 	s_decal_shader = Shader("decals.vert", "decals.frag");
 	s_blood_decal_shader = Shader("blood_decal_shader.vert", "blood_decal_shader.frag");
 	s_horizontal_blur_shader = Shader("blurHorizontal.vert", "blur.frag");
-    s_vertical_blur_shader = Shader("blurVertical.vert", "blur.frag");
+	s_vertical_blur_shader = Shader("blurVertical.vert", "blur.frag");
+    s_volumetric_blood_shader = Shader("bloodVolumetric.vert", "bloodVolumetric.frag");
     
     s_gBuffer = GBuffer(screenWidth, screenHeight);
 
@@ -161,8 +166,12 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
 
         GeometryPass(player, renderWidth, renderHeight);
         DecalPass(player, renderWidth, renderHeight);
+        VolumetricBloodPass(player, renderWidth, renderHeight);
         LightingPass(player, renderWidth, renderHeight);
         MuzzleFlashPass(player, renderWidth, renderHeight);
+
+        RenderDebugShit();
+
         PostProcessingPass(player); 
         EmissiveBlurPass(player, renderWidth, renderHeight, 4);
 
@@ -172,7 +181,6 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
 
     }
 
-    RenderDebugShit();
 
 
 
@@ -520,6 +528,7 @@ void Renderer::DrawLine(Shader* shader, glm::vec3 p1, glm::vec3 p2, glm::vec3 co
 void Renderer::HotLoadShaders()
 {
     s_geometry_shader.ReloadShader();
+    s_instanced_geometry_shader.ReloadShader();
     s_solid_color_shader.ReloadShader();
     s_solid_color_shader_editor.ReloadShader();
     s_textued_2D_quad_shader.ReloadShader();
@@ -534,6 +543,7 @@ void Renderer::HotLoadShaders()
     s_blood_decal_shader.ReloadShader();
 	s_horizontal_blur_shader.ReloadShader();
 	s_vertical_blur_shader.ReloadShader();
+    s_volumetric_blood_shader.ReloadShader();
 }
 
 void Renderer::DrawPoint(Shader* shader, glm::vec3 position, glm::vec3 color)
@@ -1032,10 +1042,12 @@ void Renderer::RenderDebugShit()
 
 
 
-
     Shader* shader = &s_solid_color_shader;
     shader->use();
 
+
+
+	//DrawPoint(shader, GameData::s_player1.GetCasingSpawnLocation(), RED);
 
     // decals
     for (auto& decal : GameData::s_bulletDecals) {
@@ -1306,14 +1318,14 @@ void Renderer::DecalPass(int playerIndex, int renderWidth, int renderHeight)
     Player* player = GetPlayerFromIndex(playerIndex);
     Shader* shader = &s_decal_shader;
 	shader->use();
-    shader->setMat4("pv", player->m_camera.m_projectionViewMatrix);
-	shader->setMat4("inverseProjectionMatrix", glm::inverse(player->m_camera.m_projectionMatrix));
-	shader->setMat4("inverseViewMatrix", glm::inverse(player->m_camera.m_viewMatrix));
+    shader->setMat4("pv", player->GetProjectionViewMatrix());
+	shader->setMat4("inverseProjectionMatrix", player->GetInverseProjectionMatrix());
+	shader->setMat4("inverseViewMatrix", player->GetInverseViewMatrix());
 	shader->setFloat("fullscreenWidth", CoreGL::s_currentWidth);
 	shader->setFloat("fullscreenHeight", CoreGL::s_currentHeight);
-	shader->setVec3("u_CameraFront", player->m_camera.m_Front);
+	shader->setVec3("u_CameraFront", player->GetCameraFrontVector());
 	shader->setFloat("u_alphaModifier", 0.5);
-	shader->setVec3("u_ViewPos", player->GetPosition() + glm::vec3(0, player->m_cameraViewHeight, 0));
+	shader->setVec3("u_ViewPos", player->GetViewPosition());
     if (!GameData::s_splitScreen)
         shader->setInt("u_playerIndex", 0);
     else
@@ -1335,10 +1347,6 @@ void Renderer::DecalPass(int playerIndex, int renderWidth, int renderHeight)
 	glBindTexture(GL_TEXTURE_2D, AssetManager::GetTexturePtr("BulletHole_Plaster_Mask")->ID);
 	for (BulletDecal decal : GameData::s_bulletDecals)
 		decal.Draw(shader);
-
-
-	///glDepthMask(GL_TRUE);
-    //return;
 
 
     // Blood splatters
@@ -1522,9 +1530,9 @@ void Renderer::MuzzleFlashPass(int playerIndex, int renderWidth, int renderHeigh
     glDepthMask(GL_FALSE);
     glDisable(GL_CULL_FACE);
 
-    glm::mat4 proj = player->GetCameraProjectionMatrix();
-    glm::mat4 view = player->GetCameraViewMatrix();
-    glm::vec3 viewPos = player->GetViewPos();
+    glm::mat4 proj = player->GetProjectionMatrix();
+    glm::mat4 view = player->GetViewMatrix();
+    glm::vec3 viewPos = player->GetViewPosition();
 
     Shader* shader = &s_animated_quad_shader;
     shader->use();
@@ -1777,6 +1785,43 @@ void Renderer::EmissiveBlurPass(int player, int renderWidth, int renderHeight, i
 	//glViewport(0, 0, CoreGL::s_windowWidth, CoreGL::s_windowHeight);*/
 }
 
+
+void Renderer::VolumetricBloodPass(int playerIndex, int renderWidth, int renderHeight)
+{
+    //static float animTime = 0;
+	//animTime += game->m_frameTime;
+
+	//if (Input::s_keyPressed[HELL_KEY_U])
+	//	s_animTime = 0;
+
+	glBindFramebuffer(GL_FRAMEBUFFER, s_gBuffer.ID);
+    SetViewport(playerIndex);
+
+	unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	glDrawBuffers(3, attachments);
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
+	glCullFace(GL_BACK);
+
+
+	//AssetManager::BindMaterial_0(AssetManager::GetMaterialIDByName("White"));
+    Player* player = GetPlayerFromIndex(playerIndex);
+    Shader* shader = &s_volumetric_blood_shader;
+	shader->use();
+	shader->setMat4("u_MatrixProjection", player->GetProjectionMatrix());
+	shader->setMat4("u_MatrixView", player->GetViewMatrix());
+	shader->setVec3("u_WorldSpaceCameraPos", player->GetViewPosition());
+
+    
+	for (int i = 0; i < GameData::s_volumetricBloodSplatters.size(); i++)
+	{
+        GameData::s_volumetricBloodSplatters[i].Draw(shader);
+	}
+}
+
 void Renderer::DrawScene(Shader* shader, RenderPass renderPass, int player)
 {
     // Indirect shadow map
@@ -1849,7 +1894,12 @@ void Renderer::DrawScene(Shader* shader, RenderPass renderPass, int player)
     }
 
 
- 
+
+    // Shells and bullet casings
+	//for (BulletCasing& casing : GameData::s_bulletCasings)
+	//	casing.Draw(shader);
+
+    GameData::DrawInstanced(&s_instanced_geometry_shader);
 
     glEnable(GL_BLEND);
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1864,6 +1914,8 @@ void Renderer::DrawScene(Shader* shader, RenderPass renderPass, int player)
     shader->use();
     shader->setBool("hasAnimation", true);
     shader->setMat4("model", glm::mat4(1));
+
+
 
 
 	Player* playerPtr = GetPlayerFromIndex(player);

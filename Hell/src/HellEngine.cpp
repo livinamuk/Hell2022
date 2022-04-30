@@ -202,15 +202,17 @@ void HellEngine::Render()
 		glViewport(0, CoreGL::s_currentHeight / 2, CoreGL::s_currentWidth, CoreGL::s_currentHeight/2);
 	}
 
+
 	// Player 1
 	GameData::s_player1.UpdateCamera(renderWidth, renderHeight);
-	
+	GameData::s_player1.CalculateViewMatrices();
+		
 	// Matrices
 	glBindBuffer(GL_UNIFORM_BUFFER, Renderer::m_uboMatrices);
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 0, sizeof(glm::mat4), glm::value_ptr(GameData::s_player1.GetCameraProjectionMatrix()));
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 1, sizeof(glm::mat4), glm::value_ptr(GameData::s_player1.GetCameraViewMatrix()));
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 3, sizeof(glm::mat4), glm::value_ptr(glm::inverse(GameData::s_player1.GetCameraProjectionMatrix())));
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 4, sizeof(glm::mat4), glm::value_ptr(glm::inverse(GameData::s_player1.GetCameraViewMatrix())));
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 0, sizeof(glm::mat4), glm::value_ptr(GameData::s_player1.GetProjectionMatrix()));
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 1, sizeof(glm::mat4), glm::value_ptr(GameData::s_player1.GetViewMatrix()));
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 2, sizeof(glm::mat4), glm::value_ptr(GameData::s_player1.GetInverseProjectionMatrix()));
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 3, sizeof(glm::mat4), glm::value_ptr(GameData::s_player1.GetInverseViewMatrix()));
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	// Lights
@@ -230,7 +232,7 @@ void HellEngine::Render()
 
 
 
-	GameData::s_player1.SpawnGlockCasing();
+	//GameData::s_player1.SpawnGlockCasing();
 
 	m_renderer.RenderFrame(GameData::s_player1.GetCameraPointer(), renderWidth, renderHeight, 1);
 
@@ -240,12 +242,13 @@ void HellEngine::Render()
 		glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight / 2);
 
 		GameData::s_player2.UpdateCamera(renderWidth, renderHeight);
+		GameData::s_player2.CalculateViewMatrices();;
 
 		glBindBuffer(GL_UNIFORM_BUFFER, Renderer::m_uboMatrices);
-		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 0, sizeof(glm::mat4), glm::value_ptr(GameData::s_player2.GetCameraProjectionMatrix()));
-		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 1, sizeof(glm::mat4), glm::value_ptr(GameData::s_player2.GetCameraViewMatrix()));
-		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 2, sizeof(glm::mat4), glm::value_ptr(glm::inverse(GameData::s_player2.GetCameraProjectionMatrix())));
-		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 3, sizeof(glm::mat4), glm::value_ptr(glm::inverse(GameData::s_player2.GetCameraViewMatrix())));
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 0, sizeof(glm::mat4), glm::value_ptr(GameData::s_player2.GetProjectionMatrix()));
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 1, sizeof(glm::mat4), glm::value_ptr(GameData::s_player2.GetViewMatrix()));
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 2, sizeof(glm::mat4), glm::value_ptr(GameData::s_player2.GetInverseProjectionMatrix()));
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 3, sizeof(glm::mat4), glm::value_ptr(GameData::s_player2.GetInverseViewMatrix()));
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 		m_renderer.RenderFrame(GameData::s_player2.GetCameraPointer(), renderWidth, renderHeight, 2);
@@ -266,10 +269,10 @@ void HellEngine::Render()
 	GLint buffer2 = Renderer::s_gBuffer.gFinal;
 	GLint buffer3 = Renderer::s_gBuffer.gRMA;
 
-	buffer0 = Renderer::s_BlurBuffers_p2[1].textureA;
-	buffer1 = Renderer::s_BlurBuffers_p2[3].textureA;
-	buffer2 = Renderer::s_gBuffer.gFinal;
-	buffer3 = Renderer::s_gBuffer.gPostProcessed;
+	//buffer0 = Renderer::s_BlurBuffers_p2[1].textureA;
+	//buffer1 = Renderer::s_BlurBuffers_p2[3].textureA;
+	//buffer2 = Renderer::s_gBuffer.gFinal;
+	//buffer3 = Renderer::s_gBuffer.gPostProcessed;
 
 	if (Renderer::s_showBuffers)
 	{
@@ -307,8 +310,8 @@ void HellEngine::Render()
 		glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight);
 		Shader* shader = &Renderer::s_skybox_shader;
 		shader->use();
-		shader->setMat4("projection", GameData::s_player1.GetCameraProjectionMatrix());
-		shader->setMat4("view", GameData::s_player1.GetCameraViewMatrix());
+		shader->setMat4("projection", GameData::s_player1.GetProjectionMatrix());
+		shader->setMat4("view", GameData::s_player1.GetViewMatrix());
 		Transform trans;
 		trans.position = GameData::s_player1.GetPosition() + glm::vec3(0, GameData::s_player1.m_cameraViewHeight, 0);
 
@@ -325,8 +328,8 @@ void HellEngine::Render()
 		glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight);
 		Shader* shader = &Renderer::s_skybox_shader;
 		shader->use();
-		shader->setMat4("projection", GameData::s_player1.GetCameraProjectionMatrix());
-		shader->setMat4("view", GameData::s_player1.GetCameraViewMatrix());
+		shader->setMat4("projection", GameData::s_player1.GetProjectionMatrix());
+		shader->setMat4("view", GameData::s_player1.GetViewMatrix());
 		Transform trans;
 		trans.position = GameData::s_player1.GetPosition() + glm::vec3(0, GameData::s_player1.m_cameraViewHeight, 0);
 
@@ -343,7 +346,7 @@ void HellEngine::Render()
 
 void HellEngine::ProcessCollisions()
 {
-	return;
+	//return;
 
 	for (CollisionReport& report : ContactReportCallback::s_collisionReports)
 	{
@@ -352,8 +355,30 @@ void HellEngine::ProcessCollisions()
 		if (!report.dataB)
 			continue;
 
+		// Casings
+		if (report.dataA->type == PhysicsObjectType::SHELL_PROJECTILE && report.dataB->type == PhysicsObjectType::FLOOR) {
+			BulletCasing* casing = (BulletCasing*)report.dataA->parent;
+			casing->m_hitFloor = true;
+		//	std::cout << "collision a " << casing->m_hitFloor  << "\n";
+		}
+		if (report.dataA->type == PhysicsObjectType::SHELL_PROJECTILE && report.dataB->type == PhysicsObjectType::WALL) {
+			BulletCasing* casing = (BulletCasing*)report.dataA->parent;
+			casing->m_hitWall = true;
+		//	std::cout << "collision b \n";
+		}
+		if (report.dataB->type == PhysicsObjectType::SHELL_PROJECTILE && report.dataA->type == PhysicsObjectType::FLOOR) {
+			BulletCasing* casing = (BulletCasing*)report.dataB->parent;
+			casing->m_hitFloor = true;
+		//	std::cout << "collision c \n";
+		}
+		if (report.dataB->type == PhysicsObjectType::SHELL_PROJECTILE && report.dataA->type == PhysicsObjectType::WALL) {
+			BulletCasing* casing = (BulletCasing*)report.dataB->parent;
+			casing->m_hitWall = true;
+		//	std::cout << "collision d \n";
+		}
+
 		// Game character ragdoll
-		if (report.dataA->type == PhysicsObjectType::RAGDOLL && report.dataB->type == PhysicsObjectType::FLOOR)
+		/*if (report.dataA->type == PhysicsObjectType::RAGDOLL && report.dataB->type == PhysicsObjectType::FLOOR)
 		{
 			PxRigidDynamic* rigid = (PxRigidDynamic*)report.rigidA;
 			if (!rigid)
@@ -381,9 +406,9 @@ void HellEngine::ProcessCollisions()
 
 			//if (rigid->getName() == "RAGDOLL_HEAD")
 			//	player->SpawnBloodPool();
-		}
+		
+	}*/
 	}
-
 	ContactReportCallback::s_collisionReports.clear();
 }
 

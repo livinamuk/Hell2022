@@ -19,6 +19,7 @@
 class Util
 {
 public:
+	static glm::mat4 MakeScaleMatrix(float scale);
 	static std::string WeaponStateToString(HUDWeaponAnimationState state);
 	static float YRotationBetweenTwoPoints(glm::vec3 a, glm::vec3 b);
 	static std::string FloatToString(float value, int percision);
@@ -29,6 +30,7 @@ public:
 	static PxQuat PxQuatFromJSONArray(rapidjson::GenericArray<false, rapidjson::Value> const arr);
 	static PxVec3 PxVec3FromJSONArray(rapidjson::GenericArray<false, rapidjson::Value> const arr);
 	static PxMat44 GlmMat4ToPxMat44(glm::mat4 matrix);
+	static PxMat44 TransformToPxMaQt44(Transform transform);
 	static PxMat44 PxMat4FromJSONArray(rapidjson::GenericArray<false, rapidjson::Value> const arr);
 
 	static glm::mat4 PxMat44ToGlmMat4(PxMat44 matrix);

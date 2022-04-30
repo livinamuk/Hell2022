@@ -49,9 +49,7 @@ public: // methods
 	void SetPosition(glm::vec3 position);
 	glm::vec3 GetPosition();
 	glm::vec3 GetRotation();
-	glm::mat4& GetCameraProjectionMatrix();
-	glm::mat4& GetCameraViewMatrix();
-	glm::vec3 GetViewPos();
+	//glm::vec3 GetViewPos();
 	Camera* GetCameraPointer();
 	bool IsMoving();
 	bool IsCrouched();
@@ -61,6 +59,7 @@ public: // methods
 	void FireGlock();
 	void FireShotgun();
 	void SpawnGlockCasing();
+	void SpawnShotgunShell();
 	void SetControlsToDefaultPS4Controls();
 	void SetControlsToDefaultXBoxControls();
 	void FootstepAudio(float deltaTime);
@@ -87,6 +86,8 @@ public: // methods
 	void CreateCharacterController();
 	void SpawnCoprseRagdoll();
 
+	glm::vec3 GetCasingSpawnLocation();
+
 	//void SetMaterial(Material* material);
 
 
@@ -98,6 +99,15 @@ public: // methods
 	int GetCurrentGunTotalAmmo();
 
 	void FireBullet(float variance, float force);
+
+	void CalculateViewMatrices();
+	glm::vec3 GetViewPosition();
+	glm::vec3 GetCameraFrontVector();
+	glm::mat4& GetViewMatrix();
+	glm::mat4& GetProjectionMatrix();
+	glm::mat4& GetProjectionViewMatrix();
+	glm::mat4& GetInverseViewMatrix();
+	glm::mat4& GetInverseProjectionMatrix();
 
 private:
 

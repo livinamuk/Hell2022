@@ -6,6 +6,12 @@
 #include <sstream>
 
 
+glm::mat4 Util::MakeScaleMatrix(float scale) {
+	Transform t;
+	t.scale = glm::vec3(scale);
+	return t.to_mat4();
+}
+
 std::string Util::WeaponStateToString(HUDWeaponAnimationState state)
 {
 	if (state == HUDWeaponAnimationState::EQUIPPING)
@@ -238,6 +244,12 @@ PxMat44 Util::GlmMat4ToPxMat44(glm::mat4 matrix)
 		for (int y = 0; y < 4; y++)
 			pxMatrix[x][y] = matrix[x][y];
 	return pxMatrix;
+}
+
+
+physx::PxMat44 Util::TransformToPxMaQt44(Transform transform)
+{
+	return GlmMat4ToPxMat44(transform.to_mat4());
 }
 
 glm::mat4 Util::PxMat44ToGlmMat4(PxMat44 pxMatrix)

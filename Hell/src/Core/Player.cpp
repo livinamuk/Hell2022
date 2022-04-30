@@ -274,17 +274,15 @@ void Player::UpdateMovement(float deltaTime)
 	PxVec3 disp = PxVec3(displacement.x, -9.8f, displacement.z);
 	PxF32 minDist = 0.001;
 
-	if (PressedJump()) {
-		m_yVelocity = 9.90;
-	}
 
+	// Jump
+	if (PressedJump())
+		m_yVelocity = 9.90;
 	m_yVelocity -= deltaTime / 2.25f;
 	m_yVelocity = max(0.0f, m_yVelocity);
 
+	// Move that character controller
 	m_characterController->move(PxVec3(displacement.x, -9.8f + m_yVelocity, displacement.z), minDist, deltaTime, data);
-
-	//std::cout << disp.x << " " << disp.y << " " << disp.z << "\n";
-	//std::cout << deltaTime << "\n";
 
 	// Controller stick movement
 	if (m_controllerIndex != -1)
@@ -377,7 +375,7 @@ void Player::FootstepAudio(float deltaTime)
 			std::string file = "player_step_" + std::to_string(random_number) + ".wav";
 			Audio::PlayAudio(file.c_str(), 0.5f);
 		}
-		m_footstepAudioTimer += deltaTime * 0.6;
+		m_footstepAudioTimer += deltaTime * 0.6f;
 
 		///if (!isRunning)
 		//	footstepAudioLoopLength = 0.35f;
@@ -430,8 +428,8 @@ void Player::UpdateAiming()
 			m_aim_trigger_axis_Y = 0;
 
 		// Apply sensitivity
-		m_aim_trigger_axis_X *= 0.08;
-		m_aim_trigger_axis_Y *= 0.08;
+		m_aim_trigger_axis_X *= 0.08f;
+		m_aim_trigger_axis_Y *= 0.08f;
 
 		// Apply actual trigger position to the camera
 		float yLimit = 1.5f;
@@ -612,6 +610,142 @@ void Player::SpawnCoprseRagdoll()
 			rigidComponent.pxRigidBody->wakeUp();
 		}
 	}
+}
+
+glm::vec3 Player::GetCasingSpawnLocation()
+{
+	if (m_gun == Gun::GLOCK) {
+
+		static float front = 0.7f;		
+		
+		if (Input::s_keyPressed[HELL_KEY_COMMA])
+			front -= 0.05f;
+		if (Input::s_keyPressed[HELL_KEY_PERIOD])
+			front += 0.05f;
+		
+		static float x = 80;
+		static float y = -343.6;
+		static float z = 140.4;
+		static float rx = 0;
+		static float ry = 0;
+		static float rz = 0;
+
+		if (Input::s_keyPressed[HELL_KEY_Z]) {
+			x = 0;
+			y = 0;
+			z = 0;
+			rx = 0;
+			ry = 0;
+			rz = 0;
+		}
+		/*if (Input::s_keyPressed[HELL_KEY_9])
+			rx += 0.1f;
+		if (Input::s_keyPressed[HELL_KEY_0])
+			ry += 0.1f;
+		if (Input::s_keyPressed[HELL_KEY_MINUS])
+			rz += 0.1f;
+		if (Input::s_keyPressed[HELL_KEY_I])
+			rx -= 0.1f;
+		if (Input::s_keyPressed[HELL_KEY_O])
+			ry -= 0.1f;
+		if (Input::s_keyPressed[HELL_KEY_P])
+			rz -= 0.1f;
+
+		if (Input::s_keyPressed[HELL_KEY_3])
+			x += 10.1f;
+		if (Input::s_keyPressed[HELL_KEY_4])
+			y += 10.1f;
+		if (Input::s_keyPressed[HELL_KEY_5])
+			z += 10.1f;
+		if (Input::s_keyPressed[HELL_KEY_6])
+			x -= 10.1f;
+		if (Input::s_keyPressed[HELL_KEY_7])
+			y -= 10.1f;
+		if (Input::s_keyPressed[HELL_KEY_8])
+			z -= 10.1f;
+		*/
+		SkinnedModel* glock = AssetManager::GetSkinnedModelPtr("Glock");
+		unsigned int BoneIndex = glock->m_BoneMapping["barrel"];
+
+		glm::mat4 BoneMatrix = glm::mat4(1);
+
+		if (m_HUD_Weapon.m_animatedTransforms.worldspace.size())
+			BoneMatrix = m_HUD_Weapon.m_animatedTransforms.worldspace[BoneIndex];
+
+		glm::vec3 objectSpaceBonePosition = BoneMatrix[3];
+
+		Transform objectSpaceTransform = Transform(objectSpaceBonePosition);		
+		objectSpaceTransform.position.x += x;
+		objectSpaceTransform.position.y += y;
+		objectSpaceTransform.position.z += z;
+
+		glm::mat4 worldMatrix = m_HUD_Weapon.GetTransform().to_mat4() * objectSpaceTransform.to_mat4();
+		glm::vec3 barrelPosition = worldMatrix[3];
+		glm::vec3 lookAtPosition = GetViewPosition() + m_camera.m_Front;
+
+		glm::vec3 barrelDirection = glm::normalize(lookAtPosition - barrelPosition) * glm::vec3(front);
+
+		glm::mat4 modelMatrix = Transform(barrelPosition).to_mat4() * Transform(barrelDirection).to_mat4() ;
+
+		return modelMatrix[3];
+	}
+
+
+	else if (m_gun == Gun::SHOTGUN) 
+	{
+		static float front = 0.5f;
+		static float x = 60;
+		static float y = -120;
+		static float z = 180;
+
+	/*	if (Input::s_keyPressed[HELL_KEY_COMMA])
+			front -= 0.05f;
+		if (Input::s_keyPressed[HELL_KEY_PERIOD])
+			front += 0.05f;
+
+
+		if (Input::s_keyPressed[HELL_KEY_3])
+			x += 10.1f;
+		if (Input::s_keyPressed[HELL_KEY_4])
+			y += 10.1f;
+		if (Input::s_keyPressed[HELL_KEY_5])
+			z += 10.1f;
+		if (Input::s_keyPressed[HELL_KEY_6])
+			x -= 10.1f;
+		if (Input::s_keyPressed[HELL_KEY_7])
+			y -= 10.1f;
+		if (Input::s_keyPressed[HELL_KEY_8])
+			z -= 10.1f;
+
+		std::cout << x << ", " << y << ',' << z << "\n";
+			*/
+		SkinnedModel* glock = AssetManager::GetSkinnedModelPtr("Shotgun");
+		unsigned int BoneIndex = glock->m_BoneMapping["Bolt_bone"];
+
+		glm::mat4 BoneMatrix = glm::mat4(1);
+
+		if (m_HUD_Weapon.m_animatedTransforms.worldspace.size())
+			BoneMatrix = m_HUD_Weapon.m_animatedTransforms.worldspace[BoneIndex];
+
+		glm::vec3 objectSpaceBonePosition = BoneMatrix[3];
+
+		Transform objectSpaceTransform = Transform(objectSpaceBonePosition);
+		objectSpaceTransform.position.x += x;
+		objectSpaceTransform.position.y += y;
+		objectSpaceTransform.position.z += z;
+
+		glm::mat4 worldMatrix = m_HUD_Weapon.GetTransform().to_mat4() * objectSpaceTransform.to_mat4();
+		glm::vec3 barrelPosition = worldMatrix[3];
+		glm::vec3 lookAtPosition = GetViewPosition() + m_camera.m_Front;
+
+		glm::vec3 barrelDirection = glm::normalize(lookAtPosition - barrelPosition) * glm::vec3(front);
+
+		glm::mat4 modelMatrix = Transform(barrelPosition).to_mat4() * Transform(barrelDirection).to_mat4();
+
+		return modelMatrix[3];
+	}
+
+	else return glm::vec3(0);
 }
 
 void Player::UpdatePlayerModelAnimation(float deltaTime)
@@ -883,7 +1017,7 @@ void Player::FireBullet(float variance, float bulletForce)
 					if (counter > 3)
 						counter = 0;
 
-					std::cout << "blood\n";
+					//std::cout << "blood\n";
 				}
 			}
 
@@ -953,6 +1087,106 @@ void Player::FireBullet(float variance, float bulletForce)
 			std::string file = "FLY_Bullet_Impact_Flesh_0" + std::to_string(rand() % 8 + 1) + ".wav";
 			Audio::PlayAudio(file.c_str(), 0.5f);
 	}	
+
+
+	// create volumetric blood
+	if (headHit || bodyHit) {
+		glm::vec3 position = m_bulletRay.m_hitPosition;
+		glm::vec3 rotation = m_camera.m_transform.rotation;
+		glm::vec3 front = m_camera.m_Front * glm::vec3(-1);
+		GameData::CreateVolumetricBlood(position, rotation, front);
+	}
+}
+
+void Player::CalculateViewMatrices()
+{
+	if (m_isAlive)
+	{
+		const PxExtendedVec3& globalPose = m_characterController->getPosition();
+		m_transform.position = glm::vec3(globalPose.x, globalPose.y - 0.3f, globalPose.z);
+
+		// camera position (it's player plus view height)
+		m_camera.m_transform.position = m_transform.position;
+		m_camera.m_transform.position.y += m_cameraViewHeight;
+
+		// weapon transform 
+		Transform weaponTransform;
+		weaponTransform.position = m_camera.m_transform.position;
+		weaponTransform.rotation = m_camera.m_transform.rotation;
+		weaponTransform.scale = glm::vec3(0.001);
+
+		// Add sway
+		m_HUD_Weapon.SetTransform(weaponTransform);
+
+		// glock node 102 is Camera001 //
+		glm::mat4 animatedCameraMatrix = m_HUD_Weapon.m_animatedTransforms.cameraMatrix;
+
+		// update matrices and return bish
+		m_camera.CalculateMatrices(animatedCameraMatrix);
+	}
+	else
+	{
+		for (RigidComponent& rigid : m_corpse->m_ragdoll.m_rigidComponents)
+		{
+			if (rigid.correspondingJointName == "mixamorig:Neck")
+			{				
+				Transform offsetTransform;
+				offsetTransform.rotation = glm::vec3(0.3, 3.3, -0.2);
+
+				PxTransform transform = rigid.pxRigidBody->getGlobalPose();
+
+				m_camera.m_viewMatrix = glm::inverse(Util::PxMat44ToGlmMat4(PxMat44(transform)) * offsetTransform.to_mat4());
+
+				m_camera.m_inverseViewMatrix = glm::inverse(m_camera.m_viewMatrix);
+				m_camera.m_Right = glm::vec3(m_camera.m_inverseViewMatrix[0]);//*glm::vec3(-1, -1, -1);
+				m_camera.m_Up = glm::vec3(m_camera.m_inverseViewMatrix[1]);// *glm::vec3(-1, -1, -1);
+				m_camera.m_Front = glm::vec3(m_camera.m_inverseViewMatrix[2]) * glm::vec3(-1, -1, -1);
+
+				glm::vec4 vP = (m_camera.m_inverseViewMatrix * glm::vec4(0, 0, 0, 1));
+				m_camera.m_viewPos = glm::vec3(vP.x, vP.y, vP.z);
+
+				m_camera.m_projectionViewMatrix = m_camera.m_projectionMatrix * m_camera.m_viewMatrix;
+
+				m_debugMat = m_camera.m_viewMatrix;
+			}
+		}
+	}
+
+}
+
+glm::vec3 Player::GetViewPosition()
+{
+	return m_transform.position + glm::vec3(0, m_cameraViewHeight, 0);
+}
+
+glm::vec3 Player::GetCameraFrontVector()
+{
+	return m_camera.m_Front;
+}
+
+glm::mat4& Player::GetViewMatrix()
+{
+	return m_camera.m_viewMatrix;
+}
+
+glm::mat4& Player::GetProjectionMatrix()
+{
+	return m_camera.m_projectionMatrix;
+}
+
+glm::mat4& Player::GetProjectionViewMatrix()
+{
+	return m_camera.m_projectionViewMatrix;
+}
+
+glm::mat4& Player::GetInverseViewMatrix()
+{
+	return m_camera.m_inverseViewMatrix;
+}
+
+glm::mat4& Player::GetInverseProjectionMatrix()
+{
+	return m_camera.m_inverseProjectionMatrix;
 }
 
 void Player::CheckForWeaponInput()
@@ -1060,6 +1294,7 @@ void Player::CheckForWeaponInput()
 					m_HUDWeaponAnimationState = HUDWeaponAnimationState::FIRING;
 					m_HUD_Weapon.PlayAnimation("Shotgun_Fire.fbx", 1.25f);
 					FireShotgun();
+					SpawnShotgunShell();
 					SpawnMuzzleFlash();
 				}
 			}
@@ -1301,93 +1536,30 @@ void Player::FireShotgun()
 
 void Player::SpawnGlockCasing()
 {
-	// Get world pos of barrel
-	SkinnedModel* glock = AssetManager::GetSkinnedModelPtr("Glock");
-	unsigned int BoneIndex = glock->m_BoneMapping["barrel"];
-	glm::mat4 BoneMatrix = glm::mat4(1);	
-	if (m_HUD_Weapon.m_animatedTransforms.worldspace.size())
-		BoneMatrix = m_HUD_Weapon.m_animatedTransforms.worldspace[BoneIndex];
-	
-
-
-
-	static float x = 0;
-	static float y = 0;
-	static float z = 0;
-	static float rx = 0;
-	static float ry = 0;
-	static float rz = 0;
-
-	/*if (Input::s_keyPressed[HELL_KEY_L]) {
-		x = 0;
-		y = 0;
-		z = 0;
-		rx = 0;
-		ry = 0;
-		rz = 0;
-	}
-	if (Input::s_keyPressed[HELL_KEY_9])
-		rx += 0.1f;
-	if (Input::s_keyPressed[HELL_KEY_0])
-		ry += 0.1f;
-	if (Input::s_keyPressed[HELL_KEY_MINUS])
-		rz += 0.1f;
-	if (Input::s_keyPressed[HELL_KEY_I])
-		rx -= 0.1f;
-	if (Input::s_keyPressed[HELL_KEY_O])
-		ry -= 0.1f;
-	if (Input::s_keyPressed[HELL_KEY_P])
-		rz -= 0.1f;
-
-	if (Input::s_keyPressed[HELL_KEY_3])
-		x += 0.1f;
-	if (Input::s_keyPressed[HELL_KEY_4])
-		y += 0.1f;
-	if (Input::s_keyPressed[HELL_KEY_5])
-		z += 0.1f;
-	if (Input::s_keyPressed[HELL_KEY_6])
-		x -= 0.1f;
-	if (Input::s_keyPressed[HELL_KEY_7])
-		y -= 0.1f;
-	if (Input::s_keyPressed[HELL_KEY_8])
-		z -= 0.1f;
-
-	//std::cout << "a: " << x << ", " << y << ", " << z << "\n";
-	//std::cout << "b: " << rx << ", " << ry << ", " << rz << "\n";
-	*/
-
-
-	Transform offsetTransform;
-	//glm::vec3 forward = glm::normalize(glm::vec3(m_camera.m_Front.x, 0, m_camera.m_Front.z));
-	offsetTransform.position = m_camera.m_Front * glm::vec3(0.5);
-	offsetTransform.position += m_camera.m_Up * glm::vec3(rx, ry, rz);
-	offsetTransform.position += m_camera.m_Right * glm::vec3(x, y, z);
-
-	glm::mat4 worldMatrix = offsetTransform.to_mat4() * m_HUD_Weapon.GetTransform().to_mat4() * BoneMatrix;
-	glm::vec3 spawnPosition = Util::TranslationFromMat4(worldMatrix);
-
-	m_debugPos = spawnPosition;
-
-	return;
-
-	/*Transform t;
-	//t.position = GetGlockCasingSpawnWorldPosition();
-	t.position = GetGlockBarrelHoleWorldPosition();// it look sbetter spawning at the barrel lol. too close otherwise
-	t.rotation = p_camera->m_transform.rotation;*/
+	Transform t;
+	t.position = GetCasingSpawnLocation();
+	t.rotation = m_camera.m_transform.rotation;
 
 	glm::vec3 initialVelocity;
-	initialVelocity = glm::normalize(m_camera.m_Up + (m_camera.m_Right * glm::vec3(3.0f)));
-	initialVelocity *= glm::vec3(1.5f);
-
-	Transform trans;
-	trans.position = spawnPosition;
-	trans.rotation = m_camera.m_transform.rotation;
-
-	PxRigidDynamic* rigid = PhysX::CreateBox(trans, initialVelocity);
-	rigid->putToSleep();
-
-	//Shell::s_bulletCasings.push_back(Shell(t, initialVelocity, CasingType::BULLET_CASING));*/
+	glm::vec3 up = m_camera.m_Up * Util::RandomFloat(1, 1.25f);
+	initialVelocity = glm::normalize(up + (m_camera.m_Right * glm::vec3(2.0f)));
+	initialVelocity *= glm::vec3(5.0f);
+	GameData::s_bulletCasings.push_back(BulletCasing(t, initialVelocity, BulletCasing::CasingType::GLOCK_CASING));
 }
+
+void Player::SpawnShotgunShell()
+{
+	Transform t;
+	t.position = GetCasingSpawnLocation();
+	t.rotation = m_camera.m_transform.rotation;
+
+	glm::vec3 initialVelocity;
+	glm::vec3 up = m_camera.m_Up * Util::RandomFloat(1, 1.25f);
+	initialVelocity = glm::normalize(up + (m_camera.m_Right * glm::vec3(2.0f)));
+	initialVelocity *= glm::vec3(5.0f);
+	GameData::s_bulletCasings.push_back(BulletCasing(t, initialVelocity, BulletCasing::CasingType::SHOTGUN_SHELL));
+}
+
 
 void Player::SetControlsToDefaultPS4Controls()
 {
@@ -1467,108 +1639,6 @@ glm::vec3 Player::GetRotation()
 	return m_camera.m_transform.rotation;
 }
 
-glm::mat4& Player::GetCameraViewMatrix()
-{	
-	if (m_isAlive) 
-	{
-		const PxExtendedVec3& globalPose = m_characterController->getPosition();
-		m_transform.position = glm::vec3(globalPose.x, globalPose.y - 0.3f, globalPose.z);
-
-		// camera position (it's player plus view height)
-		m_camera.m_transform.position = m_transform.position;
-		m_camera.m_transform.position.y += m_cameraViewHeight;
-
-
-
-		// weapon transform 
-		Transform weaponTransform;
-		weaponTransform.position = m_camera.m_transform.position;
-		weaponTransform.rotation = m_camera.m_transform.rotation;
-		weaponTransform.scale = glm::vec3(0.001);
-
-		// Add sway
-		//weaponTransform.position += m_camera.m_swayPosition * glm::vec3(0.001);
-
-		m_HUD_Weapon.SetTransform(weaponTransform);
-
-
-		// glock node 102 is Camera001 //
-		glm::mat4 animatedCameraMatrix = m_HUD_Weapon.m_animatedTransforms.cameraMatrix;
-
-
-		// update matrices and return bish
-		m_camera.CalculateMatrices(animatedCameraMatrix);
-
-
-		return m_camera.m_viewMatrix;
-	}
-	else
-	{
-		for (RigidComponent& rigid : m_corpse->m_ragdoll.m_rigidComponents) 
-		{
-			if (rigid.correspondingJointName == "mixamorig:Neck")
-			{
-				/*static float rx = 0;
-				static float ry = 0;
-				static float rz = 0;
-
-				if (Input::s_keyPressed[HELL_KEY_L]) {
-					rx = 0;
-					ry = 0;
-					rz = 0;
-				}
-
-				if (Input::s_keyPressed[HELL_KEY_9])
-					rx += 0.1f;
-				if (Input::s_keyPressed[HELL_KEY_0])
-					ry += 0.1f;
-				if (Input::s_keyPressed[HELL_KEY_MINUS])
-					rz += 0.1f;
-				if (Input::s_keyPressed[HELL_KEY_I])
-					rx -= 0.1f;
-				if (Input::s_keyPressed[HELL_KEY_O])
-					ry -= 0.1f;
-				if (Input::s_keyPressed[HELL_KEY_P])
-					rz -= 0.1f;
-
-				std::cout << "rot: " << rx << ", " << ry << ", " << rz << "\n";*/
-
-				Transform offsetTransform;
-				offsetTransform.rotation = glm::vec3(0.3, 3.3, -0.2);
-
-				
-
-
-				PxTransform transform = rigid.pxRigidBody->getGlobalPose();
-
-				m_camera.m_viewMatrix = glm::inverse(Util::PxMat44ToGlmMat4(PxMat44(transform)) * offsetTransform.to_mat4());
-
-				m_camera.m_inverseViewMatrix = glm::inverse(m_camera.m_viewMatrix);
-				m_camera.m_Right = glm::vec3(m_camera.m_inverseViewMatrix[0]);//*glm::vec3(-1, -1, -1);
-				m_camera.m_Up = glm::vec3(m_camera.m_inverseViewMatrix[1]);// *glm::vec3(-1, -1, -1);
-				m_camera.m_Front = glm::vec3(m_camera.m_inverseViewMatrix[2]) * glm::vec3(-1, -1, -1);
-
-				glm::vec4 vP = (m_camera.m_inverseViewMatrix * glm::vec4(0, 0, 0, 1));
-				m_camera.m_viewPos = glm::vec3(vP.x, vP.y, vP.z);
-
-				m_camera.m_projectionViewMatrix = m_camera.m_projectionMatrix * m_camera.m_viewMatrix;
-
-				m_debugMat = m_camera.m_viewMatrix;
-
-				return m_camera.m_viewMatrix;
-			}
-		}
-	}
-
-
-
-}
-
-glm::vec3 Player::GetViewPos()
-{
-	return GetPosition() + glm::vec3(0, m_cameraViewHeight, 0);
-}
-
 Camera* Player::GetCameraPointer()
 {
 	return &m_camera;
@@ -1631,10 +1701,10 @@ void Player::SetCharacterModel(SkinnedModel* skinnedModel)
 	m_skinnedModel = skinnedModel;
 }
 
-glm::mat4& Player::GetCameraProjectionMatrix()
+/*glm::mat4& Player::GetCameraProjectionMatrix()
 {
 	return m_camera.m_projectionMatrix;
-}
+}*/
 
 void Player::HitFloor()
 {

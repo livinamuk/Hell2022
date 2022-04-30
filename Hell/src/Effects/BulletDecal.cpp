@@ -25,7 +25,7 @@ void BulletDecal::Draw(Shader* shader)
 
 	Transform trans;
 	trans.position = m_position;
-	trans.scale = glm::vec3(0.02);
+	trans.scale = glm::vec3(0.02f);
 
 	Transform rotTrans;
 	rotTrans.rotation.z = m_randomRotation;
@@ -77,7 +77,7 @@ void BulletDecal::Draw(Shader* shader)
 		//Util::SetNormalsAndTangentsFromVertices(&vert3, &vert0, &vert1);
 		std::vector<Vertex> vertices;
 		std::vector<unsigned int> indices;
-		unsigned int i = vertices.size();
+		unsigned int i = (unsigned int)vertices.size();
 		indices.push_back(i);
 		indices.push_back(i + 1);
 		indices.push_back(i + 2);

@@ -6,10 +6,14 @@ void BloodDecal::Draw(Shader* shader)
 {
 	Transform localOffset;
 
-	if (m_type != 2)
+	if (m_type != 2) {
 		localOffset.position.z = 0.55f;
-	else
+		m_transform.scale = glm::vec3(2.0f);
+	}
+	else {
 		localOffset.rotation.y = m_randomRotation;
+		m_transform.scale = glm::vec3(1.5f);
+	}
 
 	glActiveTexture(GL_TEXTURE2);
 

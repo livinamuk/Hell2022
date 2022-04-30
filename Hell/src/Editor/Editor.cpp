@@ -965,7 +965,7 @@ void Editor::DeleteSelectedVertex()
                     s_selectedState = SelectedState::IDLE;
 
                     // Iterate the doors, there may be work to do...
-                    for (int d = 0; d < GameData::s_doors.size(); d++)
+                    for (auto d = 0; d < GameData::s_doors.size(); d++)
                     {
                         Door* door = &GameData::s_doors[d];
 

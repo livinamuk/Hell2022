@@ -159,6 +159,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Effects\BloodDecal.cpp" />
+    <ClCompile Include="src\Effects\BulletCasing.cpp" />
+    <ClCompile Include="src\Effects\VolumetricBloodSplatter.cpp" />
     <ClCompile Include="src\Effects\BulletDecal.cpp" />
     <ClCompile Include="src\Animation\Animation.cpp" />
     <ClCompile Include="src\Animation\AnimatedGameObject.cpp" />
@@ -187,6 +189,7 @@
     <ClCompile Include="src\Renderer\BlurBuffer.cpp" />
     <ClCompile Include="src\Renderer\Decal.cpp" />
     <ClCompile Include="src\Renderer\EnvMap.cpp" />
+    <ClCompile Include="src\Renderer\ExrTexture.cpp" />
     <ClCompile Include="src\Renderer\GBuffer.cpp" />
     <ClCompile Include="src\Renderer\Material.cpp" />
     <ClCompile Include="src\Renderer\NumberBlitter.cpp" />
@@ -210,6 +213,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Effects\BloodDecal.h" />
+    <ClInclude Include="src\Effects\BulletCasing.h" />
+    <ClInclude Include="src\Effects\VolumetricBloodSplatter.h" />
     <ClInclude Include="src\Effects\BulletDecal.h" />
     <ClInclude Include="src\Animation\Animation.h" />
     <ClInclude Include="src\Animation\AnimatedGameObject.h" />
@@ -238,6 +243,7 @@
     <ClInclude Include="src\Renderer\BlurBuffer.h" />
     <ClInclude Include="src\Renderer\Decal.h" />
     <ClInclude Include="src\Renderer\EnvMap.h" />
+    <ClInclude Include="src\Renderer\ExrTexture.h" />
     <ClInclude Include="src\Renderer\GBuffer.h" />
     <ClInclude Include="src\Renderer\Material.h" />
     <ClInclude Include="src\Renderer\NumberBlitter.h" />
@@ -268,6 +274,9 @@
     <None Include="res\ragdoll.json" />
     <None Include="res\shaders\animatedQuad.frag" />
     <None Include="res\shaders\animatedQuad.vert" />
+    <None Include="res\shaders\bloodVolumetric.frag" />
+    <None Include="res\shaders\bloodVolumetric.geom" />
+    <None Include="res\shaders\bloodVolumetric.vert" />
     <None Include="res\shaders\blood_decal_shader.frag" />
     <None Include="res\shaders\blood_decal_shader.vert" />
     <None Include="res\shaders\blur.frag" />
@@ -279,6 +288,8 @@
     <None Include="res\shaders\envMap.geom" />
     <None Include="res\shaders\FinalPass.frag" />
     <None Include="res\shaders\FinalPass.vert" />
+    <None Include="res\shaders\geometryInstanced.frag" />
+    <None Include="res\shaders\geometryInstanced.vert" />
     <None Include="res\shaders\lighting.frag" />
     <None Include="res\shaders\lighting.vert" />
     <None Include="res\shaders\PostProcessing.frag" />
