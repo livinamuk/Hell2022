@@ -147,23 +147,25 @@
 #define HELL_CONTROLLER_BUTTON_18    370
 #define HELL_CONTROLLER_BUTTON_19    371*/
 
-#define HELL_PS_4_CONTROLLER_CROSS			0
-#define HELL_PS_4_CONTROLLER_CIRCLE			1
-#define HELL_PS_4_CONTROLLER_SQUARE			2
+#define HELL_PS_4_CONTROLLER_CROSS			1	//0
+#define HELL_PS_4_CONTROLLER_CIRCLE			2	//1
+#define HELL_PS_4_CONTROLLER_SQUARE			0	//2
 #define HELL_PS_4_CONTROLLER_TRIANGLE		3
 #define HELL_PS_4_CONTROLLER_L1			    4
+#define HELL_PS_4_CONTROLLER_L2			    6
+#define HELL_PS_4_CONTROLLER_L3			    10	//9
 #define HELL_PS_4_CONTROLLER_R1			    5
+#define HELL_PS_4_CONTROLLER_R2			    7
+#define HELL_PS_4_CONTROLLER_R3			    11	//10
 #define HELL_PS_4_CONTROLLER_SHARE			6
-#define HELL_PS_4_CONTROLLER_OPTIONS		7
-#define HELL_PS_4_CONTROLLER_PS_BUTTON	    8
-#define HELL_PS_4_CONTROLLER_L3			    9
-#define HELL_PS_4_CONTROLLER_R3			    10
-#define HELL_PS_4_CONTROLLER_DPAD_UP		11
-#define HELL_PS_4_CONTROLLER_DPAD_RIGHT		12
-#define HELL_PS_4_CONTROLLER_DPAD_DOWN		13
-#define HELL_PS_4_CONTROLLER_DPAD_LEFT		14
-#define HELL_PS_4_CONTROLLER_TRIGGER_L		20
-#define HELL_PS_4_CONTROLLER_TRIGGER_R		21
+#define HELL_PS_4_CONTROLLER_OPTIONS		9	//7
+#define HELL_PS_4_CONTROLLER_PS_BUTTON	    12	//8
+#define HELL_PS_4_CONTROLLER_DPAD_UP		14	//11
+#define HELL_PS_4_CONTROLLER_DPAD_RIGHT		15	//12
+#define HELL_PS_4_CONTROLLER_DPAD_DOWN		16	//13
+#define HELL_PS_4_CONTROLLER_DPAD_LEFT		17	//14
+#define HELL_PS_4_CONTROLLER_TRIGGER_L		18			// you manually chose this button code so u can store it in the same buttons vector
+#define HELL_PS_4_CONTROLLER_TRIGGER_R		19			// you manually chose this button code so u can store it in the same buttons vector
 
 
 
@@ -175,12 +177,11 @@
 #define HELL_XBOX_CONTROLLER_R1			    5
 #define HELL_XBOX_CONTROLLER_WIERD_1		6
 #define HELL_XBOX_CONTROLLER_WIERD_2		7
-#define HELL_XBOX_CONTROLLER_PS_BUTTON	    -1
-#define HELL_XBOX_CONTROLLER_L3			    -1
-#define HELL_XBOX_CONTROLLER_R3			    -1
+#define HELL_XBOX_CONTROLLER_L3			    8
+#define HELL_XBOX_CONTROLLER_R3			    9
 #define HELL_XBOX_CONTROLLER_DPAD_UP		10
 #define HELL_XBOX_CONTROLLER_DPAD_RIGHT		11
 #define HELL_XBOX_CONTROLLER_DPAD_DOWN		12
 #define HELL_XBOX_CONTROLLER_DPAD_LEFT		13
-#define HELL_XBOX_CONTROLLER_TRIGGER_L		-1
-#define HELL_XBOX_CONTROLLER_TRIGGER_R		-1
+#define HELL_XBOX_CONTROLLER_TRIGGER_L		14			// you manually chose this button code so u can store it in the same buttons vector
+#define HELL_XBOX_CONTROLLER_TRIGGER_R		15			// you manually chose this button code so u can store it in the same buttons vector

@@ -47,9 +47,9 @@ public: // variables
 	static bool s_keyDown[372];
 	static bool s_keyDownLastFrame[372];
 
-	#define MAX_CONTROLLER_COUNT 4 
+	//#define MAX_CONTROLLER_COUNT 4 
 
-	static ControllerState s_controllerStates[MAX_CONTROLLER_COUNT];
+	//static ControllerState s_controllerStates[MAX_CONTROLLER_COUNT];
 
 	static double m_oldX, m_oldY;		// Old mouse position
 	static double m_xoffset, m_yoffset;	// Distance mouse moved during current frame in pixels

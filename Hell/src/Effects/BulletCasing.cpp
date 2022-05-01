@@ -57,6 +57,9 @@ void BulletCasing::Update(float deltatime)
 	// Get model matrix from physx sim 
 	if (m_rigidDynamic)
 	{
+		// revalidate the physics pointer
+		m_rigidDynamic->userData = new EntityData(PhysicsObjectType::SHELL_PROJECTILE, this);
+
 		if (m_type == BulletCasing::CasingType::GLOCK_CASING) {
 			Transform localOffset;
 			localOffset.rotation.y = -HELL_PI / 2;

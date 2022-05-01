@@ -1,5 +1,6 @@
 #pragma once
 #include "Header.h"
+#include "Core/Controller.h"
 #include "Core/Scene.h"
 #include "Core/CoreGL.h"
 #include "Core/Input.h"
@@ -18,10 +19,6 @@
 #include "Core/Player.h"
 #include "Editor/Editor.h"
 
-struct Controller {
-	int m_index;
-	ControllerType m_type;
-};
 
 class HellEngine
 {
@@ -35,24 +32,12 @@ public: // methods
 	void Render();
 	void ProcessCollisions();
 
+	void CheckForControllers();
+
 public: // fields
 	PhysX m_physx;
-	Renderer m_renderer;
-	//Camera m_camera_p1;
-	//Camera m_camera_p2;
 	std::unordered_map<std::string, Model> m_models;
 
-
-	//Player m_player1;
-	//Player m_player2;
-
 	int m_currentPlayer = 1;
-
-	std::vector<Controller> m_controllers;
-
-	//bool m_controller_1_connected = false;
-
-	//Entity couchEntity;
-
 	bool m_switchToPlayer2 = false;
 };

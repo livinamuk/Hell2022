@@ -3,6 +3,7 @@
 #include "Audio/Audio.h"
 #include "Core/GameData.h"
 #include "Core/File.h"
+#include "Core/Controller.h"
 
 void HellEngine::Init()
 {
@@ -12,64 +13,23 @@ void HellEngine::Init()
 	PhysX::p_PhysX = &m_physx;
 
 	m_physx.Init();
-	m_renderer.Init(CoreGL::s_fullscreenWidth, CoreGL::s_fullscreenHeight);
+	Renderer::Init(CoreGL::s_fullscreenWidth, CoreGL::s_fullscreenHeight);
 
 	AssetManager::DiscoverAssetFilenames();
 
 	
-
 	GameData::s_player1.p_gameCharacters = &Scene::s_gameCharacters;
 	GameData::s_player2.p_gameCharacters = &Scene::s_gameCharacters;
 	GameData::s_player1.p_bloodPools = &Scene::s_bloodPools;
 	GameData::s_player2.p_bloodPools = &Scene::s_bloodPools;
 	
+	CheckForControllers();
 
-	m_renderer.p_physX = &m_physx;
-
-
-
-	/*std::string line, text;
-	std::ifstream in("res/gamecontrollerdb.txt");
-	while (std::getline(in, line))
-	{
-		text += line + "\n";
-		//std::cout << line << std::endl;
-	}
-	const char* mappings = text.c_str();
-	//glfwUpdateGamepadMappings(mappings);*/
-
-
-	// Search for 16 controllers lol
-	for (int i = 0; i < 16; i++)
-	{
-		if (glfwJoystickIsGamepad(i)) {
-			std::cout << "CONTROLLER " << (i + 1) << " FOUND: " << glfwGetJoystickName(i) << "\n";
-			std::cout << "CONTROLLER " << (i + 1) << " FOUND: " << glfwGetGamepadName(i) << "\n"; 
-
-			Controller controller;
-			controller.m_index = i;
-			controller.m_type = ControllerType::UNKNOWN_TYPE;
-
-			m_controllers.push_back(controller);
-		}
-	}
-
-	/*
-	
-	CONTROLLER 1 FOUND: Xbox Controller
-	CONTROLLER 1 FOUND: XInput Gamepad (GLFW)
-	CONTROLLER 2 FOUND: Wireless Controller
-	CONTROLLER 2 FOUND: PS4 Controller
-	
-	*/
-	
-	if (m_controllers.size() > 0)
-		GameData::s_player2.SetControllerIndex(m_controllers[0].m_index);
-	if (m_controllers.size() > 1)
-		GameData::s_player1.SetControllerIndex(m_controllers[1].m_index);
-
-	std::cout << "CONTROLLERS FOUND: " << m_controllers.size() << "\n";
-
+	// Set player 1 and 2 to controllers if they were found.
+	if (GameData::s_controllers.size() > 0)
+		GameData::s_player2.SetControllerIndex(0);
+	if (GameData::s_controllers.size() > 1)
+		GameData::s_player1.SetControllerIndex(1);
 }
 
 void HellEngine::Update(float deltaTime)
@@ -82,7 +42,7 @@ void HellEngine::Update(float deltaTime)
 	if (Input::KeyPressed(HELL_KEY_BACKSPACE))
 		Scene::RemoveCorpse();
 
-	if (m_controllers.size() == 0) {
+	if (GameData::s_controllers.size() == 0) {
 		GameData::s_player1.m_enableControl = true;
 		GameData::s_player2.m_enableControl = true;
 		if (m_switchToPlayer2)
@@ -130,8 +90,9 @@ void HellEngine::UpdateInput()
 {
 	Input::UpdateKeyboardInput(CoreGL::s_window);
 	Input::UpdateMouseInput(CoreGL::s_window);
-	Input::UpdateControllerInput(GameData::s_player1.GetControllerIndex());
-	Input::UpdateControllerInput(GameData::s_player2.GetControllerIndex());
+
+	GameData::s_player1.UpdateControllerInput();
+	GameData::s_player2.UpdateControllerInput();
 
 	CheckForDebugKeyPresses();
 }
@@ -153,12 +114,12 @@ void HellEngine::CheckForDebugKeyPresses()
 
 	if (Input::KeyPressed(HELL_KEY_F)) {
 		CoreGL::ToggleFullScreen();
-		m_renderer.ReconfigureFrameBuffers(CoreGL::s_currentWidth, CoreGL::s_currentHeight);
+		Renderer::ReconfigureFrameBuffers(CoreGL::s_currentWidth, CoreGL::s_currentHeight);
 		Input::m_disableMouseLookTimer = 10;
 	}        
 	
 	if (Input::KeyPressed(HELL_KEY_H))
-		m_renderer.HotLoadShaders();
+		Renderer::HotLoadShaders();
 
 	//if (Input::KeyPressed(HELL_KEY_SPACE))
 	//	Scene::NewRagdoll();
@@ -189,7 +150,7 @@ void HellEngine::CheckForDebugKeyPresses()
 void HellEngine::Render()
 {
 	// Clear the FBOs
-	m_renderer.ClearFBOs(CoreGL::s_currentWidth, CoreGL::s_currentHeight);
+	Renderer::ClearFBOs(CoreGL::s_currentWidth, CoreGL::s_currentHeight);
 
 	// Set default render size
 	int renderWidth = CoreGL::s_currentWidth;
@@ -234,7 +195,7 @@ void HellEngine::Render()
 
 	//GameData::s_player1.SpawnGlockCasing();
 
-	m_renderer.RenderFrame(GameData::s_player1.GetCameraPointer(), renderWidth, renderHeight, 1);
+	Renderer::RenderFrame(GameData::s_player1.GetCameraPointer(), renderWidth, renderHeight, 1);
 
 	// Player 2 
 	if (GameData::s_splitScreen)
@@ -251,7 +212,7 @@ void HellEngine::Render()
 		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 3, sizeof(glm::mat4), glm::value_ptr(GameData::s_player2.GetInverseViewMatrix()));
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-		m_renderer.RenderFrame(GameData::s_player2.GetCameraPointer(), renderWidth, renderHeight, 2);
+		Renderer::RenderFrame(GameData::s_player2.GetCameraPointer(), renderWidth, renderHeight, 2);
 	}
 
 	// Render final image to default frame buffer
@@ -412,4 +373,35 @@ void HellEngine::ProcessCollisions()
 	ContactReportCallback::s_collisionReports.clear();
 }
 
+void HellEngine::CheckForControllers()
+{
+	GameData::s_controllers.clear();
+
+	// Search for 16 controllers lol
+	for (int i = 0; i < 16; i++)
+	{
+		if (glfwJoystickIsGamepad(i))
+		{
+			std::string joystickName = glfwGetJoystickName(i);
+			std::string gamepadName = glfwGetGamepadName(i);
+
+			if (joystickName == "Xbox Controller" || gamepadName == "Xbox Controller") {
+				Controller controller;
+				controller.m_glfwIndex = i;
+				controller.m_type = Controller::Type::XBOX;
+				GameData::s_controllers.push_back(controller);
+				std::cout << "Controller " << i << " found: XBOX Controller\n";
+			}
+			else if (joystickName == "PS4 Controller" || gamepadName == "PS4 Controller") {
+				Controller controller;
+				controller.m_glfwIndex = i;
+				controller.m_type = Controller::Type::PS4;
+				GameData::s_controllers.push_back(controller);
+				std::cout << "Controller " << i << " found: PS4 Controller\n";
+			}
+			else
+				std::cout << "Controller " << i << " unknown controller\n";
+		}
+	}
+}
 

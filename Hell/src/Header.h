@@ -54,28 +54,12 @@ struct LightUniformBlock
 	glm::vec4 magic;     // magic in x, nothing in yzw
 };
 
-struct ControllerState
-{
-	std::vector<bool> buttons_down;
-	std::vector<bool> buttons_down_last_frame;
-	std::vector<bool> buttons_pressed;
-	float left_stick_axis_X = 0;
-	float left_stick_axis_Y = 0;
-	float right_stick_axis_X = 0;
-	float right_stick_axis_Y = 0;
-	int axesCount = 0;
-};
-
 #define SMALL_NUMBER		(float)9.99999993922529e-9
 #define KINDA_SMALL_NUMBER	(float)0.00001
 
-enum class ControllerStickMode {AIMING, MOVEMENT};
-enum class InputType {KEYBOARD_AND_MOUSE, CONTROLLER};
+enum class InputType { KEYBOARD_AND_MOUSE, CONTROLLER };
 enum class CharacterModelAnimationState{ STOPPED, WALKING, STOPPED_CROUCHED, WALKING_CROUCHED };
 enum class HUDWeaponAnimationState {IDLE, WALKING, FIRING, RELOADING, EQUIPPING, HOLSTERING};
-
-
-enum class ControllerType { UNKNOWN_TYPE, PS4, XBOX};
 
 /*enum ClipState {
 	PLAYING,

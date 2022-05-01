@@ -158,6 +158,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Core\Controller.cpp" />
     <ClCompile Include="src\Effects\BloodDecal.cpp" />
     <ClCompile Include="src\Effects\BulletCasing.cpp" />
     <ClCompile Include="src\Effects\VolumetricBloodSplatter.cpp" />
@@ -212,6 +213,7 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Core\Controller.h" />
     <ClInclude Include="src\Effects\BloodDecal.h" />
     <ClInclude Include="src\Effects\BulletCasing.h" />
     <ClInclude Include="src\Effects\VolumetricBloodSplatter.h" />

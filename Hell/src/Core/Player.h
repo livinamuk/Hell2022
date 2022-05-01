@@ -1,6 +1,7 @@
 #pragma once
 #include "Header.h"
 #include "Core/Camera.h"
+#include "Core/Controller.h"
 #include "Animation/SkinnedModel.h"
 #include "Animation/AnimatedGameObject.h"
 #include "Physics/RayCast.h"
@@ -109,6 +110,8 @@ public: // methods
 	glm::mat4& GetInverseViewMatrix();
 	glm::mat4& GetInverseProjectionMatrix();
 
+	void UpdateControllerInput();
+
 private:
 
 public: // fields
@@ -137,8 +140,8 @@ public: // fields
 
 	PlayerControls m_controls;
 	InputType m_inputType = InputType::KEYBOARD_AND_MOUSE;
-	ControllerStickMode m_leftStickMode = ControllerStickMode::MOVEMENT;
-	ControllerStickMode m_rightStickMode = ControllerStickMode::AIMING;
+	Controller::StickMode m_leftStickMode = Controller::StickMode::MOVEMENT;
+	Controller::StickMode m_rightStickMode = Controller::StickMode::AIMING;
 
 	GameCharacter* m_corpse = nullptr;
 
@@ -179,9 +182,9 @@ private:
 	bool m_isMoving = false;
 	SkinnedModel* m_skinnedModel; 
 	float m_footstepAudioTimer = 0;
-	int m_controllerIndex = -1;
 
 public:
+	int m_controllerIndex = -1;
 	Ragdoll m_ragdoll;
 	bool m_isAlive = true;
 	float m_timeSinceDeath = 0;

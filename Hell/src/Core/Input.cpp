@@ -6,6 +6,7 @@
 //#include "Game.h"
 //#include "Logic/WeaponLogic.h"
 #include <algorithm>
+#include "GameData.h"
 
 double Input::s_mouseX;
 double Input::s_mouseY;
@@ -45,7 +46,7 @@ int Input::m_disableMouseLookTimer = 10;
 float Input::m_mmouseSensitivity;	
 bool Input::s_mouseWasMovedThisFrame;
 
-ControllerState Input::s_controllerStates[MAX_CONTROLLER_COUNT];
+//ControllerState Input::s_controllerStates[MAX_CONTROLLER_COUNT];
 
 void Input::UpdateMouseInput(GLFWwindow* window)
 {
@@ -105,18 +106,18 @@ bool Input::RightMousePressed()
 
 bool Input::ButtonPressed(int controllerIndex, unsigned int keycode)
 {
-	if (controllerIndex == -1 || controllerIndex >= MAX_CONTROLLER_COUNT)
+	if (controllerIndex == -1)// || controllerIndex >= MAX_CONTROLLER_COUNT)
 		return false;
 
-	return s_controllerStates[controllerIndex].buttons_pressed[keycode];
+	return GameData::s_controllers[controllerIndex].buttons_pressed[keycode];
 }
 
 bool Input::ButtonDown(int controllerIndex, unsigned int keycode)
 {
-	if (controllerIndex == -1 || controllerIndex >= MAX_CONTROLLER_COUNT)
+	if (controllerIndex == -1 )//|| controllerIndex >= MAX_CONTROLLER_COUNT)
 		return false;
 
-	return s_controllerStates[controllerIndex].buttons_down[keycode];
+	return GameData::s_controllers[controllerIndex].buttons_down[keycode];
 }
 
 bool Input::KeyPressed(unsigned int keycode)
@@ -174,73 +175,7 @@ void Input::UpdateKeyboardInput(GLFWwindow* window)
 	}
 }
 
-void Input::UpdateControllerInput(int controllerIndex)
+/*void Input::UpdateControllerInput(int controllerIndex)
 {
-	if (controllerIndex == -1)
-		return;
 	
-	GLFWgamepadstate state;
-	int buttonCount;
-	int axesCount;
-
-
-	// Controller 1
-	if (glfwGetGamepadState(controllerIndex, &state))
-	{
-		const unsigned char* buttons = glfwGetJoystickButtons(controllerIndex, &buttonCount);
-		for (int i = 0; i < buttonCount - 2; i++)
-		{
-			int buttonCode = i; // 352 is where the controller button codes start in keycodes.h
-			// button down
-			if (state.buttons[i] == GLFW_PRESS)
-				s_controllerStates[controllerIndex].buttons_down[buttonCode] = true;
-			else
-				s_controllerStates[controllerIndex].buttons_down[buttonCode] = false;
-			// button press
-			if (s_controllerStates[controllerIndex].buttons_down[buttonCode] && !s_controllerStates[controllerIndex].buttons_down_last_frame[buttonCode])
-				s_controllerStates[controllerIndex].buttons_pressed[buttonCode] = true;
-			else
-				s_controllerStates[controllerIndex].buttons_pressed[buttonCode] = false;
-			s_controllerStates[controllerIndex].buttons_down_last_frame[buttonCode] = s_controllerStates[controllerIndex].buttons_down[buttonCode];
-		}
-
-		// Get axes
-		const float* axes = glfwGetJoystickAxes(controllerIndex, &axesCount);
-
-		// Check Left trigger
-		{
-			int buttonCode = HELL_PS_4_CONTROLLER_TRIGGER_L;
-			if (axes[3] > -0.9f)
-				s_controllerStates[controllerIndex].buttons_down[buttonCode] = true;
-			else
-				s_controllerStates[controllerIndex].buttons_down[buttonCode] = false;
-			// button press
-			if (s_controllerStates[controllerIndex].buttons_down[buttonCode] && !s_controllerStates[controllerIndex].buttons_down_last_frame[buttonCode])
-				s_controllerStates[controllerIndex].buttons_pressed[buttonCode] = true;
-			else
-				s_controllerStates[controllerIndex].buttons_pressed[buttonCode] = false;
-			s_controllerStates[controllerIndex].buttons_down_last_frame[buttonCode] = s_controllerStates[controllerIndex].buttons_down[buttonCode];
-		}
-
-		// Check Right trigger
-		{
-			int buttonCode = HELL_PS_4_CONTROLLER_TRIGGER_R;
-			if (axes[4] > -0.9f)
-				s_controllerStates[controllerIndex].buttons_down[buttonCode] = true;
-			else
-				s_controllerStates[controllerIndex].buttons_down[buttonCode] = false;
-			// button press
-			if (s_controllerStates[controllerIndex].buttons_down[buttonCode] && !s_controllerStates[controllerIndex].buttons_down_last_frame[buttonCode])
-				s_controllerStates[controllerIndex].buttons_pressed[buttonCode] = true;
-			else
-				s_controllerStates[controllerIndex].buttons_pressed[buttonCode] = false;
-			s_controllerStates[controllerIndex].buttons_down_last_frame[buttonCode] = s_controllerStates[controllerIndex].buttons_down[buttonCode];
-		}
-
-		// Sticks
-		s_controllerStates[controllerIndex].left_stick_axis_X = axes[0];
-		s_controllerStates[controllerIndex].left_stick_axis_Y = axes[1];
-		s_controllerStates[controllerIndex].right_stick_axis_X = axes[2];
-		s_controllerStates[controllerIndex].right_stick_axis_Y = axes[5];
-	}
-}
+}*/

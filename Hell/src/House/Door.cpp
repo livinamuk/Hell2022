@@ -188,6 +188,10 @@ void Door::Interact()
 
 void Door::Update(float deltaTime)
 {
+	// revalidate the physics pointer
+	if(m_rigid)
+        m_rigid->userData = new EntityData(PhysicsObjectType::DOOR, this);
+
 	float swingOverShoot = 0.75f;
 
     float amount = deltaTime + Util::RandomFloat(-deltaTime*0.5, deltaTime*0.5);

@@ -11,7 +11,8 @@ std::vector<EntityStatic> GameData::s_staticEntities;
 bool GameData::s_splitScreen = true;
 std::vector< VolumetricBloodSplatter> GameData::s_volumetricBloodSplatters;
 int GameData::s_volumetricBloodObjectsSpawnedThisFrame = 0;
-std::vector<BulletCasing> GameData::s_bulletCasings; 
+std::vector<BulletCasing> GameData::s_bulletCasings;
+std::vector<Controller> GameData::s_controllers;
 
 void GameData::Clear()
 {
@@ -27,14 +28,8 @@ void GameData::Update(float deltaTime)
 	s_volumetricBloodObjectsSpawnedThisFrame = 0;
 
 	// Update some shit
-	for (BulletCasing& casing : s_bulletCasings) {
-		
-		// revalidate the physics pointer
-		if (casing.m_rigidDynamic)
-			casing.m_rigidDynamic->userData = new EntityData(PhysicsObjectType::SHELL_PROJECTILE, &casing);
-		
+	for (BulletCasing& casing : s_bulletCasings)			
 		casing.Update(deltaTime);
-	}
 
 	for (Door& door : s_doors)
 		door.Update(deltaTime);

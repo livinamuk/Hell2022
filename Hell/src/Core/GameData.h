@@ -12,6 +12,7 @@
 #include "Effects/BloodDecal.h"
 #include "Effects/VolumetricBloodSplatter.h"
 #include "Effects/BulletCasing.h"
+#include "Core/Controller.h"
 
 
 class GameData {
@@ -37,7 +38,9 @@ public:
 	static void DrawInstanced(Shader* shader);
 
 	static bool s_splitScreen;
-	
+
+	static std::vector<Controller> s_controllers;
+		
 	// internals
 private:
 	static int s_volumetricBloodObjectsSpawnedThisFrame;

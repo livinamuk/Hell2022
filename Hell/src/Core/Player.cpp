@@ -1,3 +1,4 @@
+#pragma once
 #include "Player.h"
 #include "Helpers/AssetManager.h"
 #include "Audio/Audio.h"
@@ -58,7 +59,8 @@ void Player::Update(float deltaTime)
 				PressedReload() ||
 				PressedCrouch() ||
 				PressedInteract() ||
-				PressedJump()
+				PressedJump() ||
+				PressedNextWeapon()
 				)
 				Respawn();
 		}
@@ -230,21 +232,77 @@ void Player::UpdateMovement(float deltaTime)
 
 	glm::vec3 displacement = glm::vec3(0,0,0);
 
+
+	float deadZone = 0.25f;
+	float walk_trigger_axis_X = 0;
+	float walk_trigger_axis_Y = 0;
+	bool movement_stick_forward = false;
+	bool movement_stick_back = false;
+	bool movement_stick_left = false;
+	bool movement_stick_right = false;
+	
+	if (m_controllerIndex != -1)
+	{
+		// setup to check the correct stick
+		if (m_leftStickMode == Controller::StickMode::MOVEMENT) {
+			walk_trigger_axis_X = GameData::s_controllers[m_controllerIndex].left_stick_axis_X;
+			walk_trigger_axis_Y = GameData::s_controllers[m_controllerIndex].left_stick_axis_Y;
+		}
+		if (m_rightStickMode == Controller::StickMode::MOVEMENT) {
+			walk_trigger_axis_X = GameData::s_controllers[m_controllerIndex].right_stick_axis_X;
+			walk_trigger_axis_Y = GameData::s_controllers[m_controllerIndex].right_stick_axis_Y;
+		}
+
+		// now check the input of that stick
+		if (walk_trigger_axis_Y < 0 - deadZone)
+			movement_stick_forward = true;
+		if (walk_trigger_axis_Y > 0 + deadZone)
+			movement_stick_back = true;
+
+		if (walk_trigger_axis_X < 0 - deadZone)
+			movement_stick_left = true;
+		if (walk_trigger_axis_X > 0 + deadZone)
+			movement_stick_right = true;
+	}
+
+
+
+
 	// Keyboard / controller button movement
-	if (PressingWalkForward()) {
-		displacement += Forward;// *deltaTime;
+	if (PressingWalkForward() || movement_stick_forward) 
+	{
+		float factor = 1;
+		if (movement_stick_forward)
+			factor = abs(walk_trigger_axis_Y);
+
+		displacement += Forward * factor;;
 		m_isMoving = true;
 	}
-	if (PressingWalkBackward()) {
-		displacement -= Forward;// *deltaTime;
+	if (PressingWalkBackward() || movement_stick_back) 
+	{
+		float factor = 1;
+		if (movement_stick_back)
+			factor = abs(walk_trigger_axis_Y);
+
+		displacement -= Forward * factor;;
 		m_isMoving = true;
 	}
-	if (PressingWalkLeft()) {
-		displacement -= m_camera.m_Right;// *deltaTime;
+	if (PressingWalkLeft() || movement_stick_left) 
+	{
+		float factor = 1;
+		if (movement_stick_left)
+			factor = abs(walk_trigger_axis_X);
+
+		displacement -= m_camera.m_Right * factor;
 		m_isMoving = true;
 	}
-	if (PressingWalkRight()) {
-		displacement += m_camera.m_Right;// *deltaTime;
+	if (PressingWalkRight() || movement_stick_right) 
+	{
+		float factor = 1;
+		if (movement_stick_right)
+			factor = abs(walk_trigger_axis_X);
+
+		displacement += m_camera.m_Right * factor;
 		m_isMoving = true;
 	}
 
@@ -284,39 +342,6 @@ void Player::UpdateMovement(float deltaTime)
 	// Move that character controller
 	m_characterController->move(PxVec3(displacement.x, -9.8f + m_yVelocity, displacement.z), minDist, deltaTime, data);
 
-	// Controller stick movement
-	if (m_controllerIndex != -1)
-	{
-		float deadZone = 0.25f;
-		float walk_trigger_axis_X;
-		float walk_trigger_axis_Y;
-	
-		if (m_leftStickMode == ControllerStickMode::MOVEMENT) {
-			walk_trigger_axis_X = Input::s_controllerStates[m_controllerIndex].left_stick_axis_X;
-			walk_trigger_axis_Y = Input::s_controllerStates[m_controllerIndex].left_stick_axis_Y;
-		}		
-		if (m_rightStickMode == ControllerStickMode::MOVEMENT) {
-			walk_trigger_axis_X = Input::s_controllerStates[m_controllerIndex].right_stick_axis_X;
-			walk_trigger_axis_Y = Input::s_controllerStates[m_controllerIndex].right_stick_axis_Y;
-		}
-
-		if (!PressingWalkForward() && (walk_trigger_axis_Y < 0 - deadZone)) {
-			m_transform.position += Forward * deltaTime * speed * abs(walk_trigger_axis_Y);
-			m_isMoving = true;
-		}
-		if (!PressingWalkBackward() && (walk_trigger_axis_Y > 0 + deadZone)) {
-			m_transform.position -= Forward * deltaTime * speed * abs(walk_trigger_axis_Y);
-			m_isMoving = true;
-		}
-		if (!PressingWalkLeft() && (walk_trigger_axis_X < 0 - deadZone)) {
-			m_transform.position -= m_camera.m_Right * deltaTime * speed * abs(walk_trigger_axis_X);
-			m_isMoving = true;
-		}
-		if (!PressingWalkRight() && (walk_trigger_axis_X > 0 + deadZone)) {
-			m_transform.position += m_camera.m_Right * deltaTime * speed * abs(walk_trigger_axis_X);
-			m_isMoving = true;
-		}
-	}
 
 	// Crouching
 	m_isCrouching = false;
@@ -411,13 +436,13 @@ void Player::UpdateAiming()
 		// Figure out which fucking stick they are using
 		m_aim_trigger_axis_X = 0;
 		m_aim_trigger_axis_Y = 0;
-		if (m_leftStickMode == ControllerStickMode::AIMING) {
-			m_aim_trigger_axis_X = Input::s_controllerStates[m_controllerIndex].left_stick_axis_X;
-			m_aim_trigger_axis_Y = Input::s_controllerStates[m_controllerIndex].left_stick_axis_Y;
+		if (m_leftStickMode == Controller::StickMode::AIMING) {
+			m_aim_trigger_axis_X = GameData::s_controllers[m_controllerIndex].left_stick_axis_X;
+			m_aim_trigger_axis_Y = GameData::s_controllers[m_controllerIndex].left_stick_axis_Y;
 		}
-		if (m_rightStickMode == ControllerStickMode::AIMING) {
-			m_aim_trigger_axis_X = Input::s_controllerStates[m_controllerIndex].right_stick_axis_X;
-			m_aim_trigger_axis_Y = Input::s_controllerStates[m_controllerIndex].right_stick_axis_Y;
+		if (m_rightStickMode == Controller::StickMode::AIMING) {
+			m_aim_trigger_axis_X = GameData::s_controllers[m_controllerIndex].right_stick_axis_X;
+			m_aim_trigger_axis_Y = GameData::s_controllers[m_controllerIndex].right_stick_axis_Y;
 		}
 
 		// Prevent drifting
@@ -1189,6 +1214,12 @@ glm::mat4& Player::GetInverseProjectionMatrix()
 	return m_camera.m_inverseProjectionMatrix;
 }
 
+void Player::UpdateControllerInput()
+{
+	if (m_inputType == InputType::CONTROLLER)
+		GameData::s_controllers[m_controllerIndex].UpdateInput();
+}
+
 void Player::CheckForWeaponInput()
 {
 
@@ -1569,10 +1600,24 @@ void Player::SetControlsToDefaultPS4Controls()
 	m_controls.WALK_RIGHT =		HELL_PS_4_CONTROLLER_DPAD_RIGHT;
 	m_controls.INTERACT =		HELL_PS_4_CONTROLLER_TRIANGLE;
 	m_controls.RELOAD =			HELL_PS_4_CONTROLLER_SQUARE;
-	m_controls.FIRE =			HELL_PS_4_CONTROLLER_TRIGGER_R;
+	m_controls.FIRE =			HELL_PS_4_CONTROLLER_R2;// HELL_PS_4_HELL_PS_4_CONTROLLER_TRIGGER_R;
 	m_controls.JUMP =			HELL_PS_4_CONTROLLER_L1;
-	m_controls.CROUCH =			HELL_PS_4_CONTROLLER_TRIGGER_L;
+	m_controls.CROUCH =			HELL_PS_4_CONTROLLER_L2;// HELL_PS_4_CONTROLLER_TRIGGER_L;
 	m_controls.NEXT_WEAPON =	HELL_PS_4_CONTROLLER_CROSS;
+}
+
+void Player::SetControlsToDefaultXBoxControls()
+{
+	m_controls.WALK_FORWARD = HELL_XBOX_CONTROLLER_DPAD_UP;
+	m_controls.WALK_BACKWARD = HELL_XBOX_CONTROLLER_DPAD_DOWN;
+	m_controls.WALK_LEFT = HELL_XBOX_CONTROLLER_DPAD_LEFT;
+	m_controls.WALK_RIGHT = HELL_XBOX_CONTROLLER_DPAD_RIGHT;
+	m_controls.INTERACT = HELL_XBOX_CONTROLLER_Y;
+	m_controls.RELOAD = HELL_XBOX_CONTROLLER_X;
+	m_controls.FIRE = HELL_XBOX_CONTROLLER_TRIGGER_R;
+	m_controls.JUMP = HELL_XBOX_CONTROLLER_L1;
+	m_controls.CROUCH = HELL_XBOX_CONTROLLER_TRIGGER_L;
+	m_controls.NEXT_WEAPON = HELL_XBOX_CONTROLLER_A;
 }
 
 int Player::GetControllerIndex()
@@ -1588,23 +1633,15 @@ void Player::SetControllerIndex(int index)
 	// Change input type
 	m_inputType = InputType::CONTROLLER;
 
-	// Retrieve the button count
-	int buttonCount;
-	const unsigned char* buttons = glfwGetJoystickButtons(index, &buttonCount);
-	
-	// Resize the buttons vector, 22 should be enough, final 2 buttons are reserved for triggers
-	Input::s_controllerStates[index].buttons_down.resize(22);
-	Input::s_controllerStates[index].buttons_down_last_frame.resize(22);
-	Input::s_controllerStates[index].buttons_pressed.resize(22);
-
-	// Wipe the button states to false
-	std::fill(Input::s_controllerStates[index].buttons_down.begin(), Input::s_controllerStates[index].buttons_down.end(), false);
-	std::fill(Input::s_controllerStates[index].buttons_down_last_frame.begin(), Input::s_controllerStates[index].buttons_down_last_frame.end(), false);
-	std::fill(Input::s_controllerStates[index].buttons_pressed.begin(), Input::s_controllerStates[index].buttons_pressed.end(), false);
-
-	// Set to default PS4 controls. YOU WILL DEFINITELY HAVE TO CHANGE THIS LATER!!!
-	SetControlsToDefaultPS4Controls();
+	// SET Defaults
+	if (GameData::s_controllers[index].m_type == Controller::Type::PS4)
+		SetControlsToDefaultPS4Controls();
+	// SET Defaults
+	if (GameData::s_controllers[index].m_type == Controller::Type::XBOX)
+		SetControlsToDefaultXBoxControls();
 }
+
+
 
 
 void Player::ForceRagdollToMatchAnimation()
