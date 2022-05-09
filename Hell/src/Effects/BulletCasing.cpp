@@ -5,41 +5,38 @@
 
 BulletCasing::BulletCasing(Transform transform, glm::vec3 velocity, CasingType type)
 {
+	CreateCollisionObject(transform, velocity, type);
+}
+
+void BulletCasing::CreateCollisionObject(Transform transform, glm::vec3 velocity, CasingType type)
+{
 	m_type = type;
 
-	PxShape* shape;
-	const PxMaterial* gMaterial = PhysX::GetDefaultMaterial();
-	glm::vec3 boxExtents = glm::vec3(0.01, 0.01, 0.1);
-	const PxBoxGeometry extents = PxBoxGeometry(boxExtents.x * 0.5, boxExtents.y * 0.5, boxExtents.z * 0.5);
-	PxPhysics* physx = PhysX::GetPhysics();
-	shape = physx->createShape(extents, *gMaterial);
-
+	// Create rigid
 	PxMat44 spawnMatrix = Util::TransformToPxMaQt44(transform);
-
-	m_rigidDynamic = physx->createRigidDynamic(PxTransform(spawnMatrix));
-	m_rigidDynamic->attachShape(*shape);
+	m_rigidDynamic = PhysX::GetPhysics()->createRigidDynamic(PxTransform(spawnMatrix));
 	m_rigidDynamic->setSolverIterationCounts(8, 1);
 	m_rigidDynamic->setName("BULLET_CASING");
-	// userdata is now set per frame.
-	//m_rigidDynamic->userData = new EntityData(PhysicsObjectType::SHELL_PROJECTILE, this);
-		
+	m_rigidDynamic->setLinearVelocity(PxVec3(velocity.x, velocity.y, velocity.z));
+	PhysX::GetScene()->addActor(*m_rigidDynamic);
 
+	float mass = 1;
+	PxRigidBodyExt::setMassAndUpdateInertia(*m_rigidDynamic, mass);
+
+	// Create shape
+	glm::vec3 boxExtents = glm::vec3(0.01, 0.01, 0.1);
+	PxMaterial* material = PhysX::GetDefaultMaterial();
+	PxBoxGeometry geom = PxBoxGeometry(boxExtents.x * 0.5, boxExtents.y * 0.5, boxExtents.z * 0.5);
+	PxRigidActorExt::createExclusiveShape(*m_rigidDynamic, geom, *material);
+
+	// Set shape filter data
+	PxShape* shape;
+	m_rigidDynamic->getShapes(&shape, 1);
 	PxFilterData filterData;
 	filterData.word1 = PhysX::CollisionGroup::MISC_OBSTACLE;
 	filterData.word2 = PhysX::CollisionGroup::MISC_OBSTACLE;
 	shape->setQueryFilterData(filterData);
 	shape->setSimulationFilterData(filterData);
-	shape->setQueryFilterData(filterData);
-
-
-	PxScene* scene = PhysX::GetScene();
-	scene->addActor(*m_rigidDynamic);
-	float mass = 1;
-	PxRigidBodyExt::setMassAndUpdateInertia(*m_rigidDynamic, mass);
-
-	m_rigidDynamic->setLinearVelocity(PxVec3(velocity.x, velocity.y, velocity.z));
-
-	shape->release();
 }
 
 void BulletCasing::Update(float deltatime)

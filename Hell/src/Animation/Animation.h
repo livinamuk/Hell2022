@@ -4,9 +4,9 @@
 struct SQT
 {
 public:
-    glm::quat rotation;
-    glm::vec3 positon;
-    float scale;
+    glm::quat rotation = glm::quat(1, 0, 0, 0);
+    glm::vec3 positon = glm::vec3(0, 0, 0);
+    float scale = 1.0f;
     float timeStamp = -1;
     const char* jointName;
 };

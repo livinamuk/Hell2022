@@ -115,8 +115,9 @@ void Ragdoll::BuildFromJsonFile(std::string filename, Transform spawnLocation, v
 		
 
 
-			PxShape* shape;
+		//	PxShape* shape;
 			auto gMaterial = physX.createMaterial(0.5f, 0.5f, 0.6f);
+			const PxMaterial& material = *gMaterial;
 
 			// Skip the scene rigid (it's outputted in the JSON export)
 			if (rigid.name == "rSceneShape")
@@ -132,38 +133,50 @@ void Ragdoll::BuildFromJsonFile(std::string filename, Transform spawnLocation, v
 				rigid.boxExtents.z *= rigid.scaleAbsoluteVector.z;
 			}
 
-			// Create PhysX shapes
+			// Create rigid
+			PxMat44 restMatrix = Util::GlmMat4ToPxMat44(rigid.restMatrix);
+			PxMat44 spawnMatrix = Util::GlmMat4ToPxMat44(spawnLocation.to_mat4());
+			rigid.pxRigidBody = physX.createRigidDynamic(PxTransform(spawnMatrix * restMatrix));
+			//rigid.pxRigidBody->attachShape(*shape);
+			rigid.pxRigidBody->setSolverIterationCounts(8, 1);
+			rigid.pxRigidBody->setName("RAGDOLL");
+
+			// Create shape
 			if (rigid.shapeType == "Capsule") {
 				float halfExtent = rigid.capsuleLength * 0.5;
 				float radius = rigid.capsuleRadius;
-				shape = physX.createShape(PxCapsuleGeometry(radius, halfExtent), *gMaterial);
+				//shape = physX.createShape(PxCapsuleGeometry(radius, halfExtent), *gMaterial);
+
+				PxMaterial* material = PhysX::GetDefaultMaterial();
+				PxCapsuleGeometry geom = PxCapsuleGeometry(radius, halfExtent);
+				PxRigidActorExt::createExclusiveShape(*rigid.pxRigidBody, geom, *material);	
 			}
 			else if (rigid.shapeType == "Box") {
 				float halfExtent = rigid.capsuleLength;
 				float radius = rigid.capsuleRadius;
-				shape = physX.createShape(PxBoxGeometry(rigid.boxExtents.x * 0.5, rigid.boxExtents.y * 0.5, rigid.boxExtents.z * 0.5), *gMaterial);
+				//shape = physX.createShape(PxBoxGeometry(rigid.boxExtents.x * 0.5, rigid.boxExtents.y * 0.5, rigid.boxExtents.z * 0.5), *gMaterial);
+			
+				PxMaterial* material = PhysX::GetDefaultMaterial();
+				PxBoxGeometry geom = PxBoxGeometry(rigid.boxExtents.x * 0.5, rigid.boxExtents.y * 0.5, rigid.boxExtents.z * 0.5);
+				PxRigidActorExt::createExclusiveShape(*rigid.pxRigidBody, geom, *material);
 			}
 
-			PxMat44 restMatrix = Util::GlmMat4ToPxMat44(rigid.restMatrix);
 
 			PxTransform offsetTranslation = PxTransform(PxVec3(rigid.offset.x, rigid.offset.y, rigid.offset.z));
 			PxTransform offsetRotation = PxTransform(rigid.rotation);
 
+
+
+			PxShape* shape;
+			rigid.pxRigidBody->getShapes(&shape, 1);
 			shape->setLocalPose(offsetTranslation.transform(offsetRotation));
-		
-			PxMat44 spawnMatrix = Util::GlmMat4ToPxMat44(spawnLocation.to_mat4());
-
-
-			rigid.pxRigidBody = physX.createRigidDynamic(PxTransform(spawnMatrix * restMatrix));
-			rigid.pxRigidBody->attachShape(*shape);
-			rigid.pxRigidBody->setSolverIterationCounts(8, 1);
-			rigid.pxRigidBody->setName("RAGDOLL");	
 
 			if (rigid.correspondingJointName == "mixamorig:Head" ||
 				rigid.correspondingJointName == "mixamorig:Neck")
 			{
 				rigid.pxRigidBody->setName("RAGDOLL_HEAD");
 			}
+
 
 
 			rigid.pxRigidBody->userData = new EntityData(type, parent);
@@ -239,26 +252,34 @@ void Ragdoll::BuildFromJsonFile(std::string filename, Transform spawnLocation, v
 			std::cout << m[2][0] << ", " << m[2][1] << ", " << m[2][2] << "\n";*/
 
 
-		const PxJointLinearLimitPair limitX{
+		//std::cout << "joint.limit.x: " << joint.limit.x << "\n";
+		if (joint.limit.x > -1) {
+			const PxJointLinearLimitPair limitX{
 			-joint.limit.x,
 			joint.limit.x,
 			linearSpring
-		};
-		joint.pxD6->setLinearLimit(PxD6Axis::eX, limitX);
+			};
+			joint.pxD6->setLinearLimit(PxD6Axis::eX, limitX);
+		}
 
-		const PxJointLinearLimitPair limitY{
-			-joint.limit.y,
-			joint.limit.y,
-			linearSpring
-		};
-		joint.pxD6->setLinearLimit(PxD6Axis::eY, limitY);
+		//std::cout << "joint.limit.y: " << joint.limit.y << "\n";
+		if (joint.limit.y > -1) {
+			const PxJointLinearLimitPair limitY{
+				-joint.limit.y,
+				joint.limit.y,
+				linearSpring
+			};
+			joint.pxD6->setLinearLimit(PxD6Axis::eY, limitY);
+		}
 
-		const PxJointLinearLimitPair limitZ{
-			-joint.limit.z,
-			joint.limit.z,
-			linearSpring
-		};
-		joint.pxD6->setLinearLimit(PxD6Axis::eZ, limitZ);
+		if (joint.limit.z > -1) {
+			const PxJointLinearLimitPair limitZ{
+				-joint.limit.z,
+				joint.limit.z,
+				linearSpring
+			};
+			joint.pxD6->setLinearLimit(PxD6Axis::eZ, limitZ);
+		}
 
 
 		const PxSpring angularSpring{

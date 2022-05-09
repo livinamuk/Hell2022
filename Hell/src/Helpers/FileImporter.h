@@ -46,7 +46,8 @@ public: // static functions
     static void FindBindPoseTransforms(SkinnedModel* skinnedModel, const aiNode* pNode); // for debugging
 
 
-    static void LoadAnimation(SkinnedModel* skinnedModel, const char* Filename);
+	static void LoadAnimation(SkinnedModel* skinnedModel, const char* Filename);
+	static void LoadAllAnimations(SkinnedModel* skinnedModel, const char* Filename);
 
 public: // static variables
     // static const aiScene* m_pScene;

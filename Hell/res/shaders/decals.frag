@@ -14,7 +14,7 @@ in vec2 SplitscreenAdjustedCoords;
 
 uniform mat4 inverseProjectionMatrix;
 uniform mat4 inverseViewMatrix;
-uniform mat4 model;
+//uniform mat4 model;
 uniform float screenWidth;
 uniform float screenHeight;
 uniform float fullscreenWidth;
@@ -24,9 +24,6 @@ uniform int writeRoughnessMetallic;
 
 uniform vec3 u_CameraFront;
 uniform vec3 u_ViewPos;
-
-uniform vec3 u_decalNormal;
-uniform vec3 u_decalPos;
 
 uniform int u_playerIndex;
 
@@ -38,7 +35,7 @@ const float EPS = 1e-4;
 const float PI = 3.14159265359;
 
 in vec2 TexCoords;
-in vec3 worldPosition;
+in vec3 DecalCenterPosition;
 
 uniform float u_alphaModifier;
 
@@ -57,29 +54,17 @@ void main()
     vec4 viewSpacePosition = inverseProjectionMatrix * clipSpacePosition;
     viewSpacePosition /= viewSpacePosition.w;
     vec4 worldSpacePosition = inverseViewMatrix * viewSpacePosition;
-    vec3 WorldPos = worldSpacePosition.xyz;
+    vec3 FragPos = worldSpacePosition.xyz;
 	
-	float d = length(WorldPos - u_decalPos);
+	float d = length(FragPos - DecalCenterPosition);
 	if (d > 0.075)	
 		discard;
         
 	gBaseColor  = texture(diffuseTexture, vec2(TexCoords.s, TexCoords.t));
     gBaseColor.a *= u_alphaModifier;
-
-    
+        
 	vec4 mask  = texture(maskTexture, vec2(TexCoords.s, TexCoords.t));
 
-
-    
-   // gBaseColor.rgb *= vec3(1-mask);
-  //  gBaseColor.a = mask.a;
- //   gBaseColor.a = mask.a;
-
-  //  gNormal.rgb = vec3(mask.rgb);//
- //   gNormal.a = 1;;//, 1);
-
-gNormal.rgb = vec3(0,0,0);
-gNormal.a = mask.a;
-
-//layout (binding = 3) uniform sampler2D maskTexture;
+    gNormal.rgb = vec3(0,0,0);
+    gNormal.a = mask.a;
 }

@@ -1051,9 +1051,7 @@ void Renderer::RenderDebugShit()
 
     // decals
     for (auto& decal : GameData::s_bulletDecals) {
-        Transform t;
-        t.position = decal.m_position;
-		//DrawPoint(shader, t.to_mat4(), RED);
+		DrawPoint(shader, decal.m_modelMatrix, RED);
     }
 
     return;
@@ -1345,8 +1343,13 @@ void Renderer::DecalPass(int playerIndex, int renderWidth, int renderHeight)
 	glBindTexture(GL_TEXTURE_2D, AssetManager::GetTexturePtr("BulletHole_Plaster")->ID);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, AssetManager::GetTexturePtr("BulletHole_Plaster_Mask")->ID);
-	for (BulletDecal decal : GameData::s_bulletDecals)
-		decal.Draw(shader);
+	glDisable(GL_CULL_FACE);
+	glDepthFunc(GL_LEQUAL);
+
+	GameData::DrawInstancedBulletDecals(shader);
+
+	//for (BulletDecal decal : GameData::s_bulletDecals)
+	//	decal.Draw(shader);
 
 
     // Blood splatters
@@ -1899,7 +1902,7 @@ void Renderer::DrawScene(Shader* shader, RenderPass renderPass, int player)
 	//for (BulletCasing& casing : GameData::s_bulletCasings)
 	//	casing.Draw(shader);
 
-    GameData::DrawInstanced(&s_instanced_geometry_shader);
+	GameData::DrawInstancedGeometry(&s_instanced_geometry_shader);
 
     glEnable(GL_BLEND);
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

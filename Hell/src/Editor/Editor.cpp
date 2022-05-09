@@ -1109,6 +1109,7 @@ void Editor::ReCalculateAllDoorPositions()
            door.RemoveCollisionObject();
 
        door.CreateCollisionObject();
+       
     }
 }
 

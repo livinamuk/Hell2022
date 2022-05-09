@@ -556,8 +556,9 @@ void main()
 	
     FragColor = vec4(color, 1.0);
 
-
+	
 	FragColor.rgb = test;
+	//FragColor.rgb = RMA.rgb                                              ;
         
 
   

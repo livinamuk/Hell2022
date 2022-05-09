@@ -236,7 +236,7 @@ void Room::BuildMeshFromVertices()
 
 	// Remove any old walls
 	for (Wall& wall : m_walls)
-		wall.DeleteBuffers();
+		wall.CleanUp();
 	m_walls.clear();
 
 	m_floorTrimMatrices.clear();
@@ -446,7 +446,7 @@ void Room::DeleteAllData()
 {
 	// Remove any old walls
 	for (Wall& wall : m_walls)
-		wall.DeleteBuffers();
+		wall.CleanUp();
 	m_walls.clear();
 
 

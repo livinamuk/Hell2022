@@ -35,12 +35,16 @@ public:
 	static void CreateVolumetricBlood(glm::vec3 position, glm::vec3 rotation, glm::vec3 front);
 	static void DetermineIfLightNeedsShadowmapUpdate(Light& light);
 
-	static void DrawInstanced(Shader* shader);
+	static void DrawInstancedGeometry(Shader* shader);
+	static void DrawInstancedBulletDecals(Shader* shader);
+	static void DrawInstancedBloodDecals(Shader* shader);
 
 	static bool s_splitScreen;
 
 	static std::vector<Controller> s_controllers;
 		
+	static unsigned int s_instancingBuffer;
+
 	// internals
 private:
 	static int s_volumetricBloodObjectsSpawnedThisFrame;

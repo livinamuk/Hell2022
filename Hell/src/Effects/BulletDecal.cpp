@@ -2,34 +2,16 @@
 #include "Helpers/AssetManager.h"
 #include <math.h>
 
-BulletDecal::BulletDecal()
-{
-	m_randomRotation = Util::RandomFloat(0, HELL_PI * 2);
-}
+BulletDecal::BulletDecal(glm::vec3 position, glm::vec3 normal)
+{	
+	Transform translation;
+	translation.position = position;
+	translation.scale = glm::vec3(0.02f);
 
-void BulletDecal::Draw(Shader* shader)
-{
-	glDisable(GL_CULL_FACE);
+	Transform rotationTransform;
+	rotationTransform.rotation.z = Util::RandomFloat(0, HELL_PI * 2);
 
-	static unsigned int upFacingPlaneVAO = 0;
-
-//	Transform offset(glm::vec3(0, 0, 0.0));
-
-//	glm::quat rotation = glm::quat_cast(glm::lookAt(m_position, m_position + m_normal, glm::vec3(0, 1, 0)));
-
-	glm::mat4 modelMatrix = glm::translate(glm::mat4(1), m_position);
-//	modelMatrix *= glm::mat4_cast(rotation);
-//	modelMatrix = modelMatrix * offset.to_mat4();
-
-
-
-	Transform trans;
-	trans.position = m_position;
-	trans.scale = glm::vec3(0.02f);
-
-	Transform rotTrans;
-	rotTrans.rotation.z = m_randomRotation;
-
+	m_normal = normal;
 	glm::vec3 n = m_normal;
 
 	float sign = copysignf(1.0f, n.z);
@@ -43,7 +25,14 @@ void BulletDecal::Draw(Shader* shader)
 	rotationMatrix[1] = glm::vec4(b2, 0);
 	rotationMatrix[2] = glm::vec4(n, 0);
 
-	modelMatrix = trans.to_mat4() * rotationMatrix * rotTrans.to_mat4();
+	m_modelMatrix = translation.to_mat4() * rotationMatrix * rotationTransform.to_mat4();
+}
+
+void BulletDecal::Draw(Shader* shader)
+{
+	glDisable(GL_CULL_FACE);
+
+	static unsigned int frontFacingPlaneVAO = 0;
 
 
 	glDepthFunc(GL_LEQUAL);
@@ -51,7 +40,7 @@ void BulletDecal::Draw(Shader* shader)
 	float offset = 0.1f;
 
 	// Setup if you haven't already
-	if (upFacingPlaneVAO == 0) {
+	if (frontFacingPlaneVAO == 0) {
 		Vertex vert0, vert1, vert2, vert3;
 		vert0.Position = glm::vec3(-0.5, 0.5, offset);
 		vert1.Position = glm::vec3(0.5, 0.5f, offset);
@@ -73,8 +62,6 @@ void BulletDecal::Draw(Shader* shader)
 		vert1.Tangent = glm::vec3(1, 0, 0);
 		vert2.Tangent = glm::vec3(1, 0, 0);
 		vert3.Tangent = glm::vec3(1, 0, 0);
-		//Util::SetNormalsAndTangentsFromVertices(&vert0, &vert1, &vert2);
-		//Util::SetNormalsAndTangentsFromVertices(&vert3, &vert0, &vert1);
 		std::vector<Vertex> vertices;
 		std::vector<unsigned int> indices;
 		unsigned int i = (unsigned int)vertices.size();
@@ -90,10 +77,10 @@ void BulletDecal::Draw(Shader* shader)
 		vertices.push_back(vert3);
 		unsigned int VBO;
 		unsigned int EBO;
-		glGenVertexArrays(1, &upFacingPlaneVAO);
+		glGenVertexArrays(1, &frontFacingPlaneVAO);
 		glGenBuffers(1, &VBO);
 		glGenBuffers(1, &EBO);
-		glBindVertexArray(upFacingPlaneVAO);
+		glBindVertexArray(frontFacingPlaneVAO);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -112,10 +99,10 @@ void BulletDecal::Draw(Shader* shader)
 		glVertexAttribIPointer(5, 1, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, MaterialID));
 	}
 	// Draw
-	glBindVertexArray(upFacingPlaneVAO);
-	shader->setMat4("model", modelMatrix);
+	glBindVertexArray(frontFacingPlaneVAO);
+	shader->setMat4("model", m_modelMatrix);
 	shader->setVec3("u_decalNormal", m_normal);
-	shader->setVec3("u_decalPos", m_position);
+	shader->setVec3("u_decalPos", m_modelMatrix[3]);
 	glDrawElements(GL_TRIANGLES, 8, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }

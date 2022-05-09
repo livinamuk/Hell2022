@@ -11,6 +11,7 @@ public:
 	// Methods
 	BulletCasing();
 	BulletCasing(Transform transform, glm::vec3 rotation, CasingType type);
+	void CreateCollisionObject(Transform transform, glm::vec3 velocity, CasingType type);
 	void Update(float deltatime);
 	//void Draw(Shader* shader);  instanced now inside the class GameData. put this somewhere better
 

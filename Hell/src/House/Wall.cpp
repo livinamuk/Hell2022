@@ -7,10 +7,13 @@ Wall::Wall()
 	glGenBuffers(1, &m_VBO);
 }
 
-void Wall::DeleteBuffers()
+void Wall::CleanUp()
 {
 	glDeleteVertexArrays(1, &m_VAO);
 	glDeleteBuffers(1, &m_VBO);
+
+	if (m_rigidStatic)
+		m_rigidStatic->release();
 }
 
 void Wall::AddVerticesClockwise(Vertex v1, Vertex v2, Vertex v3, Vertex v4)

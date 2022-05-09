@@ -28,11 +28,11 @@ public:
 	float m_swing = 0;
 	bool m_closed = true;
 
-	physx::PxRigidDynamic* m_rigid = nullptr;
-	physx::PxRigidStatic* m_frameRigid;
+	//physx::PxRigidDynamic* m_rigid = nullptr;
+	physx::PxRigidStatic* m_rigid = nullptr;
 	physx::PxD6Joint* m_joint;
 	PxTransform m_restPose;
-	PxShape* m_shape;
+	//PxShape* m_shape;
 
 	Door::State m_state = State::CLOSING;
 

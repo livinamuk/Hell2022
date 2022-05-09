@@ -20,14 +20,14 @@ SkinnedModel* FileImporter::LoadSkinnedModel(const char* filename)
 {
     const aiScene* m_pScene;
     Assimp::Importer m_Importer;
-   // m_Importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
+    // m_Importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
 
     SkinnedModel* skinnedModel = new SkinnedModel();
 
-	skinnedModel->m_VAO = 0;
-	ZERO_MEM(skinnedModel->m_Buffers);
-	skinnedModel->m_NumBones = 0;
-	skinnedModel->m_filename = filename;
+    skinnedModel->m_VAO = 0;
+    ZERO_MEM(skinnedModel->m_Buffers);
+    skinnedModel->m_NumBones = 0;
+    skinnedModel->m_filename = filename;
 
 
 
@@ -51,16 +51,17 @@ SkinnedModel* FileImporter::LoadSkinnedModel(const char* filename)
     // aiProcess_PreTransformVertices
 
     //Getting corrupted later. So deep copying now.
+    if (!tempScene) {
+        std::cout << "something fucked up...\n";
+        return nullptr;
+    }
+
     m_pScene = new aiScene(*tempScene);
 
     if (m_pScene) 
     {
         skinnedModel->m_GlobalInverseTransform = Util::aiMatrix4x4ToGlm(m_pScene->mRootNode->mTransformation);
-
         skinnedModel->m_GlobalInverseTransform = glm::inverse(skinnedModel->m_GlobalInverseTransform);
-
-
-
         Ret = InitFromScene(skinnedModel, m_pScene, filename);
     }
     else {
@@ -390,4 +391,91 @@ void FileImporter::LoadAnimation(SkinnedModel* skinnedModel, const char* Filenam
     // Store it
     skinnedModel->m_animations.emplace_back(animation);
     m_AnimationImporter.FreeScene();
+}
+
+void FileImporter::LoadAllAnimations(SkinnedModel* skinnedModel, const char* Filename)
+{
+
+	aiScene* m_pAnimationScene;
+	Assimp::Importer m_AnimationImporter;
+
+	// m_filename = Filename;
+
+	std::string filepath = "res/animations/";
+	filepath += Filename;
+
+	// Try and load the animation
+	const aiScene* tempAnimScene = m_AnimationImporter.ReadFile(filepath.c_str(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
+
+	// Failed
+	if (!tempAnimScene) {
+		std::cout << "Could not load: " << Filename << "\n";
+		assert(0);
+	}
+
+	// Success
+	m_pAnimationScene = new aiScene(*tempAnimScene);
+	if (m_pAnimationScene) {
+
+		std::cout << "Loading animations: " << Filename << "\n";
+        for (int i = 0; i < m_pAnimationScene->mNumAnimations; i++)
+		{
+			auto name = m_pAnimationScene->mAnimations[i]->mName.C_Str();
+			Animation* animation = new Animation(name);
+
+			animation->m_duration = (float)m_pAnimationScene->mAnimations[i]->mDuration;
+			animation->m_ticksPerSecond = m_pAnimationScene->mAnimations[i]->mTicksPerSecond;
+			std::cout << "Loaded " << i << ": " << name << "\n";
+
+			auto a = m_pAnimationScene->mNumAnimations;
+
+			// need to create an animation clip.
+	        // need to fill it with animation poses.
+			aiAnimation* aiAnim = m_pAnimationScene->mAnimations[i];
+
+			// so iterate over each channel, and each channel is for each NODE aka joint.
+			// Resize the vecotr big enough for each pose
+			int nodeCount = aiAnim->mNumChannels;
+			int poseCount = aiAnim->mChannels[i]->mNumPositionKeys;
+
+			// trying the assimp way now. coz why fight it.
+			for (int n = 0; n < nodeCount; n++)
+			{
+				const char* nodeName = Util::CopyConstChar(aiAnim->mChannels[n]->mNodeName.C_Str());
+
+				AnimatedNode animatedNode(nodeName);
+				animation->m_NodeMapping.emplace(nodeName, n);
+
+				for (unsigned int p = 0; p < aiAnim->mChannels[n]->mNumPositionKeys; p++)
+				{
+					SQT sqt;
+					aiVectorKey pos = aiAnim->mChannels[n]->mPositionKeys[p];
+					aiQuatKey rot = aiAnim->mChannels[n]->mRotationKeys[p];
+					aiVectorKey scale = aiAnim->mChannels[n]->mScalingKeys[p];
+
+					sqt.positon = glm::vec3(pos.mValue.x, pos.mValue.y, pos.mValue.z);
+					sqt.rotation = glm::quat(rot.mValue.w, rot.mValue.x, rot.mValue.y, rot.mValue.z);
+					sqt.scale = scale.mValue.x;
+					sqt.timeStamp = aiAnim->mChannels[n]->mPositionKeys[p].mTime;
+
+					animation->m_finalTimeStamp = std::max(animation->m_finalTimeStamp, sqt.timeStamp);
+
+					animatedNode.m_nodeKeys.push_back(sqt);
+				}
+				animation->m_animatedNodes.push_back(animatedNode);
+			}
+			// Store it
+			skinnedModel->m_animations.emplace_back(animation);
+        }
+
+	}
+
+
+	// Some other error possibilty
+	else {
+		printf("Error parsing '%s': '%s'\n", Filename, m_AnimationImporter.GetErrorString());
+		assert(0);
+	}
+
+	m_AnimationImporter.FreeScene();
 }

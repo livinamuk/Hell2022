@@ -1,0 +1,6306 @@
+{
+  "schema": "ragdoll-1.0",
+  "ragdollVersion": "2021.03.23",
+  "mayaVersion": "20200200",
+  "entitiesCount": 40,
+  "timestamp": 1617110766,
+  "entities": {
+    "1048576": {
+      "id": 1048576,
+      "components": {
+        "SolverComponent": {
+          "type": "SolverComponent",
+          "members": {
+            "enabled": true,
+            "gravity": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                -25.0,
+                0.0
+              ]
+            },
+            "airDensity": 1.0,
+            "substeps": 4,
+            "useGround": true,
+            "groundFriction": 0.5,
+            "groundRestitution": 0.5,
+            "bounceThresholdVelocity": 1.0,
+            "numThreads": 0,
+            "enableCCD": false,
+            "timeMultiplier": 1.0,
+            "spaceMultiplier": 1.0,
+            "positionIterations": 4,
+            "velocityIterations": 1,
+            "panic": false,
+            "type": "TGS"
+          }
+        },
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rSceneShape",
+            "path": "|rScene|rSceneShape"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Plane",
+            "length": 1.0,
+            "radius": 1.0,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                0.0,
+                0.0,
+                0.7071067811865476,
+                0.7071067811865476
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.5,
+            "restitution": 0.5,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": true,
+            "dynamic": false,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "1": {
+      "id": 1,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid5",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:Neck|mixamorig:Head|rRigid5"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.21000000834465028,
+                0.699999988079071,
+                0.46316662430763247,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                0.9999999999995859,
+                2.969996705111088e-8,
+                -9.095274318352969e-7,
+                0.0,
+                -2.6988732808374115e-8,
+                0.9999955574617527,
+                0.002980781232774644,
+                0.0,
+                9.09611920329294e-7,
+                -0.0029807812327488625,
+                0.9999955574613395,
+                0.0,
+                -0.00005136614785345858,
+                2.611183288408462,
+                -0.012030832266635948,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0000000000000014,
+                1.000000000000001
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0000000000000014,
+                1.000000000000001
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Capsule",
+            "length": 0.05000000074505806,
+            "radius": 0.09000000357627869,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.2219679057598114,
+                0.09322652220726013,
+                0.09322652220726013
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                -5.230389905908073e-12,
+                0.10478425025939942,
+                0.036574557423591617
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                0.0,
+                0.0,
+                0.7071067812041956,
+                0.7071067811688996
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "2": {
+      "id": 2,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rSocketConstraint4___head",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:Neck|mixamorig:Head|rSocketConstraint4___head"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 3,
+            "child": 1,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                0.0,
+                0.9441387644575083,
+                0.3295481655974583,
+                0.0,
+                1.942890293094024e-15,
+                -0.32954816559745839,
+                0.9441387644575083,
+                0.0,
+                1.0,
+                6.661338147750939e-16,
+                -1.7763568394002506e-15,
+                0.0,
+                3.637978807091713e-12,
+                0.07702672481536875,
+                0.02688592299818996,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                2.220446049250313e-16,
+                0.9441387644575086,
+                0.3295481655974578,
+                0.0,
+                1.942890293094024e-15,
+                -0.3295481655974579,
+                0.9441387644575086,
+                0.0,
+                1.0,
+                3.3306690738754698e-16,
+                -1.9984014443252819e-15,
+                0.0,
+                -6.776263578034403e-21,
+                4.440892098500632e-16,
+                5.2041704279304278e-18,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": true,
+            "linearStiffness": 0.0,
+            "linearDamping": 0.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                3.6379788003154494e-12,
+                0.07702672481536865,
+                0.026885922998189903,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 1.483529806137085,
+            "swing1": 0.7853981852531433,
+            "swing2": 0.7853981852531433,
+            "angularStiffness": 1000.0,
+            "angularDamping": 100.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "3": {
+      "id": 3,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid4",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:Neck|rRigid4"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.699999988079071,
+                0.21816666424274445,
+                0.21000000834465028,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                0.9999999999995859,
+                2.969996705111088e-8,
+                -9.095274318352969e-7,
+                0.0,
+                -2.6988732808374115e-8,
+                0.9999955574617527,
+                0.0029807812327746448,
+                0.0,
+                9.09611920329294e-7,
+                -0.002980781232748863,
+                0.9999955574613395,
+                0.0,
+                -0.00005138852839190315,
+                2.5342370468419155,
+                -0.039146235638829369,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0000000000000014,
+                1.0000000000000014
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0000000000000014,
+                1.0000000000000014
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Capsule",
+            "length": 0.15000000596046449,
+            "radius": 0.04500000178813934,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.08158412575721741,
+                0.03426538035273552,
+                0.03426538035273552
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                -1.0344243501049857e-13,
+                0.038513362407684329,
+                0.013442961499094963
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                0.5765302414450384,
+                0.40940552103022906,
+                0.5765302414888873,
+                0.40940552108888075
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "4": {
+      "id": 4,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rSocketConstraint3",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:Neck|rSocketConstraint3"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 21,
+            "child": 3,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                4.459144165025464e-11,
+                0.9143669761713222,
+                0.40488644443511909,
+                0.0,
+                1.0070294598207849e-10,
+                -0.40488644443511925,
+                0.9143669761713222,
+                0.0,
+                1.0,
+                2.775557561562891e-16,
+                -1.101339019982106e-10,
+                0.0,
+                0.0,
+                0.1607605218887327,
+                7.450580555290475e-9,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                4.459144165025464e-11,
+                0.9441386584001554,
+                0.32954846944623297,
+                0.0,
+                1.0070277944862485e-10,
+                -0.32954846944623297,
+                0.9441386584001554,
+                0.0,
+                1.0,
+                -8.914036175866615e-12,
+                -1.0977241338139265e-10,
+                0.0,
+                0.0,
+                0.0,
+                -2.775557561562895e-17,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": true,
+            "linearStiffness": 0.0,
+            "linearDamping": 0.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.9967189182309196,
+                0.08094070694394314,
+                0.0,
+                0.0,
+                -0.08094070694394314,
+                0.9967189182309196,
+                0.0,
+                6.776263578034403e-21,
+                0.16076052188873247,
+                7.45058058304604e-9,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 0.7853981852531433,
+            "swing1": 0.7853981852531433,
+            "swing2": 0.7853981852531433,
+            "angularStiffness": 1000.0,
+            "angularDamping": 100.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "5": {
+      "id": 5,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid9",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:LeftShoulder|mixamorig:LeftArm|mixamorig:LeftForeArm|mixamorig:LeftHand|rRigid9"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.699999988079071,
+                0.24266667664051057,
+                0.21000000834465028,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                -0.10387212934203349,
+                -0.03177764968743518,
+                -0.994082874677104,
+                0.0,
+                0.9941620057352221,
+                -0.032658525681093179,
+                -0.10283640917913195,
+                0.0,
+                -0.029197381705768967,
+                -0.99896126135135,
+                0.03498444255447841,
+                0.0,
+                0.6960767506036322,
+                2.4823110230859748,
+                -0.0393166217228044,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0000000000000014,
+                1.0,
+                1.0000000000000014
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0000000000000014,
+                1.0,
+                1.0000000000000014
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Box",
+            "length": 0.10268345475196839,
+            "radius": 0.010268345475196839,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.15000000596046449,
+                0.10000000149011612,
+                0.019999999552965165
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                -0.007,
+                0.11,
+                0.0011269468814134598
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                0.008027318724474519,
+                -0.0074850813841367109,
+                0.7313330253773632,
+                0.6819322119559697
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "6": {
+      "id": 6,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rSocketConstraint8__hand_left",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:LeftShoulder|mixamorig:LeftArm|mixamorig:LeftForeArm|mixamorig:LeftHand|rSocketConstraint8__hand_left"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 7,
+            "child": 5,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                -0.5828599784824273,
+                0.7408916652970051,
+                0.33369714679166076,
+                0.0,
+                -0.6429724985872568,
+                -0.6716245530751759,
+                0.36811251780811607,
+                0.0,
+                0.496850693411939,
+                -3.403532211621041e-8,
+                0.8678360377721556,
+                0.0,
+                1.4901161179969889e-8,
+                0.21752849221229562,
+                -4.440892098500632e-16,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                -0.6695597459677936,
+                0.6838023518569447,
+                0.290007051939181,
+                0.0,
+                -0.5839562059610923,
+                -0.7259094303080103,
+                0.3633877385237785,
+                0.0,
+                0.45900424409701276,
+                0.0739583841414265,
+                0.8853503607703106,
+                0.0,
+                0.0,
+                0.0,
+                2.220446049250316e-16,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": true,
+            "linearStiffness": 0.0,
+            "linearDamping": 0.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                0.9937839368984496,
+                -0.10387192498418174,
+                -0.04005134158425932,
+                0.0,
+                0.10492505050791612,
+                0.9941620573877759,
+                0.025150296746079355,
+                0.0,
+                0.037205114413609168,
+                -0.029196349953121219,
+                0.998881050281206,
+                0.0,
+                1.4901161179969869e-8,
+                0.21752849221229565,
+                -4.440892098500626e-16,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 1.1344640254974366,
+            "swing1": 1.1344640254974366,
+            "swing2": 1.1344640254974366,
+            "angularStiffness": 1000000.0,
+            "angularDamping": 10000.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "7": {
+      "id": 7,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid8",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:LeftShoulder|mixamorig:LeftArm|mixamorig:LeftForeArm|rRigid8"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.699999988079071,
+                0.6918333172798157,
+                0.21000000834465028,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                -2.468936672883615e-7,
+                -0.07217328329170636,
+                -0.9973921080391774,
+                0.0,
+                0.9999999999994456,
+                -0.0000010388618325585242,
+                -1.7236510740925582e-7,
+                0.0,
+                -0.0000010237124374312679,
+                -0.997392108038667,
+                0.07217328329192274,
+                0.0,
+                0.47854825839145989,
+                2.4823112501435289,
+                -0.039316569366176497,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0000000000000014,
+                0.9999999999999999,
+                1.0000000000000014
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0000000000000014,
+                0.9999999999999999,
+                1.0000000000000014
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Capsule",
+            "length": 0.21752849221229554,
+            "radius": 0.03999999910593033,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.21752849221229554,
+                0.09136199206113816,
+                0.09136199206113816
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                7.16021446578452e-8,
+                0.10876424610614777,
+                -1.2170903573860415e-7
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                -0.48084710737150368,
+                -0.4808462106683144,
+                0.5184463255957819,
+                0.5184461288259495
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "8": {
+      "id": 8,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rHingeConstraint2__elbow_left",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:LeftShoulder|mixamorig:LeftArm|mixamorig:LeftForeArm|rHingeConstraint2__elbow_left"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 9,
+            "child": 7,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                0.004922659143424601,
+                -2.9628051750885128e-7,
+                -0.9999878836400319,
+                0.0,
+                -0.9843717360787512,
+                0.17603636859815453,
+                -0.004845837397193465,
+                0.0,
+                0.17603423711387226,
+                0.9843836634822253,
+                0.0008662753892876296,
+                0.0,
+                1.1175868230850498e-8,
+                0.28430306911468508,
+                -1.68753899743024e-14,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                0.0,
+                0.0,
+                -1.0,
+                0.0,
+                -0.0025589660721669195,
+                0.9999967258409607,
+                0.0,
+                0.0,
+                0.9999967258409607,
+                0.0025589660721669195,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": false,
+            "linearStiffness": 1000.0,
+            "linearDamping": 100.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                0.9999878836399797,
+                -4.368108392784483e-7,
+                0.004922659143549656,
+                0.0,
+                4.3826403471766396e-7,
+                0.9999999999998607,
+                -2.9412665639161336e-7,
+                0.0,
+                -0.004922659143420492,
+                2.9628051710494478e-7,
+                0.9999878836400319,
+                0.0,
+                1.1175868008805878e-8,
+                0.2843030691146868,
+                -1.687538997430238e-14,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 1.3962633609771729,
+            "swing1": 0.1745329201221466,
+            "swing2": 0.1745329201221466,
+            "angularStiffness": 1000000.0,
+            "angularDamping": 10000.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "9": {
+      "id": 9,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid7",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:LeftShoulder|mixamorig:LeftArm|rRigid7"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.21000000834465028,
+                0.699999988079071,
+                0.3488333225250244,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.9641274651149843e-7,
+                -0.06726258743446478,
+                -0.9977353077502984,
+                0.0,
+                0.9999999999991109,
+                -0.0000013028436096629293,
+                2.846901143160885e-7,
+                0.0,
+                -0.000001319042063407938,
+                -0.9977353077494671,
+                0.06726258743414893,
+                0.0,
+                0.1942451892770187,
+                2.4823116212976807,
+                -0.03931663915389132,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0000000000000014,
+                1.0,
+                1.0000000000000014
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0000000000000014,
+                1.0,
+                1.0000000000000014
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Capsule",
+            "length": 0.27000001072883608,
+            "radius": 0.04500000178813934,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.28430306911468508,
+                0.1194073036313057,
+                0.1194073036313057
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                1.6998544083435264e-7,
+                0.14215153455734254,
+                -1.1625589380059865e-8
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                -0.4820427920682042,
+                -0.48204217343533858,
+                0.5173342683687843,
+                0.5173348474790381
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "10": {
+      "id": 10,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rSocketConstraint6__shoulder_left",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:LeftShoulder|mixamorig:LeftArm|rSocketConstraint6__shoulder_left"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 11,
+            "child": 9,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                -0.7080685112188181,
+                0.6911299094483128,
+                -0.14483933059198296,
+                0.0,
+                -0.03420003162182145,
+                -0.23843651195476268,
+                -0.9705557107162437,
+                0.0,
+                -0.7053150652420754,
+                -0.6822664274554431,
+                0.19246605079793545,
+                0.0,
+                -1.4901161193847677e-8,
+                0.13454611599445347,
+                -1.1920928955078139e-7,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                0.0000011956021395143069,
+                0.9999999999992819,
+                -8.176882698718303e-8,
+                0.0,
+                -0.07054017929042407,
+                2.772853391341812e-9,
+                -0.997508938860036,
+                0.0,
+                -0.9975089388593195,
+                0.0000011983918092872695,
+                0.0705401792903767,
+                0.0,
+                -2.0816681711721714e-17,
+                8.326672684688674e-17,
+                0.0,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": true,
+            "linearStiffness": 0.0,
+            "linearDamping": 0.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                0.9997078962100646,
+                0.01796365530389905,
+                -0.016168776804983507,
+                0.0,
+                -0.021480517146877839,
+                0.9670313256807318,
+                -0.2537498818428672,
+                0.0,
+                0.011077438257528692,
+                0.2540230742280887,
+                0.9671347207712903,
+                0.0,
+                -1.4901161207725445e-8,
+                0.13454611599445344,
+                -1.1920928910669204e-7,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 0.7853981852531433,
+            "swing1": 1.0471975803375245,
+            "swing2": 1.0471975803375245,
+            "angularStiffness": 1000.0,
+            "angularDamping": 100.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "11": {
+      "id": 11,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid6",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:LeftShoulder|rRigid6"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.699999988079071,
+                0.6510000228881836,
+                0.21000000834465028,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                -0.02148033540309191,
+                -0.07829526306095049,
+                -0.9966987744414997,
+                0.0,
+                0.9670309941410425,
+                -0.2546573319665335,
+                -0.0008364486081389735,
+                0.0,
+                -0.2537511607097747,
+                -0.9638565739039724,
+                0.08118407097786285,
+                0.0,
+                0.06413489439949519,
+                2.516574660155912,
+                -0.039204103416509348,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0000000000000014,
+                1.0000000000000003,
+                1.000000000000001
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0000000000000014,
+                1.0000000000000003,
+                1.000000000000001
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Capsule",
+            "length": 0.07999999821186066,
+            "radius": 0.03999999910593033,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.13454611599445344,
+                0.05650936812162399,
+                0.05650936812162399
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                -7.450580596923828e-9,
+                0.06727305799722672,
+                -5.960464477539063e-8
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                0.4999894856196164,
+                0.49998998400855529,
+                0.5000100711653609,
+                0.5000104587847807
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "12": {
+      "id": 12,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rSocketConstraint5__clav_left",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:LeftShoulder|rSocketConstraint5__clav_left"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 21,
+            "child": 11,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                0.9116350826868503,
+                0.4043350278187457,
+                0.0737201552721757,
+                0.0,
+                0.40995925963649579,
+                -0.907338138286194,
+                -0.09311771179340764,
+                0.0,
+                0.029238355850419618,
+                0.11511163316606214,
+                -0.9929221673711424,
+                0.0,
+                0.06418628245592118,
+                0.14315640926361104,
+                -0.0014347508549690267,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                -1.206768376338374e-7,
+                0.9999999709970937,
+                0.00024084392748352507,
+                0.0,
+                -0.00004106029403844192,
+                -0.00024084393223566813,
+                0.9999999701541259,
+                0.0,
+                0.999999999157019,
+                1.1078771156025627e-7,
+                0.0000410603219118677,
+                0.0,
+                2.775557561562895e-17,
+                0.0,
+                0.0,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": true,
+            "linearStiffness": 0.0,
+            "linearDamping": 0.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                -0.02147943120358864,
+                -0.00034495916312737856,
+                -0.9997692308919823,
+                0.0,
+                0.967030987338083,
+                -0.25381697297718555,
+                -0.020688493338834995,
+                0.0,
+                -0.2537512631753833,
+                -0.9672522035290869,
+                0.005785430409476877,
+                0.0,
+                0.06418628245592118,
+                0.14315640926361063,
+                -0.0014347508549690247,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 0.4363323152065277,
+            "swing1": 0.6981316804885864,
+            "swing2": 0.6981316804885864,
+            "angularStiffness": 1000000.0,
+            "angularDamping": 10000.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "13": {
+      "id": 13,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid28",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:RightShoulder|mixamorig:RightArm|mixamorig:RightForeArm|mixamorig:RightHand|rRigid28"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.699999988079071,
+                0.25083333253860476,
+                0.21000000834465028,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                -0.09617445099185829,
+                0.010439214686711439,
+                0.9953097496624551,
+                0.0,
+                -0.9951442349418251,
+                -0.02204343429971134,
+                -0.09592725716043246,
+                0.0,
+                0.020938639842741467,
+                -0.9997025106505429,
+                0.012508539504550887,
+                0.0,
+                -0.6959955585283573,
+                2.482308210533741,
+                -0.03928487609791132,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0000000000000014,
+                0.9999999999999999,
+                1.0000000000000016
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0000000000000014,
+                0.9999999999999999,
+                1.0000000000000016
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Box",
+            "length": 0.10050417482852936,
+            "radius": 0.010050417855381966,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.15000000596046449,
+                0.10000000149011612,
+                0.02010083571076393
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                0.007,
+                0.11,
+                0.00132728461176157
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                0.009004946928607575,
+                -0.009667547863538883,
+                0.681526330424399,
+                0.7316743198905999
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "14": {
+      "id": 14,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rSocketConstraint27__hand_right",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:RightShoulder|mixamorig:RightArm|mixamorig:RightForeArm|mixamorig:RightHand|rSocketConstraint27__hand_right"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 15,
+            "child": 13,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                0.5650232297218846,
+                0.7471530844984549,
+                0.35001573993049958,
+                0.0,
+                0.63515734554968,
+                -0.6646519903861046,
+                0.39346267684505256,
+                0.0,
+                0.5266155108510714,
+                -4.841711464809163e-7,
+                -0.8501035841183302,
+                0.0,
+                7.450580638557202e-9,
+                0.21741038560867313,
+                -1.1920928977282602e-7,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                0.6548038631834109,
+                0.6938214439379674,
+                0.2997393946279252,
+                0.0,
+                0.5913825248089194,
+                -0.7172977867200776,
+                0.36844347533523577,
+                0.0,
+                0.47063638842604268,
+                -0.06399757103447472,
+                -0.8800032390798225,
+                0.0,
+                0.0,
+                1.1102230246251564e-16,
+                0.0,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": true,
+            "linearStiffness": 0.0,
+            "linearDamping": 0.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                0.9934447703884425,
+                0.09617492605662197,
+                0.06178892931470887,
+                0.0,
+                -0.09727383864120067,
+                0.9951442645582482,
+                0.015023083332956489,
+                0.0,
+                -0.060044054692037978,
+                -0.02093504991220694,
+                0.9979761696460056,
+                0.0,
+                7.450580638557192e-9,
+                0.21741038560867316,
+                -1.1920928977282586e-7,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 1.1344640254974366,
+            "swing1": 1.1344640254974366,
+            "swing2": 1.1344640254974366,
+            "angularStiffness": 1000000.0,
+            "angularDamping": 10000.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "15": {
+      "id": 15,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid27",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:RightShoulder|mixamorig:RightArm|mixamorig:RightForeArm|rRigid27"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.699999988079071,
+                0.5529999732971191,
+                0.21000000834465028,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                2.535157170857616e-7,
+                0.07254122493391202,
+                0.9973654148229842,
+                0.0,
+                -0.9999999999934429,
+                -0.0000035845561114911108,
+                5.149003570736888e-7,
+                0.0,
+                0.0000036124637958212526,
+                -0.9973654148165749,
+                0.07254122493252768,
+                0.0,
+                -0.4785851729206714,
+                2.4823088704177778,
+                -0.03928498682595807,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0000000000000014,
+                0.9999999999999999,
+                1.0000000000000014
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0000000000000014,
+                0.9999999999999999,
+                1.0000000000000014
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Capsule",
+            "length": 0.2174103856086731,
+            "radius": 0.03999999910593033,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.2174103856086731,
+                0.09131236374378205,
+                0.09131236374378205
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                -2.57814662063538e-7,
+                0.10870519280433655,
+                -4.071862065302412e-7
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                -0.518535198124663,
+                -0.5185346271374719,
+                0.480752562450607,
+                0.480749479939807
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "16": {
+      "id": 16,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rHingeConstraint2__elbow_right",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:RightShoulder|mixamorig:RightArm|mixamorig:RightForeArm|rHingeConstraint2__elbow_right"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 17,
+            "child": 15,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                0.0385500139713042,
+                -0.10236306697714959,
+                -0.9939998485622843,
+                0.0,
+                0.9921188767517684,
+                0.12260445752339688,
+                0.025851139011718484,
+                0.0,
+                0.11922261033722542,
+                -0.9871625750171171,
+                0.1062827345807067,
+                0.0,
+                4.690692279041293e-15,
+                0.2842375040054321,
+                -6.705747068735954e-14,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                0.01669976020296282,
+                -0.01230504040550334,
+                -0.9997848288455785,
+                0.0,
+                0.022313221404170914,
+                0.9996798339343401,
+                -0.011931042518515813,
+                0.0,
+                0.9996115436306906,
+                -0.022109174693531947,
+                0.016968978597396435,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": false,
+            "linearStiffness": 1000.0,
+            "linearDamping": 100.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                0.999989815422946,
+                5.031592311686416e-7,
+                -0.0045132084074789159,
+                0.0,
+                -5.067502608781813e-7,
+                0.9999999999995559,
+                -7.945276062904e-7,
+                0.0,
+                0.004513208407077138,
+                7.968065839006598e-7,
+                0.9999898154227569,
+                0.0,
+                4.690692279041286e-15,
+                0.28423750400543015,
+                -6.705747068735946e-14,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 1.3962633609771729,
+            "swing1": 0.1745329201221466,
+            "swing2": 0.1745329201221466,
+            "angularStiffness": 1000000.0,
+            "angularDamping": 10000.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "17": {
+      "id": 17,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid26",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:RightShoulder|mixamorig:RightArm|rRigid26"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.21000000834465028,
+                0.3896666169166565,
+                0.699999988079071,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                7.765671979909072e-7,
+                0.06803916815895629,
+                0.99768265074403,
+                0.0,
+                -0.9999999999899929,
+                -0.000004342763653575332,
+                0.0000010745352979624204,
+                0.0,
+                0.000004405810441421299,
+                -0.9976826507348805,
+                0.06803916815490285,
+                0.0,
+                -0.19434766891808537,
+                2.4823101047940105,
+                -0.039285292249189109,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0000000000000014,
+                0.9999999999999999,
+                1.0000000000000014
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0000000000000014,
+                0.9999999999999999,
+                1.0000000000000014
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Capsule",
+            "length": 0.27000001072883608,
+            "radius": 0.04500000178813934,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.28423750400543215,
+                0.11937975138425827,
+                0.11937975138425827
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                -5.008658021665724e-8,
+                0.14211875200271607,
+                -3.5581582125132629e-9
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                -0.5175215102229799,
+                -0.5175216805482725,
+                0.48184176487341326,
+                0.48184158210213848
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "18": {
+      "id": 18,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rSocketConstraint25__shoulder_right",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:RightShoulder|mixamorig:RightArm|rSocketConstraint25__shoulder_right"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 19,
+            "child": 17,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                0.6881784757635111,
+                0.7163554883026507,
+                -0.11508779203061209,
+                0.0,
+                0.12559061793084248,
+                -0.2738437276473058,
+                -0.9535389921319304,
+                0.0,
+                -0.714588960300647,
+                0.6417510632690056,
+                -0.27842088752380125,
+                0.0,
+                -4.1633363423443428e-17,
+                0.134546160697937,
+                8.881784197001265e-16,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                -3.5242766749377099e-7,
+                0.9999999999999376,
+                -2.5036525352906136e-8,
+                0.0,
+                0.07131440676123743,
+                1.6039036765391757e-10,
+                -0.9974538863467789,
+                0.0,
+                -0.9974538863467166,
+                -3.533158114965575e-7,
+                -0.07131440676123324,
+                0.0,
+                2.0816681711721714e-17,
+                -2.775557561562891e-17,
+                0.0,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": true,
+            "linearStiffness": 0.0,
+            "linearDamping": 0.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                0.999719636326466,
+                -0.01800750445712002,
+                0.015374606547983097,
+                0.0,
+                0.021321371433812947,
+                0.9670298018368408,
+                -0.2537691105701827,
+                0.0,
+                -0.010297954333743545,
+                0.25402577062697209,
+                0.9671426265003074,
+                0.0,
+                -4.163336342344337e-17,
+                0.13454616069793697,
+                6.661338147750939e-16,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 0.7853981852531433,
+            "swing1": 1.0471975803375245,
+            "swing2": 1.0471975803375245,
+            "angularStiffness": 1000.0,
+            "angularDamping": 100.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "19": {
+      "id": 19,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid25",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:RightShoulder|rRigid25"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.21000000834465028,
+                0.699999988079071,
+                0.291666716337204,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                -0.021320640454957963,
+                0.07829409023098638,
+                0.9967022954350474,
+                0.0,
+                -0.9670286966218091,
+                -0.2546665193998421,
+                -0.00068103354904131,
+                0.0,
+                0.2537733835541377,
+                -0.9638542417459561,
+                0.08114228532530077,
+                0.0,
+                -0.06423767050289728,
+                2.5165745072375746,
+                -0.03919366179986386,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0000000000000014,
+                1.0,
+                1.0000000000000014
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0000000000000014,
+                1.0,
+                1.0000000000000014
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Capsule",
+            "length": 0.07999999821186066,
+            "radius": 0.03999999910593033,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.134546160697937,
+                0.05650939419865608,
+                0.05650939419865608
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                -1.3877787807814458e-17,
+                0.0672730803489685,
+                4.440892098500626e-16
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                0.5000103669010267,
+                0.5000103669010269,
+                0.4999896328840235,
+                0.49998963288402339
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "20": {
+      "id": 20,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rSocketConstraint24__clav_right",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|mixamorig:RightShoulder|rSocketConstraint24__clav_right"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 21,
+            "child": 19,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                -0.9106926461273512,
+                0.40470419475210636,
+                0.08278537938314937,
+                0.0,
+                -0.4047953538924815,
+                -0.91425960489529,
+                0.016434607502718604,
+                0.0,
+                0.0823384828413995,
+                -0.018544260749810066,
+                0.9964318765658893,
+                0.0,
+                -0.06418628245592118,
+                0.14315545558929464,
+                -0.0014244690537452718,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.000041468033997515977,
+                0.0,
+                0.9999999991402011,
+                0.0,
+                0.9999999991402011,
+                0.0,
+                -0.000041468033997515977,
+                0.0,
+                -1.3877787807814476e-17,
+                0.0,
+                -4.440892098500632e-16,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": true,
+            "linearStiffness": 0.0,
+            "linearDamping": 0.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                -0.02132154465766911,
+                0.0003435196765352866,
+                0.9997726110109453,
+                0.0,
+                -0.9670287035655285,
+                -0.2538380556314128,
+                -0.020536016985699069,
+                0.0,
+                0.25377328112664707,
+                -0.9672466714894891,
+                0.005744412826410139,
+                0.0,
+                -0.06418628245592118,
+                0.1431554555892942,
+                -0.0014244690537452837,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 0.4363323152065277,
+            "swing1": 0.6981316804885864,
+            "swing2": 0.6981316804885864,
+            "angularStiffness": 1000000.0,
+            "angularDamping": 10000.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "21": {
+      "id": 21,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid3",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|rRigid3"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.21000000834465028,
+                0.699999988079071,
+                0.5611666440963745,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                0.9999999999995859,
+                2.969996705111087e-8,
+                -9.095274318352966e-7,
+                0.0,
+                -1.0052481244527993e-7,
+                0.9969557568092273,
+                -0.07796934631591274,
+                0.0,
+                9.044429221275317e-7,
+                0.07796934631597188,
+                0.9969557568088174,
+                0.0,
+                -0.00005137236797677497,
+                2.3739659184964827,
+                -0.026611850261664219,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0000000000000014,
+                1.0000000000000014
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0000000000000014,
+                1.0000000000000014
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Capsule",
+            "length": 0.1899999976158142,
+            "radius": 0.07999999821186066,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.1607605218887329,
+                0.0675194039940834,
+                0.0675194039940834
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "22": {
+      "id": 22,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rSocketConstraint2__spine_upper",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|mixamorig:Spine2|rSocketConstraint2__spine_upper"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 23,
+            "child": 21,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                -4.440892098500626e-16,
+                0.9999999999999989,
+                4.634583477408638e-8,
+                0.0,
+                -0.9967189226391511,
+                -3.751262411810785e-9,
+                0.08094065266014164,
+                0.0,
+                0.08094065266014172,
+                -4.619377047543338e-8,
+                0.9967189226391502,
+                0.0,
+                2.0328790734103208e-20,
+                0.14289832115173332,
+                7.450580610801623e-9,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                -4.440892098500626e-16,
+                0.9999999999999989,
+                4.634583477408638e-8,
+                0.0,
+                -0.9967189226391511,
+                -3.751262411810785e-9,
+                0.08094065266014157,
+                0.0,
+                0.08094065266014167,
+                -4.619377047543338e-8,
+                0.9967189226391502,
+                0.0,
+                1.3552527156068805e-20,
+                -2.220446049250316e-16,
+                -1.3877787807814476e-17,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": true,
+            "linearStiffness": 0.0,
+            "linearDamping": 0.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                1.3552527156068805e-20,
+                0.1428983211517334,
+                7.450580596923828e-9,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 0.0872664600610733,
+            "swing1": 0.0872664600610733,
+            "swing2": 0.0872664600610733,
+            "angularStiffness": 1000.0,
+            "angularDamping": 100.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "23": {
+      "id": 23,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid2",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|rRigid2"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.5856666564941406,
+                0.699999988079071,
+                0.21000000834465028,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                0.9999999999995859,
+                2.969996705111087e-8,
+                -9.095274318352966e-7,
+                0.0,
+                -1.0052481244527993e-7,
+                0.9969557568092273,
+                -0.07796934631591274,
+                0.0,
+                9.044429221275317e-7,
+                0.07796934631597188,
+                0.9969557568088174,
+                0.0,
+                -0.00005135800315791335,
+                2.231502614004976,
+                -0.015470168999726274,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0000000000000009,
+                1.0000000000000009
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0000000000000009,
+                1.0000000000000009
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Capsule",
+            "length": 0.18000000715255738,
+            "radius": 0.09000000357627869,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.1428983211517334,
+                0.06001730263233185,
+                0.06001730263233185
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                2.829424194938923e-12,
+                0.0,
+                0.0
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                0.0,
+                -2.6069517579385727e-8,
+                0.0,
+                0.9999999999999997
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "24": {
+      "id": 24,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rSocketConstraint1__spine_middle",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|mixamorig:Spine1|rSocketConstraint1__spine_middle"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 25,
+            "child": 23,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                4.440892098500626e-16,
+                0.9999999999999987,
+                5.213903516571028e-8,
+                0.0,
+                -0.9967189231080567,
+                -4.2201666605734548e-9,
+                0.08094064688594918,
+                0.0,
+                0.08094064688594929,
+                -5.196796301620843e-8,
+                0.9967189231080552,
+                0.0,
+                -7.27595754642079e-12,
+                0.12503588199615468,
+                -1.387778780781447e-17,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                4.440892098500626e-16,
+                0.9999999999999987,
+                5.213903517958807e-8,
+                0.0,
+                -0.9967189231080567,
+                -4.2201666605734548e-9,
+                0.08094064688594921,
+                0.0,
+                0.08094064688594932,
+                -5.196796303702511e-8,
+                0.9967189231080552,
+                0.0,
+                6.776263578034403e-21,
+                0.0,
+                1.387778780781447e-17,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": true,
+            "linearStiffness": 0.0,
+            "linearDamping": 0.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                -7.27595754642079e-12,
+                0.12503588199615457,
+                -4.163336342344337e-17,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 0.2617993950843811,
+            "swing1": 0.2617993950843811,
+            "swing2": 0.2617993950843811,
+            "angularStiffness": 1000.0,
+            "angularDamping": 100.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "25": {
+      "id": 25,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid1",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|rRigid1"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.699999988079071,
+                0.2263333648443222,
+                0.21000000834465028,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                0.9999999999995859,
+                2.969996705111087e-8,
+                -9.095274318352966e-7,
+                0.0,
+                -1.0052481244527993e-7,
+                0.9969557568092273,
+                -0.07796934631591274,
+                0.0,
+                9.044429221275317e-7,
+                0.07796934631597188,
+                0.9969557568088174,
+                0.0,
+                -0.00005134542667325796,
+                2.1068473716412385,
+                -0.005721203014462238,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0000000000000009,
+                1.0000000000000009
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0000000000000009,
+                1.0000000000000009
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Capsule",
+            "length": 0.17000000178813935,
+            "radius": 0.09000000357627869,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.12503588199615479,
+                0.052515096962451938,
+                0.052515096962451938
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "26": {
+      "id": 26,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rSocketConstraint__spine_lower",
+            "path": "|group1|mixamorig:Hips|mixamorig:Spine|rSocketConstraint__spine_lower"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 39,
+            "child": 25,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                0.0003034437004503232,
+                0.996719066713694,
+                -0.08093830966423324,
+                0.0,
+                0.9999683742322512,
+                0.00034079679942855545,
+                0.007945715376855137,
+                0.0,
+                0.007947229531676433,
+                -0.0809381610053265,
+                -0.9966874412953373,
+                0.0,
+                2.9103830510943809e-11,
+                0.10682201385498023,
+                -0.008674712851643563,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                -5.8191229612702958e-11,
+                1.0,
+                -8.673617379884038e-19,
+                0.0,
+                0.9999681479716601,
+                5.818912018895617e-11,
+                0.007981418553624099,
+                0.0,
+                0.0079814185536241,
+                4.644461898406505e-13,
+                -0.9999681479716602,
+                0.0,
+                7.453889935837843e-20,
+                -2.220446049250315e-16,
+                -2.775557561562894e-17,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": true,
+            "linearStiffness": 0.0,
+            "linearDamping": 0.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                0.9999999533764725,
+                -0.0003052154535852123,
+                -0.000009517341705181333,
+                0.0,
+                0.0003034437586415484,
+                0.9967190667136763,
+                -0.0809383096642346,
+                0.0,
+                0.000034189738838573218,
+                0.08093830300262714,
+                0.9967191128588419,
+                0.0,
+                2.910383051094381e-11,
+                0.10682201385498036,
+                -0.008674712851643559,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 0.2617993950843811,
+            "swing1": 0.2617993950843811,
+            "swing2": 0.2617993950843811,
+            "angularStiffness": 1000.0,
+            "angularDamping": 100.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "27": {
+      "id": 27,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid46",
+            "path": "|group1|mixamorig:Hips|mixamorig:LeftUpLeg|mixamorig:LeftLeg|mixamorig:LeftFoot|rRigid46"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.699999988079071,
+                0.2590000033378601,
+                0.21000000834465028,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                -0.9953532925310298,
+                -0.06177450627650398,
+                0.07386293672697204,
+                0.0,
+                0.09473437512618646,
+                -0.49090358295384087,
+                0.8660479608038649,
+                0.0,
+                -0.0172401049036684,
+                0.8690210484317258,
+                0.49447466685921817,
+                0.0,
+                0.09551765179157552,
+                1.1544339183644872,
+                -0.028008033386467319,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.000000000000001,
+                1.000000000000001
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.000000000000001,
+                1.000000000000001
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Capsule",
+            "length": 0.17380955815315247,
+            "radius": 0.04500000178813934,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.17380955815315247,
+                0.07300002872943878,
+                0.07300002872943878
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                7.450580596923828e-9,
+                0.08690477907657623,
+                -0.025
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                0.5924491972291667,
+                0.3418806867231339,
+                0.6189649086959466,
+                0.3860103451350142
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "28": {
+      "id": 28,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rHingeConstraint2_left_foot",
+            "path": "|group1|mixamorig:Hips|mixamorig:LeftUpLeg|mixamorig:LeftLeg|mixamorig:LeftFoot|rHingeConstraint2_left_foot"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 29,
+            "child": 27,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                -0.9949947935401178,
+                1.179611963664229e-16,
+                -0.09992677733249785,
+                0.0,
+                -0.08213398441890364,
+                0.5695716418908743,
+                0.8178277039555515,
+                0.0,
+                0.05691545863413469,
+                0.8219416918211011,
+                -0.5667208182295165,
+                0.0,
+                -3.885780586188048e-16,
+                0.37846764922142075,
+                -3.725290298461917e-9,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                -0.998067280861489,
+                1.2490009027033014e-16,
+                -0.0621426011183437,
+                0.0,
+                -0.028088715745890573,
+                0.8920158166346247,
+                0.4511305874371745,
+                0.0,
+                0.05543218308437915,
+                0.4520041845753904,
+                -0.8902918005939606,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": false,
+            "linearStiffness": 1000.0,
+            "linearDamping": 100.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                0.9944464898576431,
+                0.06542542243151678,
+                0.08243599280332782,
+                0.0,
+                -0.10283744864577842,
+                0.437544222319023,
+                0.8932969901837061,
+                0.0,
+                0.02237494057734282,
+                -0.8968135634650599,
+                0.4418424995620741,
+                0.0,
+                -3.885780586188048e-16,
+                0.37846764922141176,
+                -3.725290381728641e-9,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 0.6108652353286743,
+            "swing1": 0.0872664600610733,
+            "swing2": 0.0872664600610733,
+            "angularStiffness": 100.0,
+            "angularDamping": 10.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "29": {
+      "id": 29,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid45",
+            "path": "|group1|mixamorig:Hips|mixamorig:LeftUpLeg|mixamorig:LeftLeg|rRigid45"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.6428333520889282,
+                0.699999988079071,
+                0.21000000834465028,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                -0.999953575685526,
+                0.008496125391807197,
+                -0.004545583247257648,
+                0.0,
+                -0.008209771227808817,
+                -0.998183512775997,
+                -0.059684792690916439,
+                0.0,
+                -0.005044415736049408,
+                -0.059644703666774299,
+                0.9982069240364868,
+                0.0,
+                0.09862478459001871,
+                1.5322140857142029,
+                -0.005419266483858175,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.000000000000001,
+                1.0000000000000009
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.000000000000001,
+                1.0000000000000009
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Capsule",
+            "length": 0.3784676492214203,
+            "radius": 0.06499999761581421,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.3784676492214203,
+                0.15895645320415498,
+                0.15895645320415498
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                8.326672684688674e-17,
+                0.18923382461071015,
+                -1.862645149230957e-9
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                -0.5749091086290823,
+                -0.5749091086290821,
+                0.4116789001337259,
+                0.411678900133726
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "30": {
+      "id": 30,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rHingeConstraint",
+            "path": "|group1|mixamorig:Hips|mixamorig:LeftUpLeg|mixamorig:LeftLeg|rHingeConstraint"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 31,
+            "child": 29,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                -0.0,
+                0.0,
+                -0.0,
+                0.22560660593626659,
+                -0.9742184864587195,
+                0.0,
+                0.0,
+                0.9742184864587195,
+                0.22560660593626659,
+                0.0,
+                7.45058059692383e-9,
+                0.40855363011360215,
+                -1.8626451492309588e-9,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": false,
+            "linearStiffness": 1000.0,
+            "linearDamping": 100.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                0.9998709715078372,
+                -0.016053328617377285,
+                0.000575305376615499,
+                0.0,
+                0.016062593175931427,
+                0.9987570991813142,
+                -0.04718315308869467,
+                0.0,
+                0.00018285633264492637,
+                0.04718630601381264,
+                0.9988860891454703,
+                0.0,
+                7.450580763457282e-9,
+                0.4085536301136043,
+                -1.862645163108745e-9,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 1.3089969158172608,
+            "swing1": 0.0872664600610733,
+            "swing2": 0.0872664600610733,
+            "angularStiffness": 10.0,
+            "angularDamping": 10.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "31": {
+      "id": 31,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid44",
+            "path": "|group1|mixamorig:Hips|mixamorig:LeftUpLeg|rRigid44"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.21000000834465028,
+                0.699999988079071,
+                0.48766660690307619,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                -0.9999573458020841,
+                -0.007549292942860095,
+                -0.0053211608239386799,
+                0.0,
+                0.007614988711592096,
+                -0.999893674002982,
+                -0.012435941288900757,
+                0.0,
+                -0.005226712482398659,
+                -0.012475931423406608,
+                0.9999085121208564,
+                0.0,
+                0.09551366074915076,
+                1.9407242759888413,
+                -0.00033851562427670125,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0000000000000003,
+                1.000000000000001,
+                1.0000000000000009
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0000000000000003,
+                1.000000000000001,
+                1.0000000000000009
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Capsule",
+            "length": 0.4085536301136017,
+            "radius": 0.07500000298023224,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.4085536301136017,
+                0.17159251868724824,
+                0.17159251868724824
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                3.725290298461914e-9,
+                0.20427681505680085,
+                -9.313242399500155e-10
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                0.7070337578937311,
+                0.7070337449999234,
+                0.010162397017565854,
+                0.010162397202892217
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "32": {
+      "id": 32,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rSocketConstraint43__upper_leg_left",
+            "path": "|group1|mixamorig:Hips|mixamorig:LeftUpLeg|rSocketConstraint43__upper_leg_left"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 39,
+            "child": 31,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                0.024456351502386454,
+                -0.41641492055596565,
+                0.908845696919758,
+                0.0,
+                -0.9996966284743991,
+                -0.007529787137997124,
+                0.023451083611974296,
+                0.0,
+                -0.002921966480141203,
+                -0.909143506958074,
+                -0.4164727432472184,
+                0.0,
+                0.09551434963941573,
+                -0.0593134760856629,
+                -0.0027980948798358468,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                1.8236481547084794e-8,
+                0.9999999999999998,
+                -1.734723475976807e-18,
+                0.0,
+                0.9995869027398958,
+                -1.8228947906706595e-8,
+                0.02874063101015053,
+                0.0,
+                0.028740631010150523,
+                -5.241279858042569e-10,
+                -0.999586902739896,
+                0.0,
+                1.387778780781446e-17,
+                1.1102230246251578e-16,
+                3.469446951953617e-18,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": true,
+            "linearStiffness": 0.0,
+            "linearDamping": 0.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                -0.9999596539819393,
+                -0.007259878086046061,
+                -0.005290045226228075,
+                0.0,
+                0.007309687004702302,
+                -0.9999285558226139,
+                -0.00945789228077879,
+                0.0,
+                -0.005221004138389142,
+                -0.009496179267330462,
+                0.9999412801235429,
+                0.0,
+                0.09551434963941574,
+                -0.05931347608566284,
+                -0.0027980948798358438,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 0.4363323152065277,
+            "swing1": 1.483529806137085,
+            "swing2": 0.7853981852531433,
+            "angularStiffness": 1000.0,
+            "angularDamping": 100.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "33": {
+      "id": 33,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid50",
+            "path": "|group1|mixamorig:Hips|mixamorig:RightUpLeg|mixamorig:RightLeg|mixamorig:RightFoot|rRigid50"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.21000000834465028,
+                0.30800002813339236,
+                0.699999988079071,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                -0.995556181140147,
+                0.06182731620645027,
+                -0.07103008633216299,
+                0.0,
+                -0.09198072265171925,
+                -0.4767653371542666,
+                0.8742049873734683,
+                0.0,
+                0.020185065125344918,
+                0.8768535774340469,
+                0.48033359958158197,
+                0.0,
+                -0.0955171703590162,
+                1.1544477880294349,
+                -0.02800043009888345,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0000000000000009,
+                1.000000000000001
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0000000000000009,
+                1.000000000000001
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Capsule",
+            "length": 0.1790151298046112,
+            "radius": 0.04500000178813934,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.1790151298046112,
+                0.0751863420009613,
+                0.0751863420009613
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                -3.725290298461914e-9,
+                0.0895075649023056,
+                -0.025
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                0.17106461645586974,
+                -0.1710646093361883,
+                0.6861027020838244,
+                0.6861026735283419
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "34": {
+      "id": 34,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rHingeConstraint2__right_foot_",
+            "path": "|group1|mixamorig:Hips|mixamorig:RightUpLeg|mixamorig:RightLeg|mixamorig:RightFoot|rHingeConstraint2__right_foot_"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 35,
+            "child": 33,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                0.9966404470336628,
+                -0.07643516946259073,
+                -0.029419112933019487,
+                0.0,
+                0.06737154970344296,
+                0.5608628789706289,
+                0.8251629568050992,
+                0.0,
+                -0.046571382061274837,
+                -0.8243727893750513,
+                0.5641281862404147,
+                0.0,
+                -1.6653345369377349e-16,
+                0.37853932380676305,
+                3.7252902984619169e-9,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                0.9988216661771101,
+                0.038652319538296318,
+                0.029347527485138814,
+                0.0,
+                -0.04784310777258204,
+                0.8856949907012226,
+                0.4617958645174535,
+                0.0,
+                -0.00814347676626149,
+                -0.46265579175135226,
+                0.8865005934262462,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": false,
+            "linearStiffness": 1000.0,
+            "linearDamping": 100.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                0.9947303949095571,
+                -0.06756861097341861,
+                -0.07710981944084386,
+                0.0,
+                0.09925254888175385,
+                0.44613007947708085,
+                0.8894475160043165,
+                0.0,
+                -0.02569772331456216,
+                -0.8924138249696139,
+                0.4504855070027801,
+                0.0,
+                -1.6653345369377349e-16,
+                0.37853932380676316,
+                3.725290381728641e-9,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 0.6108652353286743,
+            "swing1": 0.0872664600610733,
+            "swing2": 0.0872664600610733,
+            "angularStiffness": 100.0,
+            "angularDamping": 10.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "35": {
+      "id": 35,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid49",
+            "path": "|group1|mixamorig:Hips|mixamorig:RightUpLeg|mixamorig:RightLeg|rRigid49"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.699999988079071,
+                0.6183333396911621,
+                0.21000000834465028,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                -0.9999580246100353,
+                -0.008351804885074858,
+                0.0037678074735726515,
+                0.0,
+                0.008219550022901472,
+                -0.9993931986090416,
+                -0.03384780009704932,
+                0.0,
+                0.004048211384956398,
+                -0.033815409640435108,
+                0.9994198967678362,
+                0.0,
+                -0.09862859328175987,
+                1.5327574137739515,
+                -0.015187710460928164,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0000000000000009,
+                1.0000000000000007
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0000000000000009,
+                1.0000000000000007
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Capsule",
+            "length": 0.3785393238067627,
+            "radius": 0.06499999761581421,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.3785393238067627,
+                0.15898650884628297,
+                0.15898650884628297
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                -1.3877787807814458e-17,
+                0.18926966190338136,
+                1.862645149230957e-9
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                -0.022109150409481489,
+                -0.022109150409481489,
+                0.7067610525971072,
+                0.7067610525971072
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "36": {
+      "id": 36,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rHingeConstraint1",
+            "path": "|group1|mixamorig:Hips|mixamorig:RightUpLeg|mixamorig:RightLeg|rHingeConstraint1"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 37,
+            "child": 35,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                -0.0,
+                0.0,
+                -0.0,
+                0.25881904510252076,
+                -0.9659258262890683,
+                0.0,
+                0.0,
+                0.9659258262890683,
+                0.25881904510252076,
+                0.0,
+                1.4901160305669237e-8,
+                0.40814423561096238,
+                1.491862189340055e-16,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                -0.0,
+                0.0,
+                -0.0,
+                0.9999640645518106,
+                -0.008477594294505299,
+                0.0,
+                0.0,
+                0.008477594294505299,
+                0.9999640645518106,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": false,
+            "linearStiffness": 1000.0,
+            "linearDamping": 100.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                0.999874307348894,
+                0.015851723696558293,
+                -0.00030390692220174157,
+                0.0,
+                -0.015852016928176669,
+                0.9998738607039295,
+                -0.0009880487476562686,
+                0.0,
+                0.00028820631184992647,
+                0.0009927420948650859,
+                0.9999994656999847,
+                0.0,
+                1.4901160513836054e-8,
+                0.40814423561095417,
+                1.491862189340054e-16,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 1.3089969158172608,
+            "swing1": 0.0872664600610733,
+            "swing2": 0.0872664600610733,
+            "angularStiffness": 10.0,
+            "angularDamping": 10.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "37": {
+      "id": 37,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid48",
+            "path": "|group1|mixamorig:Hips|mixamorig:RightUpLeg|rRigid48"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.699999988079071,
+                0.5121666789054871,
+                0.21000000834465028,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                -0.9999614669609598,
+                0.00748189696318171,
+                0.004591928910419312,
+                0.0,
+                -0.00762852626977625,
+                -0.9994330963384825,
+                -0.03279163811439362,
+                0.0,
+                0.004343982071480732,
+                -0.032825404203244038,
+                0.9994516609914941,
+                0.0,
+                -0.0955150393579583,
+                1.9406702708118398,
+                -0.001803992456719584,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.000000000000001,
+                1.0000000000000007
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.000000000000001,
+                1.0000000000000007
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Capsule",
+            "length": 0.4081442356109619,
+            "radius": 0.07500000298023224,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.4081442356109619,
+                0.17142055928707124,
+                0.17142055928707124
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                7.450580596923828e-9,
+                0.20407211780548097,
+                -1.8735013540549518e-15
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                0.010801262310501207,
+                0.010801261916152022,
+                0.707024267254134,
+                0.7070242930672702
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    },
+    "38": {
+      "id": 38,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rSocketConstraint47__upper_leg_right",
+            "path": "|group1|mixamorig:Hips|mixamorig:RightUpLeg|rSocketConstraint47__upper_leg_right"
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          }
+        },
+        "JointComponent": {
+          "type": "JointComponent",
+          "members": {
+            "parent": 39,
+            "child": 37,
+            "parentFrame": {
+              "type": "Matrix44",
+              "values": [
+                -0.02721107555374802,
+                -0.42088203763077605,
+                0.9067071565654339,
+                0.0,
+                0.9996251229951014,
+                -0.008708990384406201,
+                0.025957021468430643,
+                0.0,
+                -0.003028340178458265,
+                0.9070735713745883,
+                0.42096123962844037,
+                0.0,
+                -0.09551437199115752,
+                -0.05931353569030767,
+                -0.004261760041117672,
+                1.0
+              ]
+            },
+            "childFrame": {
+              "type": "Matrix44",
+              "values": [
+                3.650954694123243e-8,
+                0.9999999999999995,
+                -1.7347234759768076e-18,
+                0.0,
+                -0.9995333309470363,
+                3.649250901460732e-8,
+                0.03054701828200721,
+                0.0,
+                0.03054701828200719,
+                -1.1152577975709346e-9,
+                0.9995333309470369,
+                0.0,
+                -2.7755575615628916e-17,
+                2.2204460492503157e-16,
+                1.0408340855860849e-17,
+                1.0
+              ]
+            },
+            "disableCollision": true
+          }
+        },
+        "DriveComponent": {
+          "type": "DriveComponent",
+          "members": {
+            "enabled": true,
+            "linearStiffness": 0.0,
+            "linearDamping": 0.0,
+            "angularStiffness": 10000.0,
+            "angularDamping": 1000.0,
+            "acceleration": true,
+            "target": {
+              "type": "Matrix44",
+              "values": [
+                -0.9999590930481062,
+                0.007800770590787939,
+                0.004578232038584364,
+                0.0,
+                -0.007933880412002158,
+                -0.9995239541187593,
+                -0.029814739381870446,
+                0.0,
+                0.004343474647936929,
+                -0.029849842897253344,
+                0.9995449570214399,
+                0.0,
+                -0.09551437199115753,
+                -0.05931353569030773,
+                -0.004261760041117667,
+                1.0
+              ]
+            }
+          }
+        },
+        "LimitComponent": {
+          "type": "LimitComponent",
+          "members": {
+            "enabled": true,
+            "x": -1.0,
+            "y": -1.0,
+            "z": -1.0,
+            "twist": 0.4363323152065277,
+            "swing1": 1.483529806137085,
+            "swing2": 0.7853981852531433,
+            "angularStiffness": 1000.0,
+            "angularDamping": 100.0,
+            "linearStiffness": 1000000.0,
+            "linearDamping": 10000.0
+          }
+        }
+      }
+    },
+    "39": {
+      "id": 39,
+      "components": {
+        "SceneComponent": {
+          "type": "SceneComponent",
+          "members": {
+            "entity": 1048576
+          }
+        },
+        "NameComponent": {
+          "type": "NameComponent",
+          "members": {
+            "value": "rRigid",
+            "path": "|group1|mixamorig:Hips|rRigid"
+          }
+        },
+        "ColorComponent": {
+          "type": "ColorComponent",
+          "members": {
+            "value": {
+              "type": "Color4",
+              "values": [
+                0.699999988079071,
+                0.30799999833106997,
+                0.21000000834465028,
+                1.0
+              ]
+            }
+          }
+        },
+        "RestComponent": {
+          "type": "RestComponent",
+          "members": {
+            "matrix": {
+              "type": "Matrix44",
+              "values": [
+                0.9999999533764774,
+                0.0003052154535991024,
+                0.000009516818064769865,
+                0.0,
+                -0.0003052424445070062,
+                0.9999955180496939,
+                0.002978373310135209,
+                0.0,
+                -0.000008607729850023846,
+                -0.0029783760762097644,
+                0.9999955645910914,
+                0.0,
+                -0.000018813512725923688,
+                1.9999999999999992,
+                0.0026353155262799356,
+                1.0
+              ]
+            }
+          }
+        },
+        "ScaleComponent": {
+          "type": "ScaleComponent",
+          "members": {
+            "value": {
+              "type": "Vector3",
+              "values": [
+                0.9999999999999999,
+                1.0000000000000009,
+                1.0000000000000009
+              ]
+            },
+            "absolute": {
+              "type": "Vector3",
+              "values": [
+                0.9999999999999999,
+                1.0000000000000009,
+                1.0000000000000009
+              ]
+            }
+          }
+        },
+        "GeometryDescriptionComponent": {
+          "type": "GeometryDescriptionComponent",
+          "members": {
+            "type": "Capsule",
+            "length": 0.1899999976158142,
+            "radius": 0.07000000029802323,
+            "extents": {
+              "type": "Vector3",
+              "values": [
+                0.19102869927883149,
+                0.16616468131542207,
+                0.09551434963941574
+              ]
+            },
+            "offset": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "rotation": {
+              "type": "Quaternion",
+              "values": [
+                0.0000011984224347768924,
+                0.0,
+                0.0,
+                0.9999999999992819
+              ]
+            }
+          }
+        },
+        "RigidComponent": {
+          "type": "RigidComponent",
+          "members": {
+            "enabled": true,
+            "mass": 1.0,
+            "friction": 0.800000011920929,
+            "restitution": 0.10000000149011612,
+            "thickness": 0.0,
+            "disableGravity": false,
+            "collide": true,
+            "kinematic": false,
+            "dynamic": true,
+            "sleeping": false,
+            "linearDamping": 0.5,
+            "angularDamping": 1.0,
+            "positionIterations": 8,
+            "velocityIterations": 1,
+            "maxContactImpulse": -1.0,
+            "maxDepenetrationVelocity": -1.0,
+            "sleepThreshold": 0.000004999999873689376,
+            "enableCCD": false,
+            "angularMass": {
+              "type": "Vector3",
+              "values": [
+                -1.0,
+                -1.0,
+                -1.0
+              ]
+            },
+            "centerOfMass": {
+              "type": "Vector3",
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "serialisationTimeMs": 1.9983000000000002
+}

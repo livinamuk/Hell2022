@@ -2,13 +2,27 @@
 #include "Helpers/Util.h"
 #include "extensions/PxDefaultAllocator.h"
 
+
+class UserErrorCallback : public PxErrorCallback
+{
+public:
+	virtual void reportError(PxErrorCode::Enum code, const char* message, const char* file,
+		int line)
+	{
+        std::cout << file << " line " << line << ": " << message << "\n";
+        std::cout << "\n";
+	}
+}gErrorCallback;
+
+
 PxCooking* PhysX::s_Cooking;
 PhysX* PhysX::p_PhysX;
 
 using namespace physx;
 
 PxDefaultAllocator		gAllocator;
-PxDefaultErrorCallback	gErrorCallback;
+//PxDefaultErrorCallback	gErrorCallback;
+
 
 PxReal chainZ = 10.0f;
 

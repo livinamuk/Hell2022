@@ -55,17 +55,17 @@ void Player::Update(float deltaTime)
 		// Presses Respawn
 		if (m_enableControl && !m_isAlive && m_timeSinceDeath > 3.25)
 		{
-			if (PressedFire() ||
-				PressedReload() ||
-				PressedCrouch() ||
-				PressedInteract() ||
-				PressedJump() ||
-				PressedNextWeapon()
-				)
-				Respawn();
+		if (PressedFire() ||
+			PressedReload() ||
+			PressedCrouch() ||
+			PressedInteract() ||
+			PressedJump() ||
+			PressedNextWeapon()
+			)
+			Respawn();
 		}
 	}
-		
+
 
 	FireCameraRay();
 }
@@ -149,9 +149,18 @@ void Player::FireCameraRay()
 
 	// Cast ray
 	glm::vec3 origin = glm::vec3(m_transform.position.x, m_transform.position.y + m_cameraViewHeight, m_transform.position.z);
-	glm::vec3 unitDir = m_camera.m_Front;	
+	glm::vec3 unitDir = m_camera.m_Front;
 	float distance = 100;
 	m_cameraRay.CastRay(origin, unitDir, distance);
+
+	/*if (m_cameraRay.m_hitFound)
+	{
+		if (m_cameraRay.m_physicsObjectType == PhysicsObjectType::DOOR)
+		{
+			Door* door = (Door*)m_cameraRay.m_parent;
+			std::cout << door->m_swing << "\n";
+		}
+	}*/
 
 	// Renable raycasting for the ragdoll
 	for (RigidComponent& rigid : m_ragdoll.m_rigidComponents) {
@@ -560,6 +569,14 @@ bool Player::PressedNextWeapon()
 		return Input::KeyPressed(m_controls.NEXT_WEAPON);
 	else
 		return Input::ButtonPressed(m_controllerIndex, m_controls.NEXT_WEAPON);
+}
+
+bool Player::PressedMelee()
+{
+	if (m_inputType == InputType::KEYBOARD_AND_MOUSE)
+		return Input::KeyPressed(m_controls.MELEE);
+	else
+		return Input::ButtonPressed(m_controllerIndex, m_controls.MELEE);
 }
 
 void Player::SpawnBloodPool()
@@ -1003,10 +1020,9 @@ void Player::FireBullet(float variance, float bulletForce)
 		// bullet decals
 		if (m_bulletRay.m_hitObjectName == "WALL" || m_bulletRay.m_hitObjectName == "GROUND" )
 		{
-			GameData::s_bulletDecals.push_back(BulletDecal());
-			BulletDecal* decal = &GameData::s_bulletDecals.back();
-			decal->m_position = m_bulletRay.m_hitPosition;
-			decal->m_normal = m_bulletRay.m_surfaceNormal;
+			glm::vec3 position = m_bulletRay.m_hitPosition;
+			glm::vec3 normal = m_bulletRay.m_surfaceNormal;
+			GameData::s_bulletDecals.push_back(BulletDecal(position, normal));
 		}
 
 
@@ -1026,17 +1042,20 @@ void Player::FireBullet(float variance, float bulletForce)
 				bodyHit = true;
 
 				// make blood
-				if (m_remainingBloodDecalsAllowedThisFrame > 0) {
+				if (m_remainingBloodDecalsAllowedThisFrame > 0) 
+				{
 					static int counter = 0;
-					GameData::s_bloodDecals.push_back(BloodDecal());
+
+					int type = counter;
+					Transform transform;
+					transform.position.x = m_bulletRay.m_hitPosition.x;
+					transform.position.y = 0.01f;
+					transform.position.z = m_bulletRay.m_hitPosition.z;
+					transform.rotation.y = m_camera.m_transform.rotation.y + HELL_PI;
+
+					GameData::s_bloodDecals.push_back(BloodDecal(transform, type));
 					BloodDecal* decal = &GameData::s_bloodDecals.back();
-					decal->m_type = counter;// std::rand() % 4 + 0;
-					decal->m_randomRotation = Util::RandomFloat(0, HELL_PI * 2);
-					decal->m_transform.position.x = m_bulletRay.m_hitPosition.x;
-					decal->m_transform.position.y = 0.01f;
-					decal->m_transform.position.z = m_bulletRay.m_hitPosition.z;
-					decal->m_transform.rotation.y = m_camera.m_transform.rotation.y + HELL_PI;
-					decal->m_transform.scale = glm::vec3(2);
+
 					m_remainingBloodDecalsAllowedThisFrame--;
 					counter++;
 					if (counter > 3)
@@ -1245,41 +1264,82 @@ void Player::CheckForWeaponInput()
 			)
 		{*/
 
-			if (PressedNextWeapon() && m_gun == Gun::SHOTGUN) {
-				//if (Input::KeyPressed(HELL_KEY_1)) {
-				m_gunToChangeTo = Gun::GLOCK;
+			
+		if (PressedNextWeapon() && m_gun == Gun::GLOCK) {
+			m_gunToChangeTo = Gun::SHOTGUN;
+			Audio::PlayAudio("Glock_Equip.wav", 0.5f);
+			m_HUD_Weapon.PlayAnimation("Glock_Holster.fbx");
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::HOLSTERING;
+		}
+		else if (PressedNextWeapon() && m_gun == Gun::SHOTGUN) {
+			m_gunToChangeTo = Gun::KNIFE;
+			Audio::PlayAudio("Glock_Equip.wav", 0.5f);
+			m_HUD_Weapon.PlayAnimation("Shotgun_Dequip.fbx");
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::HOLSTERING;
+		}
+		else if (PressedNextWeapon() && m_gun == Gun::KNIFE) {
+			m_gunToChangeTo = Gun::GLOCK;
+			Audio::PlayAudio("Glock_Equip.wav", 0.5f);
+			m_HUD_Weapon.PlayAnimation("Kinfe_Holster.fbx");
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::HOLSTERING;
+		}
+		/*	else if (PressedNextWeapon() && m_gun == Gun::SHOTGUN) {
+				m_gunToChangeTo = Gun::AXE;
 				Audio::PlayAudio("Glock_Equip.wav", 0.5f);
 				m_HUD_Weapon.PlayAnimation("Shotgun_Dequip.fbx");
 				m_HUDWeaponAnimationState = HUDWeaponAnimationState::HOLSTERING;
 			}
-			else if (PressedNextWeapon() && m_gun == Gun::GLOCK) {
-				//else if (Input::KeyPressed(HELL_KEY_2)) {
-				m_gunToChangeTo = Gun::SHOTGUN;
+			else if (PressedNextWeapon() && m_gun == Gun::AXE) {
+				m_gunToChangeTo = Gun::GLOCK;
 				Audio::PlayAudio("Glock_Equip.wav", 0.5f);
-				m_HUD_Weapon.PlayAnimation("Glock_Holster.fbx");
+				m_HUD_Weapon.PlayAnimation("Axe_Equip.fbx");
 				m_HUDWeaponAnimationState = HUDWeaponAnimationState::HOLSTERING;
-			}
+			}*/
 			else
-				if (Input::KeyPressed(HELL_KEY_K))
+				if (PressedMelee())
 				{
-					m_gun = Gun::AXE;
-					Audio::PlayAudio("Glock_Equip.wav", 0.5f);
-					m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Axe"));
+					m_gun = Gun::KNIFE;
+					Audio::PlayAudio("Knife.wav", 0.5f);
+					m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Knife"));
+
+					static int i = 0;
+					std::string name = AssetManager::GetSkinnedModelPtr("Knife")->m_animations[i]->m_filename;
+
+					m_HUD_Weapon.PlayAnimation(name);
+
+					i++;					
+					if (i >= AssetManager::GetSkinnedModelPtr("Knife")->m_animations.size())
+					 i = 0;
 				}
 		//}
 	}
 
 	// Finished holstering
-	if (m_HUD_Weapon.AnimationIsComplete() && m_HUDWeaponAnimationState == HUDWeaponAnimationState::HOLSTERING)			
+	//if (m_HUD_Weapon.AnimationIsComplete() && m_HUDWeaponAnimationState == HUDWeaponAnimationState::HOLSTERING)
+	if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::HOLSTERING)
 	{
-		if (m_gunToChangeTo == Gun::GLOCK) {
+		if (m_gunToChangeTo == Gun::AXE) {
+			m_gun = Gun::AXE;
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
+			m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Axe"));
+			m_HUD_Weapon.PlayAnimation("Axe_Equip.fbx", 1.25f);
+			m_gunToChangeTo = Gun::NONE;
+		}
+		if (m_gunToChangeTo == Gun::KNIFE) {
+			m_gun = Gun::KNIFE;
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
+			m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Knife"));
+			m_HUD_Weapon.PlayAnimation("Knife_Draw.fbx", 1.25f);
+			m_gunToChangeTo = Gun::NONE;
+		}
+		else if (m_gunToChangeTo == Gun::GLOCK) {
 			m_gun = Gun::GLOCK;
 			m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
 			m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Glock"));
 			m_HUD_Weapon.PlayAnimation("Glock_Equip2.fbx", 1.25f);
 			m_gunToChangeTo = Gun::NONE;
-		}		
-		
+		}
+
 		else if (m_gunToChangeTo == Gun::SHOTGUN) {
 			m_gun = Gun::SHOTGUN;
 			m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
@@ -1290,11 +1350,25 @@ void Player::CheckForWeaponInput()
 	}	
 
 
-	if (m_gun == Gun::SHOTGUN)
+	/*if (m_gun == Gun::SHOTGUN)
 	{
 		m_HUD_Weapon.PlayAndLoopAnimation("Axe.fbx");
 	}
+	*/
 
+	/*if (m_gun == Gun::KNIFE) {
+
+		// finished whatever you were doing? (at least i think this is what it does, read the glock comment below)
+		if (m_HUD_Weapon.AnimationIsComplete())
+		{
+			if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::FIRING ||
+				m_HUDWeaponAnimationState == HUDWeaponAnimationState::EQUIPPING)
+			{
+				m_HUD_Weapon.PlayAndLoopAnimation("Shotgun_Idle.fbx");
+				m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
+			}
+		}
+	}*/
 
 	if (m_gun == Gun::SHOTGUN) {
 
@@ -1438,6 +1512,75 @@ void Player::CheckForWeaponInput()
 			m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
 		}
 	}
+
+
+
+
+	if (m_gun == Gun::AXE) {
+		// FIRST, check and reset states, hopefully this fixes that weird reload bug but keep an eye out for it: reload anim doesn't play, but sound does and ammo is credited.
+
+		if (m_HUD_Weapon.AnimationIsComplete())
+		{
+			if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::FIRING ||
+				m_HUDWeaponAnimationState == HUDWeaponAnimationState::RELOADING ||
+				m_HUDWeaponAnimationState == HUDWeaponAnimationState::EQUIPPING)
+			{
+				m_HUD_Weapon.PlayAndLoopAnimation("Axe_Idle.fbx");
+				m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
+			}
+		}
+		/*
+		// Presses fire
+		if (PressedFire())
+		{
+			// and has ammo
+			if (GetCurrentGunAmmoInClip() > 0)
+			{
+				// fire glock if idle (aka not reloading, or reloading animation is 75 percent complete)
+				if (m_HUDWeaponAnimationState != HUDWeaponAnimationState::RELOADING ||
+					m_HUDWeaponAnimationState == HUDWeaponAnimationState::RELOADING && m_HUD_Weapon.AnimationIsPastPercentage(75))
+				{
+					m_HUDWeaponAnimationState = HUDWeaponAnimationState::FIRING;
+					m_HUD_Weapon.PlayAnimation("Glock_Fire" + std::to_string(rand() % 3) + ".fbx");
+					FireGlock();
+					SpawnGlockCasing();
+					SpawnMuzzleFlash();
+				}
+			}
+			// is empty
+			else {
+				std::string file = "Empty.wav";
+				Audio::PlayAudio(file.c_str(), 0.5f);
+			}
+
+		}
+
+		// Presses Reload
+		if (PressedReload()
+			&& m_HUDWeaponAnimationState != HUDWeaponAnimationState::RELOADING
+			&& m_ammo_glock_in_clip != m_clip_size_glock
+			&& m_ammo_glock_total > 0)
+		{
+			m_HUD_Weapon.PlayAnimation("Glock_Reload.fbx");
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::RELOADING;
+			Audio::PlayAudio("Glock_Reload.wav", 0.5f);
+
+			unsigned int ammo_to_add = std::min(m_clip_size_glock - m_ammo_glock_in_clip, m_ammo_glock_total);
+			m_ammo_glock_in_clip += ammo_to_add;
+			m_ammo_glock_total -= ammo_to_add;
+		}*/
+
+		// idle
+		if (!IsMoving() && m_HUDWeaponAnimationState == HUDWeaponAnimationState::IDLE) {
+			m_HUD_Weapon.PlayAndLoopAnimation("Axe_Idle.fbx");
+			//m_HUD_Weapon.PlayAndLoopAnimation("Glock_Walk.fbx");
+		}
+		// walking
+		if (IsMoving() && m_HUDWeaponAnimationState == HUDWeaponAnimationState::IDLE) {
+			m_HUD_Weapon.PlayAndLoopAnimation("Axe_Walk.fbx");
+		}
+	}
+
 
 
 	if (m_gun == Gun::GLOCK) {
@@ -1602,8 +1745,9 @@ void Player::SetControlsToDefaultPS4Controls()
 	m_controls.RELOAD =			HELL_PS_4_CONTROLLER_SQUARE;
 	m_controls.FIRE =			HELL_PS_4_CONTROLLER_R2;// HELL_PS_4_HELL_PS_4_CONTROLLER_TRIGGER_R;
 	m_controls.JUMP =			HELL_PS_4_CONTROLLER_L1;
-	m_controls.CROUCH =			HELL_PS_4_CONTROLLER_L2;// HELL_PS_4_CONTROLLER_TRIGGER_L;
-	m_controls.NEXT_WEAPON =	HELL_PS_4_CONTROLLER_CROSS;
+	m_controls.CROUCH = HELL_PS_4_CONTROLLER_L2;// HELL_PS_4_CONTROLLER_TRIGGER_L;
+	m_controls.NEXT_WEAPON = HELL_PS_4_CONTROLLER_CROSS;
+	m_controls.MELEE = HELL_PS_4_CONTROLLER_R3;
 }
 
 void Player::SetControlsToDefaultXBoxControls()
@@ -1612,12 +1756,13 @@ void Player::SetControlsToDefaultXBoxControls()
 	m_controls.WALK_BACKWARD = HELL_XBOX_CONTROLLER_DPAD_DOWN;
 	m_controls.WALK_LEFT = HELL_XBOX_CONTROLLER_DPAD_LEFT;
 	m_controls.WALK_RIGHT = HELL_XBOX_CONTROLLER_DPAD_RIGHT;
-	m_controls.INTERACT = HELL_XBOX_CONTROLLER_Y;
+	m_controls.INTERACT = HELL_XBOX_CONTROLLER_L1;
 	m_controls.RELOAD = HELL_XBOX_CONTROLLER_X;
 	m_controls.FIRE = HELL_XBOX_CONTROLLER_TRIGGER_R;
-	m_controls.JUMP = HELL_XBOX_CONTROLLER_L1;
-	m_controls.CROUCH = HELL_XBOX_CONTROLLER_TRIGGER_L;
-	m_controls.NEXT_WEAPON = HELL_XBOX_CONTROLLER_A;
+	m_controls.JUMP = HELL_XBOX_CONTROLLER_TRIGGER_L;
+	m_controls.CROUCH = HELL_XBOX_CONTROLLER_B;
+	m_controls.NEXT_WEAPON = HELL_XBOX_CONTROLLER_Y; 
+	m_controls.MELEE = HELL_XBOX_CONTROLLER_R3; 
 }
 
 int Player::GetControllerIndex()

@@ -86,7 +86,31 @@ int main()
 	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Shotgun"), "Shotgun_ReloadEnd.fbx");
 
 	AssetManager::LoadSkinnedModel("Axe", "Axe_TPose.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Axe"), "Axe_Equip.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Axe"), "Axe_Walk.fbx");
 	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Axe"), "Axe_Idle.fbx");
+
+	AssetManager::LoadSkinnedModel("Knife", "Knife.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Knife"), "Knife_Draw.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Knife"), "Knife_Swing.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Knife"), "Knife_Swing2.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Knife"), "Knife_Swing3.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Knife"), "Knife_Swing4.fbx");
+	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Knife"), "Knife_Holster.fbx");
+
+		// set nurse guy mesh materials
+	SkinnedModel* knifeModel = AssetManager::GetSkinnedModelPtr("Knife");
+    for (SkinnedModel::MeshEntry& meshEntry : knifeModel->m_meshEntries)
+    {
+		//std::cout << "meshnaeme: " << meshEntry.Name << "\n";
+		if (meshEntry.Name == "manniquen1_2") {
+			meshEntry.material = AssetManager::GetMaterialPtr("Hands");
+		}
+		if (meshEntry.Name == "SM_Knife_01") {
+			meshEntry.material = AssetManager::GetMaterialPtr("Knife");
+		}
+    }
+	//FileImporter::LoadAllAnimations(AssetManager::GetSkinnedModelPtr("Knife"), "Knife_Anims.fbx");
 
     // set nurse guy mesh materials
     SkinnedModel* nurseModel = AssetManager::GetSkinnedModelPtr("Nurse");
@@ -170,7 +194,12 @@ int main()
 
    // Scene::AddEntity(AssetManager::GetModelPtr("TableSmall"), AssetManager::GetMaterialPtr("TableSmall"), tableTransform);
 
-    GameData::s_staticEntities.emplace_back(AssetManager::GetModelPtr("Couch"), AssetManager::GetMaterialPtr("Couch"), Transform(glm::vec3(0, 0, -1)));
+	GameData::s_staticEntities.emplace_back(AssetManager::GetModelPtr("Couch"), AssetManager::GetMaterialPtr("Couch"), Transform(glm::vec3(0, 0, -1)));
+
+	Transform trans;
+	trans.position = glm::vec3(0, 1.2f, -0.5);
+	trans.scale = glm::vec3(3);
+	GameData::s_staticEntities.emplace_back(AssetManager::GetModelPtr("KnifeOBJ"), AssetManager::GetMaterialPtr("Knife"), trans);
 
     GameData::s_player2.SetPosition(glm::vec3(0, 0, 0));
     GameData::s_player2.SetPosition(glm::vec3(0, 0, 2));

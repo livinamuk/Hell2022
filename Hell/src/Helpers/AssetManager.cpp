@@ -74,6 +74,8 @@ void AssetManager::LoadNextAssetToGL()
             m_models[info.filename] = Model(info.fullpath.c_str(), createPhysicsMesh);
         }
     }
+
+
  /*  else
     s_loadLog += "Loading map\n";
         File::LoadMap("Map.json");*/

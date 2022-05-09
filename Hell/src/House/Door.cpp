@@ -4,9 +4,6 @@
 
 #include "Core/GameData.h"
 
-//physx::PxShape* Door::s_doorShape;
-//physx::PxShape* Door::s_frameShape;
-
 #define SHAPE_WIDTH (DOOR_WIDTH * 0.5f)
 #define SHAPE_HEIGHT (DOOR_HEIGHT * 0.5f)
 #define SHAPE_DEPTH (DOOR_DEPTH * 0.5f)
@@ -174,16 +171,6 @@ void Door::Interact()
 		Audio::PlayAudio("Door_Open.wav", 0.5f);
 		return;
 	}
-    /*
-    if (m_state == State::CLOSED) {
-        m_state = State::OPENING;
-        Audio::PlayAudio("Door_Open.wav");
-    }    
-    
-    if (m_state == State::OPEN) {
-        m_state = State::CLOSING;
-        Audio::PlayAudio("Door_Open.wav");
-    }*/
 }
 
 void Door::Update(float deltaTime)
@@ -191,7 +178,7 @@ void Door::Update(float deltaTime)
 	// revalidate the physics pointer
 	if(m_rigid)
         m_rigid->userData = new EntityData(PhysicsObjectType::DOOR, this);
-
+    
 	float swingOverShoot = 0.75f;
 
     float amount = deltaTime + Util::RandomFloat(-deltaTime*0.5, deltaTime*0.5);
@@ -213,101 +200,35 @@ void Door::Update(float deltaTime)
         m_closed = true;
 		Audio::PlayAudio("Door_Latch.wav", 0.9f);
     }
-
-    return;
-
-    if (m_state == State::OPENING)
-    {
-        glm::mat4 mat = Util::PxMat44ToGlmMat4(m_rigid->getGlobalPose());
-        glm::vec3 basisZ = mat[2] * DOOR_OPEN_SPEED;
-        PxVec3 force = PxVec3(basisZ.x, basisZ.y, basisZ.z);
-        m_rigid->addForce(force);
-
-        if (m_joint->getSwingYAngle() < -2)
-        {
-            m_state = State::OPEN;
-            m_rigid->setAngularVelocity(PxVec3(0, 0, 0));
-            m_rigid->putToSleep();
-        }
-    }    
-
-    if (m_state == State::CLOSING)
-    {
-        glm::mat4 mat = Util::PxMat44ToGlmMat4(m_rigid->getGlobalPose());
-        glm::vec3 basisZ = mat[2] * -DOOR_OPEN_SPEED;
-        PxVec3 force = PxVec3(basisZ.x, basisZ.y, basisZ.z);
-        m_rigid->addForce(force);
-
-        if (m_joint->getSwingYAngle() >= 0)
-        {
-            m_state = State::CLOSED;
-            m_rigid->setAngularVelocity(PxVec3(0, 0, 0));
-            m_rigid->putToSleep();
-            m_rigid->setGlobalPose(m_restPose);
-        }
-    }
-
-   
 }
 
 void Door::CreateCollisionObject()
 {   
-    // physx
-    PxPhysics* physX = PhysX::GetPhysics();
-    PxMaterial* material = PhysX::GetDefaultMaterial();
-    PxScene* scene = PhysX::GetScene();
-
-	m_shape = PhysX::GetPhysics()->createShape(physx::PxBoxGeometry(SHAPE_WIDTH, SHAPE_HEIGHT * 0.95, SHAPE_DEPTH), *material);
-
-	PxFilterData filterData;
-	filterData.word1 = PhysX::CollisionGroup::MISC_OBSTACLE;
-	m_shape->setQueryFilterData(filterData);
-
+    // Create rigid
     glm::mat4 spawnMat = m_transform.to_mat4() * m_OffsetTransform.to_mat4() * m_physicalDoorOffsetTransform.to_mat4();
     PxMat44 spawnMatrix = Util::GlmMat4ToPxMat44(spawnMat);
-    m_rigid = physX->createRigidDynamic(PxTransform(spawnMatrix));
-    m_rigid->attachShape(*m_shape);
+	PxBoxGeometry geom = PxBoxGeometry(SHAPE_WIDTH, SHAPE_HEIGHT * 0.95, SHAPE_DEPTH);
+    PxTransform pose = PxTransform(spawnMatrix);
+    PxMaterial* material = PhysX::GetDefaultMaterial();
+    m_rigid = PxCreateStatic(*PhysX::GetPhysics(), pose, geom, *material);
     m_rigid->userData = new EntityData(PhysicsObjectType::DOOR, this);
+	m_rigid->setName("DOOR");
+	PhysX::GetScene()->addActor(*m_rigid);
 
-    float mass = 0.5f;
-    PxRigidBodyExt::setMassAndUpdateInertia(*m_rigid, mass);
-    //s_doorShape->release();
+    // set the filter data
+	PxShape* shape;
+    m_rigid->getShapes(&shape, 1);
+	PxFilterData filterData;
+	filterData.word1 = PhysX::CollisionGroup::MISC_OBSTACLE;
+    shape->setQueryFilterData(filterData);
+    PhysX::EnableRayCastingForShape(shape);
 
-    PxFilterData data;
-    //data.word0 = CollisionGroups::NONE;
-    //data.word1 = PhysX::CollisionGroup::DOOR;
-   // m_shape->setQueryFilterData(data);
-
-    PhysX::EnableRayCastingForShape(m_shape);
-
-    PxShape* frameShape = physX->createShape(PxBoxGeometry(0.025, DOOR_HEIGHT * 0.005, 0.05), *material);
-    m_frameRigid = physX->createRigidStatic(PxTransform(spawnMatrix));
-    m_frameRigid->attachShape(*frameShape);
-    m_frameRigid->userData = new EntityData(PhysicsObjectType::DOOR, this);
-
-    PxTransform parentFrame = PxTransform(PxVec3(-SHAPE_WIDTH, 0, 0.00));
-    PxTransform childFrame = PxTransform(PxVec3(-SHAPE_WIDTH, 0.0f, SHAPE_DEPTH));
-    m_joint = PxD6JointCreate(*physX, m_frameRigid, parentFrame, m_rigid, childFrame);
-    m_joint->setConstraintFlag(PxConstraintFlag::eCOLLISION_ENABLED, false);
-    m_joint->setConstraintFlag(PxConstraintFlag::eVISUALIZATION, true);
-
-    scene->addActor(*m_rigid);
-    scene->addActor(*m_frameRigid);
-
-    m_rigid->setName("DOOR");
-
-    m_joint->setMotion(PxD6Axis::eTWIST, PxD6Motion::eLOCKED);
-    m_joint->setMotion(PxD6Axis::eSWING1, PxD6Motion::eFREE);
-    m_joint->setMotion(PxD6Axis::eSWING2, PxD6Motion::eLOCKED);
-
-    m_restPose = m_rigid->getGlobalPose();
-    m_rigid->setAngularVelocity(PxVec3(0, 0, 0));
-    m_rigid->putToSleep();
+	// store rest pose, for resetting the door back to fully closed.
+	m_restPose = m_rigid->getGlobalPose();    
 }
 
 void Door::RemoveCollisionObject()
 {      
-    m_state = State::CLOSED;
     m_rigid->release();
 }
 

@@ -368,9 +368,13 @@ HellEngine/vendor/Glad/bin-int
 HellEngine/vendor/GLFW/bin-int
 HellEngine/vendor/imgui/bin-int
 
-x64/
+# x64/
 
 bin-int
 
+git filter-branch --index-filter "git rm -rf --cached --ignore-unmatch path_to_file" HEAD
+git ls-files -c --ignored --exclude-standard -z | xargs -0 git rm --/c/Hell2022/x64/Release/Hell2022.zip
 
+
+git filter-branch --index-filter "git rm -rf --cached --ignore-unmatch /c/Hell2022/x64/Release/Hell2022.zip" HEAD
 

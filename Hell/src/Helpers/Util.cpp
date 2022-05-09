@@ -143,8 +143,6 @@ std::string Util::CharacterModelAnimationStateToString(CharacterModelAnimationSt
 		return "";
 }
 
-
-
 bool Util::LineIntersects(glm::vec2 begin_A, glm::vec2 end_A, glm::vec2 begin_B, glm::vec2 end_B, glm::vec2* result)
 {
 	static const auto SameSign = [](float a, float b) -> bool {

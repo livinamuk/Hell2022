@@ -57,6 +57,7 @@ void Audio::Init()
 	Audio::LoadAudio("Death3.wav");
 	Audio::LoadAudio("Door_Latch.wav");
 	Audio::LoadAudio("Shotgun_Fire_01.wav");
+	Audio::LoadAudio("Knife.wav");
 	
 	//Audio::LoadAudio("Music.wav");
 

@@ -2,19 +2,25 @@
 #include "Helpers/Util.h" 
 #include "Helpers/AssetManager.h" 
 
-void BloodDecal::Draw(Shader* shader)
+BloodDecal::BloodDecal(Transform transform, int type)
 {
-	Transform localOffset;
+	m_transform = transform;
+	m_type = type;	
 
 	if (m_type != 2) {
-		localOffset.position.z = 0.55f;
+		m_localOffset.position.z = 0.55f;
 		m_transform.scale = glm::vec3(2.0f);
 	}
 	else {
-		localOffset.rotation.y = m_randomRotation;
+		m_localOffset.rotation.y = Util::RandomFloat(0, HELL_PI * 2);;
 		m_transform.scale = glm::vec3(1.5f);
 	}
 
+	m_modelMatrix = m_transform.to_mat4() * m_localOffset.to_mat4();
+}
+
+void BloodDecal::Draw(Shader* shader)
+{
 	glActiveTexture(GL_TEXTURE2);
 
 	if (m_type == 0)
@@ -26,5 +32,5 @@ void BloodDecal::Draw(Shader* shader)
 	else
 		glBindTexture(GL_TEXTURE_2D, AssetManager::GetTexturePtr("blood_decal_9")->ID);
 
-	Util::DrawUpFacingPlane(shader,  m_transform.to_mat4() * localOffset.to_mat4());
+	Util::DrawUpFacingPlane(shader, m_modelMatrix);
 }

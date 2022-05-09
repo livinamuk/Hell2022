@@ -28,6 +28,13 @@ public:
 	Transform GetTransform();
 	Animation* GetCurrentAnimation();
 
+
+	void BlendWithSingleKeyFrame(float factor);
+	void CalculateBoneTransforms();
+
+	glm::vec3 BlendVec3(glm::vec3& a, glm::vec3& b, float factor);
+	glm::quat BlendQuat(glm::quat& a, glm::quat& b, float factor);
+
 	glm::mat4* m_cameraMatrixPointer;
 
 private:
@@ -41,9 +48,16 @@ private:
 	float m_animSpeed = 1;
 	//int m_animIndex;
 
+	bool m_blend = false;
+
+	std::vector<SQT> m_SQTs;
+
 public:
 	
 	AnimatedTransforms m_animatedTransforms;
+	AnimatedTransforms m_blendFrameTransforms;
+
+
 
 	//std::vector<glm::mat4> m_animatedTransforms;
 	//std::vector<glm::mat4> m_animatedTransformsWorldSpace;

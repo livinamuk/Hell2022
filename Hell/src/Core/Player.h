@@ -21,6 +21,7 @@ struct PlayerControls
 	unsigned int JUMP = HELL_KEY_SPACE;
 	unsigned int CROUCH = HELL_KEY_LEFT_CONTROL;
 	unsigned int NEXT_WEAPON = HELL_KEY_Q;
+	unsigned int MELEE = HELL_KEY_J;
 };
 
 
@@ -30,7 +31,7 @@ public: // methods
 
 
 	enum class Gun {
-		NONE, AXE, GLOCK, SHOTGUN
+		NONE, KNIFE, AXE, GLOCK, SHOTGUN
 	}; 
 	
 	enum class ShotgunReloadState { NOT_RELOADING, FROM_IDLE, SINGLE_RELOAD, DOUBLE_RELOAD, BACK_TO_IDLE };
@@ -78,8 +79,9 @@ public: // methods
 	bool PressedFire();
 	bool PressingFire();
 	bool PressedJump();
-	bool PressedCrouch(); 
+	bool PressedCrouch();
 	bool PressedNextWeapon();
+	bool PressedMelee();
 
 	void SpawnBloodPool();
 	void SpawnMuzzleFlash();
