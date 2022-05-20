@@ -14,6 +14,7 @@ layout (binding = 4) uniform samplerCube ShadowMap;
 layout (binding = 5) uniform sampler2D Env_LUT;
 layout (binding = 6) uniform sampler2D BRDF_LUT;
 layout (binding = 7) uniform samplerCube IndirectShadowMap;
+layout (binding = 8) uniform samplerCube Env_map;
 
 struct Light {
     vec4 position_radius;	// position xyz, radius in w
@@ -329,14 +330,39 @@ vec3 T(float s) { // It doesn't matter, positive or negative value.
 }
 
 
+float SRGBToLinearVal(float sRGBVal) {
+    return sRGBVal <= 0.04045f
+        ? sRGBVal / 12.92f
+        : pow((sRGBVal + 0.055f) / 1.055f, 2.4f);
+}
+
+
+float DistributionGGX(vec3 N, vec3 H, float a)
+{
+    float a2     = a*a;
+    float NdotH  = max(dot(N, H), 0.0);
+    float NdotH2 = NdotH*NdotH;
+	
+    float nom    = a2;
+    float denom  = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom        = PI * denom * denom;
+	
+    return nom / denom;
+}
+
+
+vec3 fresnelSchlick(float cosTheta, vec3 F0)
+{
+    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
 
 
 
 // your inverse view and inverse projection aren't being sent
 
-void main()
+void main4()
 {
-    // get light uniform data
+      // get light uniform data
 	Light light = lights[lightIndex];
 	vec3 lightPos   = light.position_radius.xyz;
     vec3 lightColor = light.color_strength.xyz;
@@ -394,6 +420,9 @@ void main()
     vec3 f0 = vec3(0.04);
     vec3 diffuseColor = albedo * (vec3(1.0) - f0);
 	diffuseColor *= 1.0 - metallic;
+
+	
+	vec3 test3 = albedo;
 		
 	float alphaRoughness = roughness * roughness;
 	vec3 specularColor = mix(f0, albedo, metallic);
@@ -471,7 +500,6 @@ void main()
 	// Obtain final intensity as reflectance (BRDF) scaled by the energy of the light (cosine law)
 	vec3 directLighting = NdotL * (diffuseContrib + specContrib) * radiance;
 
-	
 
     // Spherical Harmonics
 	mat3 shR, shG, shB;
@@ -500,7 +528,6 @@ void main()
 	vec3 irradiance = shToColor(shRD, shGD, shBD, n); 
 	vec3 indirectDiffuse = irradiance * diffuseColor;
     
-	
 
 	vec3 kS = F;
 	vec3 kD = 1.0 - kS;
@@ -508,63 +535,417 @@ void main()
     //vec3 indirectLighting = (kD * indirectDiffuse + indirectSpecular) * ao;
 	vec3 indirectLighting = (kD * indirectDiffuse) * ao ; // no specular!!!!!!!!!!!!
 
-
-
 	float gunMask = RMA.a;
-
 
     float indirectShadow = 1 - ShadowCalculation(IndirectShadowMap, lightPos, WorldPos, camPos, NdotL);
 	
 	float shadow = 1 - ShadowCalculation(ShadowMap, lightPos, WorldPos, camPos, NdotL);
 	shadow += indirectShadow * gunMask;
 
-	//float shadowFactor = ShadowCalculation(lightPos, WorldPos, viewPos, NdotL); 
-
-	//float shadow = (1 - shadowFactor) ;// (NdotL);
-		
-	//indirectLighting *= attenuation;// * 10 ;
-//	indirectLighting *= min(1, attenuation);
-	//indirectLighting *= attenuation;
-	//indirectLighting = vec3(attenuation);
-	
-	indirectLighting *= vec3(shadow + 0.5);// * NdotL;
-	//indirectLighting *= 0.5;
-	//indirectLighting *= 0.5;
-
-	//float indirectShadow = 1 - ShadowCalculation(IndirectShadowMap, lightPos, WorldPos, camPos, NdotL);
-     //   float shadow = 1 - ShadowCalculation(ShadowMap, lightPos, WorldPos, camPos, NdotL);
-
-       // Lo *= 1 - shadow;
-
-      //  Lo += indirectLighting * (1 - indirectShadow);
-
-       // vec3 directLighting = Lo;
-      //  indirectLighting *= 0.75;
-        color = ((shadow * directLighting) + (indirectLighting * indirectShadow)) * attenuation;
-  //      color = ((shadow * directLighting) ) * attenuation;
-
- // color = vec3(shadow );
-
-		test = vec3(color);
-
-    // HDR tonemapping
-    color = color / (color + vec3(1.0));
-    // gamma correct
-    color = pow(color, vec3(1.0/2.2)); 
-
-	//color = indirectLighting;
-	
+	indirectLighting *= vec3(shadow + 0.5);
+    color = ((shadow * directLighting) + (indirectLighting * indirectShadow)) * attenuation;
+	test = vec3(color);
     FragColor = vec4(color, 1.0);
 
+
+
+	//	vec3 directLighting = NdotL * (diffuseContrib + specContrib) * radiance;
+
+
+    FragColor = vec4(test3, 1.0);
+}
+
+
+
+vec4 SRGBtoLINEAR(vec4 srgbIn)
+{
+	#ifdef MANUAL_SRGB
+	#ifdef SRGB_FAST_APPROXIMATION
+	vec3 linOut = pow(srgbIn.xyz,vec3(2.2));
+	#else //SRGB_FAST_APPROXIMATION
+	vec3 bLess = step(vec3(0.04045),srgbIn.xyz);
+	vec3 linOut = mix( srgbIn.xyz/vec3(12.92), pow((srgbIn.xyz+vec3(0.055))/vec3(1.055),vec3(2.4)), bLess );
+	#endif //SRGB_FAST_APPROXIMATION
+	return vec4(linOut,srgbIn.w);;
+	#else //MANUAL_SRGB
+	return srgbIn;
+	#endif //MANUAL_SRGB
+}
+
+vec3 Uncharted2Tonemap(vec3 color)
+{
+	float A = 0.15;
+	float B = 0.50;
+	float C = 0.10;
+	float D = 0.20;
+	float E = 0.02;
+	float F = 0.30;
+	float W = 11.2;
+	return ((color*(A*color+C*B)+D*E)/(color*(A*color+B)+D*F))-E/F;
+}
+
+float uboParamsExposure = 1;
+float uboParamsGamma = 1;
+
+vec4 tonemap(vec4 color)
+{
+	vec3 outcol = Uncharted2Tonemap(color.rgb * uboParamsExposure);
+	outcol = outcol * (1.0f / Uncharted2Tonemap(vec3(11.2f)));	
+	return vec4(pow(outcol, vec3(1.0f / uboParamsGamma)), color.a);
+}
+
+vec3 getIBLContribution(PBRInfo pbrInputs, vec3 n, vec3 reflection)
+{
+	/*float lod = (pbrInputs.perceptualRoughness * uboParams.prefilteredCubeMipLevels);
+	// retrieve a scale and bias to F0. See [1], Figure 3
+	vec3 brdf = (texture(samplerBRDFLUT, vec2(pbrInputs.NdotV, 1.0 - pbrInputs.perceptualRoughness))).rgb;
+	vec3 diffuseLight = SRGBtoLINEAR(tonemap(texture(samplerIrradiance, n))).rgb;
+
+	vec3 specularLight = SRGBtoLINEAR(tonemap(textureLod(prefilteredMap, reflection, lod))).rgb;
+
+	vec3 diffuse = diffuseLight * pbrInputs.diffuseColor;
+	vec3 specular = specularLight * (pbrInputs.specularColor * brdf.x + brdf.y);
+
+	// For presentation, this allows us to disable IBL terms
+	// For presentation, this allows us to disable IBL terms
+	diffuse *= uboParams.scaleIBLAmbient;
+	specular *= uboParams.scaleIBLAmbient;
+
+	return diffuse + specular;*/
+
+	vec3 brdf = (texture(BRDF_LUT, vec2(pbrInputs.NdotV, 1.0 - pbrInputs.perceptualRoughness))).rgb;
+	vec3 diffuseLight = tonemap(texture(Env_map, n)).rgb;
+	vec3 diffuse = diffuseLight * pbrInputs.diffuseColor;
+	return diffuse;
+}
+
+
+
+void main666()
+{
+   // get light uniform data
+	Light light = lights[lightIndex];
+	vec3 lightPos   = light.position_radius.xyz;
+    vec3 lightColor = light.color_strength.xyz;
+    float lightRadius = light.position_radius.w;
+    float lightStrength = light.color_strength.w;
+    float lightMagic = light.magic_padding.x;
 	
-	FragColor.rgb = test;
-//	FragColor.rgb = RMA.rgb                                              ;
-        
+    // Reconstruc pos from depth
+    vec2 TexCoord = vec2(gl_FragCoord.x / screenWidth, gl_FragCoord.y / screenHeight);   
+    float z = texture(Depth_Texture, vec2(TexCoord.s, TexCoord.t)).x * 2.0f - 1.0f;
+    vec4 clipSpacePosition = vec4(vec2(TexCoord.s, TexCoord.t) * 2.0 - 1.0, z, 1.0);
+    if (player == 1)      
+        clipSpacePosition = vec4(vec2(TexCoord.s * 2.0 - 1.0, ((TexCoord.t * 2 + -1) * 2.0 - 1.0) ), z, 1.0);
+    if (player == 2)      
+        clipSpacePosition = vec4(vec2(TexCoord.s * 2.0 - 1.0, ((TexCoord.t * 2 + 0) * 2.0 - 1.0) ), z, 1.0);
+    vec4 viewSpacePosition = inverse(projection) * clipSpacePosition;
+    viewSpacePosition /= viewSpacePosition.w;
+    vec4 worldSpacePosition = inverse(view) * viewSpacePosition;    
+    vec3 WorldPos = worldSpacePosition.xyz;
 
-  
+    // Get textures
+	vec4 RMA = texture(RMA_Texture, TexCoords);
+	vec3 albedo = pow(texture(ALB_Texture, TexCoords).rgb, vec3(2.2));	
+    vec3 n = texture(NRM_Texture, TexCoords).rgb * 2 - 1;//normalize(Normal);
 
- //   FragColor = vec4(WorldPos, 1.0);
-	//FragColor.rgb = vec3(z,z,z);
+	float ao = RMA.a;
 
- //FragColor = vec4(clipSpacePosition.y, 0, 0, 1.0);
+	float perceptualRoughness = RMA.r;
+	float metallic = RMA.g;
+	vec3 diffuseColor;
+	vec3 baseColor = albedo;
+
+	vec3 f0 = vec3(0.04);
+
+	//metallic += 0.01;
+
+	diffuseColor = baseColor.rgb * (vec3(1.0) - f0);
+	diffuseColor *= 1.0 - metallic;
+
+
+	//diffuseColor = vec3(1 -  metallic);
+
+	//diffuseColor *= -1;
+	//diffuseColor += 1;
+
+	float alphaRoughness = perceptualRoughness * perceptualRoughness;
+	vec3 specularColor = mix(f0, baseColor.rgb, metallic);
+	float reflectance = max(max(specularColor.r, specularColor.g), specularColor.b);
+	float reflectance90 = clamp(reflectance * 25.0, 0.0, 1.0);
+	vec3 specularEnvironmentR0 = specularColor.rgb;
+	vec3 specularEnvironmentR90 = vec3(1.0, 1.0, 1.0) * reflectance90;
+
+	n = normalize(n);
+	vec3 v = normalize(camPos - WorldPos);    // Vector from surface point to camera
+	vec3 l = normalize(lightPos - WorldPos);     // Vector from surface point to light
+	vec3 h = normalize(l+v);                        // Half vector between both l and v
+	vec3 reflection = -normalize(reflect(v, n));
+	reflection.y *= -1.0f;
+
+	float NdotL = clamp(dot(n, l), 0.001, 1.0);
+	float NdotV = clamp(abs(dot(n, v)), 0.001, 1.0);
+	float NdotH = clamp(dot(n, h), 0.0, 1.0);
+	float LdotH = clamp(dot(l, h), 0.0, 1.0);
+	float VdotH = clamp(dot(v, h), 0.0, 1.0);
+
+	PBRInfo pbrInputs = PBRInfo(
+		NdotL,
+		NdotV,
+		NdotH,
+		LdotH,
+		VdotH,
+		perceptualRoughness,
+		metallic,
+		specularEnvironmentR0,
+		specularEnvironmentR90,
+		alphaRoughness,
+		diffuseColor,
+		specularColor
+	);
+
+	// Calculate the shading terms for the microfacet specular shading model
+	vec3 F = specularReflection(pbrInputs);
+	float G = geometricOcclusion(pbrInputs);
+	float D = microfacetDistribution(pbrInputs);
+
+	// Calculation of analytical lighting contribution
+	vec3 diffuseContrib = (1.0 - F) * diffuse(pbrInputs);
+	vec3 specContrib = F * G * D / (4.0 * NdotL * NdotV);
+	// Obtain final intensity as reflectance (BRDF) scaled by the energy of the light (cosine law)
+	vec3 color = NdotL * lightColor * (diffuseContrib + specContrib);
+
+	// Calculate lighting contribution from image based lighting source (IBL)
+	vec3 brdf = (texture(BRDF_LUT, vec2(pbrInputs.NdotV, 1.0 - metallic))).rgb;
+	//vec3 diffuseLight = tonemap(texture(Env_map, n)).rgb;
+	vec3 diffuseLight = (texture(Env_map, n)).rgb;
+	vec3 diffuse = diffuseLight * pbrInputs.diffuseColor;
+
+	int lod = 4;
+	//vec3 specularLight = SRGBtoLINEAR(tonemap(textureLod(Env_map, reflection, lod))).rgb;
+	vec3 specularLight = textureLod(Env_map, reflection, lod).rgb;
+	vec3 specular = specularLight * (pbrInputs.specularColor * brdf.x + brdf.y);
+
+	vec3 indirectLighting = diffuse;
+	
+	lightStrength *= 1.5;
+lightRadius *= 1;
+lightMagic *= 1.15;
+
+	float attenuation = CaclulateAttenuation(WorldPos, lightPos, lightRadius, lightMagic) * lightStrength;
+	vec3 radiance = lightColor * attenuation;
+
+	//vec3 indirectLighting = getIBLContribution(pbrInputs, n, reflection);
+	//color += indirectLighting;
+
+	//specular *= 0.25;
+
+	//#ifdef SRGB_FAST_APPROXIMATION
+	//color = pow(color.xyz,vec3(2.2));
+	//specular = pow(specular.xyz,vec3(2.2));
+	//indirectLighting = pow(indirectLighting.xyz,vec3(2.2));
+	//#else //SRGB_FAST_APPROXIMATION
+	vec3 bLess = step(vec3(0.04045),specular.xyz);
+	//specular = mix( specular.xyz/vec3(12.92), pow((specular.xyz+vec3(0.055))/vec3(1.055),vec3(2.4)), bLess );
+	//#endif //SRGB_FAST_APPROXIMATION
+
+
+	vec3 diffuseColor2 = albedo * (vec3(1.0) - f0);
+	//diffuseColor2 *= 1.0 - ao;
+	//diffuseColor2 *= perceptualRoughness;
+
+	//diffuseColor2 *= 0;// 0.125;
+
+
+	float gunMask = RMA.a;
+    float indirectShadow = 1 - ShadowCalculation(IndirectShadowMap, lightPos, WorldPos, camPos, NdotL);
+	float shadow = 1 - ShadowCalculation(ShadowMap, lightPos, WorldPos, camPos, NdotL);
+	shadow += indirectShadow * gunMask;
+	
+	//float shadow = (1 - ShadowCalculation(ShadowMap, lightPos, WorldPos, camPos, NdotL)) ;//* gunMask;
+
+	//specular = SRGBtoLINEAR(specular.rgb);
+	indirectLighting *= indirectShadow;
+//	indirectLighting += diffuseColor2 * indirectShadow * lightColor * ( metallic)*  0.125;
+	specular *= indirectShadow * lightColor;
+	color *= shadow;
+
+	FragColor.rgb = vec3(color + indirectLighting + specular) * attenuation;
+	//FragColor.rgb = vec3( diffuseColor2  );// * attenuation;
+//	FragColor.rgb = vec3(color);
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+void main()
+{
+   // get light uniform data
+	Light light = lights[lightIndex];
+	vec3 lightPos   = light.position_radius.xyz;
+    vec3 lightColor = light.color_strength.xyz;
+    float lightRadius = light.position_radius.w;
+    float lightStrength = light.color_strength.w;
+    float lightMagic = light.magic_padding.x;
+	
+	lightStrength *= 1.25;
+	lightMagic = 0.5;
+	lightRadius *= 1.125;
+//	lightMagic *= 0.5;
+	
+    // Reconstruc pos from depth
+    vec2 TexCoord = vec2(gl_FragCoord.x / screenWidth, gl_FragCoord.y / screenHeight);   
+    float z = texture(Depth_Texture, vec2(TexCoord.s, TexCoord.t)).x * 2.0f - 1.0f;
+    vec4 clipSpacePosition = vec4(vec2(TexCoord.s, TexCoord.t) * 2.0 - 1.0, z, 1.0);
+    if (player == 1)      
+        clipSpacePosition = vec4(vec2(TexCoord.s * 2.0 - 1.0, ((TexCoord.t * 2 + -1) * 2.0 - 1.0) ), z, 1.0);
+    if (player == 2)      
+        clipSpacePosition = vec4(vec2(TexCoord.s * 2.0 - 1.0, ((TexCoord.t * 2 + 0) * 2.0 - 1.0) ), z, 1.0);
+    vec4 viewSpacePosition = inverse(projection) * clipSpacePosition;
+    viewSpacePosition /= viewSpacePosition.w;
+    vec4 worldSpacePosition = inverse(view) * viewSpacePosition;    
+    vec3 WorldPos = worldSpacePosition.xyz;
+
+    // Get textures
+	vec4 RMA = texture(RMA_Texture, TexCoords);
+	vec3 albedo = pow(texture(ALB_Texture, TexCoords).rgb, vec3(2.2));	
+    vec3 n = texture(NRM_Texture, TexCoords).rgb * 2 - 1;//normalize(Normal);
+
+	float ao = RMA.a;
+
+	float perceptualRoughness = RMA.r;
+	float metallic = RMA.g;
+	vec3 diffuseColor;
+	vec3 baseColor = albedo;
+
+	vec3 f0 = vec3(0.04);
+
+	//metallic += 0.01;
+
+	diffuseColor = baseColor.rgb * (vec3(1.0) - f0);
+	diffuseColor *= 1.0 - metallic;
+
+
+	//diffuseColor = vec3(1 -  metallic);
+
+	//diffuseColor *= -1;
+	//diffuseColor += 1;
+
+	float alphaRoughness = perceptualRoughness * perceptualRoughness;
+	vec3 specularColor = mix(f0, baseColor.rgb, metallic);
+	float reflectance = max(max(specularColor.r, specularColor.g), specularColor.b);
+	float reflectance90 = clamp(reflectance * 25.0, 0.0, 1.0);
+	vec3 specularEnvironmentR0 = specularColor.rgb;
+	vec3 specularEnvironmentR90 = vec3(1.0, 1.0, 1.0) * reflectance90;
+
+	n = normalize(n);
+	vec3 v = normalize(camPos - WorldPos);    // Vector from surface point to camera
+	vec3 l = normalize(lightPos - WorldPos);     // Vector from surface point to light
+	vec3 h = normalize(l+v);                        // Half vector between both l and v
+	vec3 reflection = -normalize(reflect(v, n));
+	reflection.y *= -1.0f;
+
+	float NdotL = clamp(dot(n, l), 0.001, 1.0);
+	float NdotV = clamp(abs(dot(n, v)), 0.001, 1.0);
+	float NdotH = clamp(dot(n, h), 0.0, 1.0);
+	float LdotH = clamp(dot(l, h), 0.0, 1.0);
+	float VdotH = clamp(dot(v, h), 0.0, 1.0);
+
+	PBRInfo pbrInputs = PBRInfo(
+		NdotL,
+		NdotV,
+		NdotH,
+		LdotH,
+		VdotH,
+		perceptualRoughness,
+		metallic,
+		specularEnvironmentR0,
+		specularEnvironmentR90,
+		alphaRoughness,
+		diffuseColor,
+		specularColor
+	);
+
+	// Calculate the shading terms for the microfacet specular shading model
+	vec3 F = specularReflection(pbrInputs);
+	float G = geometricOcclusion(pbrInputs);
+	float D = microfacetDistribution(pbrInputs);
+
+	// Calculation of analytical lighting contribution
+	vec3 diffuseContrib = (1.0 - F) * diffuse(pbrInputs);
+	vec3 specContrib = F * G * D / (4.0 * NdotL * NdotV);
+	// Obtain final intensity as reflectance (BRDF) scaled by the energy of the light (cosine law)
+	vec3 color = NdotL * lightColor * (diffuseContrib + specContrib);
+
+	// Calculate lighting contribution from image based lighting source (IBL)
+	vec3 brdf = (texture(BRDF_LUT, vec2(pbrInputs.NdotV, 1.0 - metallic))).rgb;
+	//vec3 diffuseLight = tonemap(texture(Env_map, n)).rgb;
+	vec3 diffuseLight = (texture(Env_map, n)).rgb;
+	vec3 diffuse = diffuseLight * pbrInputs.diffuseColor;
+
+	int lod = 3;
+	//vec3 specularLight = SRGBtoLINEAR(tonemap(textureLod(Env_map, reflection, lod))).rgb;
+	vec3 specularLight = textureLod(Env_map, reflection, lod).rgb;
+	vec3 specular = specularLight * (pbrInputs.specularColor * brdf.x + brdf.y);
+
+	vec3 indirectLighting = diffuse;
+	
+	lightStrength *= 1.05;
+	lightRadius *= 1;
+	lightMagic *= 0.5;
+
+	float attenuation = CaclulateAttenuation(WorldPos, lightPos, lightRadius, lightMagic) * lightStrength;
+	vec3 radiance = lightColor * attenuation;
+
+	//vec3 indirectLighting = getIBLContribution(pbrInputs, n, reflection);
+	//color += indirectLighting;
+
+	//specular *= 0.25;
+
+	//#ifdef SRGB_FAST_APPROXIMATION
+	//color = pow(color.xyz,vec3(2.2));
+	//specular = pow(specular.xyz,vec3(2.2));
+	//indirectLighting = pow(indirectLighting.xyz,vec3(2.2));
+	//#else //SRGB_FAST_APPROXIMATION
+	vec3 bLess = step(vec3(0.04045),specular.xyz);
+	//specular = mix( specular.xyz/vec3(12.92), pow((specular.xyz+vec3(0.055))/vec3(1.055),vec3(2.4)), bLess );
+	//#endif //SRGB_FAST_APPROXIMATION
+
+
+	vec3 diffuseColor2 = albedo * (vec3(1.0) - f0);
+	//diffuseColor2 *= 1.0 - ao;
+	//diffuseColor2 *= perceptualRoughness;
+
+	//diffuseColor2 *= 0;// 0.125;
+
+
+	float gunMask = RMA.a;
+    float indirectShadow = 1 - ShadowCalculation(IndirectShadowMap, lightPos, WorldPos, camPos, NdotL);
+	float shadow = 1 - ShadowCalculation(ShadowMap, lightPos, WorldPos, camPos, NdotL);
+	shadow += indirectShadow * gunMask;
+	
+	//float shadow = (1 - ShadowCalculation(ShadowMap, lightPos, WorldPos, camPos, NdotL)) ;//* gunMask;
+
+	//specular = SRGBtoLINEAR(specular.rgb);
+	indirectLighting *= indirectShadow * 0.25;
+//	indirectLighting += diffuseColor2 * indirectShadow * lightColor * ( metallic)*  0.125;
+	specular *= indirectShadow * 0.1;
+
+
+
+	color *= shadow;
+
+	FragColor.rgb = vec3(color + indirectLighting + specular) * attenuation;
+	//FragColor.rgb = vec3( diffuseColor2  );// * attenuation;
+//	FragColor.rgb = vec3(specular);
+//FragColor.rgb = RMA.rgb;
 }

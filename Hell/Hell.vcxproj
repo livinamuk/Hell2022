@@ -183,6 +183,7 @@
     <ClCompile Include="src\House\Light.cpp" />
     <ClCompile Include="src\House\Room.cpp" />
     <ClCompile Include="src\House\Wall.cpp" />
+    <ClCompile Include="src\House\Window.cpp" />
     <ClCompile Include="src\Physics\ContactReportCallback.cpp" />
     <ClCompile Include="src\Physics\PhysX.cpp" />
     <ClCompile Include="src\Physics\Ragdoll.cpp" />
@@ -238,6 +239,7 @@
     <ClInclude Include="src\House\Light.h" />
     <ClInclude Include="src\House\Room.h" />
     <ClInclude Include="src\House\Wall.h" />
+    <ClInclude Include="src\House\Window.h" />
     <ClInclude Include="src\Physics\ContactReportCallback.h" />
     <ClInclude Include="src\Physics\PhysX.h" />
     <ClInclude Include="src\Physics\Ragdoll.h" />

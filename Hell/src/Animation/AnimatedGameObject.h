@@ -39,7 +39,9 @@ public:
 
 private:
 	Transform m_transform;
+public:
 	SkinnedModel* m_skinnedModel;
+private:
 	Animation* m_animation;
 	bool m_loopAnimation;
 	bool m_pause;

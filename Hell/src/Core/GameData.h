@@ -5,6 +5,7 @@
 #include "House/Room.h"
 #include "House/Door.h"
 #include "House/Light.h"
+#include "House/Window.h"
 #include "Core/EntityStatic.h"
 #include "rapidjson/document.h"
 #include <rapidjson/filereadstream.h>
@@ -19,8 +20,12 @@ class GameData {
 public:
 	static Player s_player1;
 	static Player s_player2;
+	static Player s_player3;
+	static Player s_player4;
+	static int s_playerCount;
 	static std::vector<Room> s_rooms;
 	static std::vector<Door> s_doors;
+	static std::vector<Window> s_windows;
 	static std::vector<Light> s_lights;	
 	static std::vector<EntityStatic> s_staticEntities;
 

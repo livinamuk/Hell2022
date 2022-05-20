@@ -68,31 +68,20 @@ void main()
 	float d = length(WorldPos - u_decalPos);
 //	if (d > 0.075)	
 //		discard;
+
         
 	vec4 bloodTexture  = texture(BLOOD_TEXTURE, vec2(TexCoords.s, TexCoords.t));
 
     if (bloodTexture.a < 0.1)
         discard;
-  //  gBaseColor.a *= u_alphaModifier;
 
     gBaseColor.rgb = vec3(1,0,0);
     gBaseColor.a = bloodTexture.a;
 
- //   gNormal.rgb = vec3(0, 1, 0) * 0.5 + 0.5;
-
-
-
-      vec4 res = vec4(0); 
+    vec4 res = vec4(0); 
     res.a = saturate(bloodTexture.a * 2);
-  //  res.a *= projClipFade;
 
     vec4 mask = bloodTexture;
-
-    //if (mask.a * 2 * projClipFade < 0.1) 
-    //   discard;
-
-   
-    
 
     vec3 _TintColor = vec3(0.32, 0, 0);
     float alphaMask = (mask.a  * 20) * res.a;
@@ -100,23 +89,13 @@ void main()
     float colorMask = (mask.a * 5) * res.a;
     colorMask = clamp(colorMask , 0, 1);
     colorMask = mask.a * 0.5;
-   // res.a = mask.a * min(u_Time * 5, 1);
     res.rgb = mix(_TintColor.rgb, _TintColor.rgb * 0.2, mask.z * colorMask * 0.75);
-    float magic = 0.67;
 
-//    gAlbedo.rgb = mix(vec3(magic), res.rgb * 1.45, res.a * projClipFade);
- //   gAlbedo *= 0.725;
-   
-   // Roughness / metallic / ambient
-   // gAlbedo = vec4(0.125 , 0.25, 1, 0);
+
     gRMA.rgb = vec3(0.125 , 0.25, 1);
     gRMA.rgb = vec3(0.05 , 0.4, 1);
 
     gBaseColor.rgb = vec3(res);
     gBaseColor.a = 0.75;
     gBaseColor.r *= 1.5;
-
-
-
-
 }

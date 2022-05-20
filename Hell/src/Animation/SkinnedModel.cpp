@@ -23,6 +23,14 @@ void SkinnedModel::Render(Shader* shader, const glm::mat4& modelMatrix, int mate
 
     for (int i = 0; i < m_meshEntries.size(); i++) {       
 
+		if (m_meshEntries[i].Name == "SM_RearOpenCap" ||
+			m_meshEntries[i].Name == "SM_FrontOpenCap" ||
+			m_meshEntries[i].Name == "SM_RearCap" ||
+			m_meshEntries[i].Name == "SM_FrontCap" ||
+			m_meshEntries[i].Name == "SM_RearGlass" ||
+			m_meshEntries[i].Name == "SM_Lens") 
+            continue;
+
         if (materialIndex == 0)
             if (m_meshEntries[i].material)
                m_meshEntries[i].material->Bind();

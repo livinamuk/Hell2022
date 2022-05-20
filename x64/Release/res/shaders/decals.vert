@@ -7,8 +7,6 @@ layout (location = 4) in vec3 aBitangent;
 layout (location = 5) in mat4 instanceModelMatrix;
 
 uniform mat4 pv;
-//uniform mat4 model;
-uniform int u_playerIndex;
 
 out vec3 FragPos;
 out vec2 TexCoords;
@@ -19,13 +17,14 @@ out vec3 attrNormal;
 out vec3 attrTangent;
 out vec3 attrBiTangent;
 
-out vec3 worldPosition;
+out vec3 DecalCenterPosition;
+out vec3 DecalNormal;
 
 void main()
 {
-	// Normal
 	mat4 model = instanceModelMatrix;
 
+	// Normal
 	attrNormal = (model * vec4(aNormal, 0.0)).xyz;
 	attrTangent = (model * vec4(aTangent, 0.0)).xyz;
 	attrBiTangent = (model * vec4(aBitangent, 0.0)).xyz;	
@@ -36,8 +35,8 @@ void main()
 	TexCoords = aTexCoord;	
 
 	// Position
-	worldPosition = (model * vec4(aPos, 1.0)).xyz;
-	gl_Position = pv * vec4(worldPosition, 1.0);
+	DecalCenterPosition = vec3(model[3][0],model[3][1],model[3][2]);
+	gl_Position = pv * model * vec4(aPos, 1.0);
 }
 
 

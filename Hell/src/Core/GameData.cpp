@@ -2,6 +2,9 @@
 
 Player GameData::s_player1;
 Player GameData::s_player2;
+Player GameData::s_player3;
+Player GameData::s_player4;
+int GameData::s_playerCount = 2;
 std::vector<Room> GameData::s_rooms;
 std::vector<Door> GameData::s_doors;
 std::vector<Light> GameData::s_lights;

@@ -338,7 +338,7 @@ void FileImporter::LoadAnimation(SkinnedModel* skinnedModel, const char* Filenam
     if (m_pAnimationScene) {
         animation->m_duration = (float)m_pAnimationScene->mAnimations[0]->mDuration;
         animation->m_ticksPerSecond = m_pAnimationScene->mAnimations[0]->mTicksPerSecond;
-         std::cout << "Loaded animation: " << Filename << "\n";
+         //std::cout << "Loaded animation: " << Filename << "\n";
     }
 
 
@@ -387,6 +387,8 @@ void FileImporter::LoadAnimation(SkinnedModel* skinnedModel, const char* Filenam
         }
         animation->m_animatedNodes.push_back(animatedNode);
     }
+
+   // std::cout << animation->m_filename << " " << animation->m_duration << "\n";
 
     // Store it
     skinnedModel->m_animations.emplace_back(animation);

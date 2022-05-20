@@ -8,6 +8,11 @@
 #include <algorithm>
 #include "GameData.h"
 
+#include <iostream>
+#include <Windows.h>
+#include <vector>
+#include <set>
+
 double Input::s_mouseX;
 double Input::s_mouseY;
 int Input::s_storedMouseX;
@@ -30,6 +35,9 @@ bool Input::s_rightMouseDownLastFrame = false;
 bool Input::s_showBulletDebug = false;
 int Input::s_mouseWheelValue = 0;
 
+std::vector<MouseState> Input::s_mouseStates;
+std::vector<KeyboardState> Input::s_keyboardStates;
+
 /*
 float Input::m_oldX;
 float Input::m_oldY;
@@ -45,6 +53,179 @@ bool Input::m_disable_MouseLook = false;
 int Input::m_disableMouseLookTimer = 10;
 float Input::m_mmouseSensitivity;	
 bool Input::s_mouseWasMovedThisFrame;
+
+
+
+
+
+
+#include <iostream>
+#include <Windows.h>
+#include <vector>
+#include <set>
+
+using namespace std;
+
+const USHORT HID_USAGE_GENERIC_MOUSE = 0x02;
+const USHORT HID_USAGE_GENERIC_KEYBOARD = 0x06;
+
+vector<HANDLE> mouseHandles;
+vector<HANDLE> keyboardHandles;
+
+int GetHandleIndex(vector<HANDLE>* handleVector, HANDLE handle) {
+	for (int i = 0; i < handleVector->size(); i++) {
+		if ((*handleVector)[i] == handle) {
+			return i;
+		}
+	}
+
+	handleVector->push_back(handle);
+	return handleVector->size() - 1;
+}
+
+
+
+
+
+LRESULT CALLBACK targetWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	if (uMsg == WM_INPUT) {
+		UINT dataSize = 0;
+		// First call to get data size
+		GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, NULL, &dataSize, sizeof(RAWINPUTHEADER));
+
+		if (dataSize > 0)
+		{
+			RAWINPUT raw = RAWINPUT();
+			// Second call to get the actual data
+			if (GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, &raw, &dataSize, sizeof(RAWINPUTHEADER)) == dataSize) 
+			{
+				// Mice
+				if (raw.header.dwType == RIM_TYPEMOUSE) 
+				{
+					int mouseID = GetHandleIndex(&mouseHandles, raw.header.hDevice);
+					if (mouseID >= 4) return 0;
+
+					switch (raw.data.mouse.ulButtons) {
+					case RI_MOUSE_LEFT_BUTTON_DOWN: Input::s_mouseStates[mouseID].leftMouseDown = true;	break;
+					case RI_MOUSE_LEFT_BUTTON_UP: Input::s_mouseStates[mouseID].leftMouseDown = false; break;
+					case RI_MOUSE_RIGHT_BUTTON_DOWN: Input::s_mouseStates[mouseID].rightMouseDown = true; break;
+					case RI_MOUSE_RIGHT_BUTTON_UP: Input::s_mouseStates[mouseID].rightMouseDown = false; break;
+					}
+
+					// Wheel change values are device-dependent. Check RAWMOUSE docs for details.
+					if (raw.data.mouse.usButtonData != 0) {
+						//	cout << "MOUSE " << mouseID << ": WHEEL CHANGE " << raw.data.mouse.usButtonData << endl;
+					}
+
+					Input::s_mouseStates[mouseID].xoffset += raw.data.mouse.lLastX;
+					Input::s_mouseStates[mouseID].yoffset += raw.data.mouse.lLastY;		
+				}
+				// Keyboard
+				else if (raw.header.dwType == RIM_TYPEKEYBOARD) 
+				{
+					int keyboardID = GetHandleIndex(&keyboardHandles, raw.header.hDevice);
+					auto keycode = raw.data.keyboard.VKey;
+					if (keyboardID >= 4) return 0;
+					
+					//std::cout << keycode << "\n";
+
+					switch (raw.data.keyboard.Flags) {
+					case RI_KEY_MAKE: Input::s_keyboardStates[keyboardID].keyDown[keycode] = true; break;
+					case RI_KEY_BREAK: Input::s_keyboardStates[keyboardID].keyDown[keycode] = false; break;
+					}
+				}
+			}
+		}
+		return 0;
+	}
+
+	return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}
+
+bool RegisterDeviceOfType(USHORT type, HWND eventWindow) {
+	RAWINPUTDEVICE rid = {};
+	rid.usUsagePage = 0x01;
+	rid.usUsage = type;
+	rid.dwFlags = RIDEV_INPUTSINK;
+	rid.hwndTarget = eventWindow;
+	return RegisterRawInputDevices(&rid, 1, sizeof(rid));
+}
+
+
+void Input::Init()
+{
+	HINSTANCE hInstance = GetModuleHandle(NULL);
+	WNDCLASS windowClass = {};
+	windowClass.lpfnWndProc = targetWindowProc;
+	windowClass.hInstance = hInstance;
+	windowClass.lpszClassName = TEXT("InputWindow");
+	if (!RegisterClass(&windowClass)) {
+		std::cout << "Failed to register window class\n";
+		return;
+	}
+	HWND eventWindow = CreateWindowEx(0, windowClass.lpszClassName, NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, hInstance, NULL);
+	if (!eventWindow) {
+		std::cout << "Failed to register window class\n";
+		return;
+	}
+	else
+		std::cout << "Dual keyboard init successful\n";
+	RegisterDeviceOfType(HID_USAGE_GENERIC_MOUSE, eventWindow);
+	RegisterDeviceOfType(HID_USAGE_GENERIC_KEYBOARD, eventWindow);
+
+	// Add support for 4 mice/keyboard
+	for (int i = 0; i < 4; i++) {
+		s_mouseStates.push_back(MouseState());
+		s_keyboardStates.push_back(KeyboardState());
+	}
+}
+
+void Input::Update()
+{
+	MSG msg; 
+//	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	for (MouseState& state : s_mouseStates) {
+		// Left mouse down/pressed
+		if (state.leftMouseDown && !state.leftMouseDownLastFrame)
+			state.leftMousePressed = true;
+		else
+			state.leftMousePressed = false;
+		state.leftMouseDownLastFrame = state.leftMouseDown;
+
+		// Right mouse down/pressed
+		if (state.rightMouseDown && !state.rightMouseDownLastFrame)
+			state.rightMousePressed = true;
+		else
+			state.rightMousePressed = false;
+		state.rightMouseDownLastFrame = state.rightMouseDown;
+	}
+
+	for (KeyboardState& state : s_keyboardStates) {
+		// Key press
+		for (int i = 0; i < 350; i++) {
+			if (state.keyDown[i] && !state.keyDownLastFrame[i])
+				state.keyPressed[i] = true;
+			else
+				state.keyPressed[i] = false;
+			state.keyDownLastFrame[i] = state.keyDown[i];
+		}
+	}
+}
+
+
+void Input::ResetMouseOffsets()
+{
+	for (MouseState& state : s_mouseStates) {
+		state.xoffset = 0;
+		state.yoffset = 0;
+	}
+}
 
 //ControllerState Input::s_controllerStates[MAX_CONTROLLER_COUNT];
 
@@ -84,9 +265,25 @@ void Input::HandleKeypresses()
 		s_showCursor = !s_showCursor;
 }
 
+int Input::GetMouseYOffset(int index)
+{
+	if (index < 0 || index >= 4)
+		return 0;
+	else
+		return s_mouseStates[index].xoffset;
+}
+
 bool Input::LeftMouseDown()
 {
 	return s_leftMouseDown;
+}
+
+bool Input::LeftMouseDown(int index)
+{
+	if (index < 0 || index >= 4)
+		return false;
+	else
+		return s_mouseStates[index].leftMouseDown;
 }
 
 bool Input::RightMouseDown()
@@ -94,14 +291,47 @@ bool Input::RightMouseDown()
 	return s_rightMouseDown;
 }
 
+bool Input::RightMouseDown(int index)
+{
+	if (index < 0 || index >= 4)
+		return false;
+	else
+		return s_mouseStates[index].rightMouseDown;
+}
+
 bool Input::LeftMousePressed()
 {
 	return s_leftMousePressed;
 }
 
+bool Input::LeftMousePressed(int index)
+{
+	if (index < 0 || index >=4)
+		return false;
+	else
+		return s_mouseStates[index].leftMousePressed;
+}
+
 bool Input::RightMousePressed()
 {
 	return s_rightMousePressed;
+}
+
+bool Input::RightMousePressed(int index)
+{
+	if (index < 0 || index >= 4)
+		return false;
+	else
+		return s_mouseStates[index].rightMousePressed;
+}
+
+
+int Input::GetMouseXOffset(int index)
+{
+	if (index < 0 || index >= 4)
+		return 0;
+	else
+		return s_mouseStates[index].yoffset;
 }
 
 bool Input::ButtonPressed(int controllerIndex, unsigned int keycode)
@@ -129,6 +359,39 @@ bool Input::KeyDown(unsigned int keycode)
 {
 	return s_keyDown[keycode];
 }
+
+bool Input::KeyDown(int keyboardIndex, int mouseIndex, unsigned int keycode)
+{
+	// It's a mouse button
+	if (keycode == HELL_MOUSE_LEFT && mouseIndex >= 0 && mouseIndex < 4)
+		return s_mouseStates[mouseIndex].leftMouseDown;
+	else if (keycode == HELL_MOUSE_RIGHT && mouseIndex >= 0 && mouseIndex < 4)
+		return s_mouseStates[mouseIndex].rightMouseDown;
+	
+	// It's a keyboard button
+	else if (keyboardIndex >= 0 && keyboardIndex < 4)
+		return s_keyboardStates[keyboardIndex].keyDown[keycode];
+	// Something else invalid
+	else
+		return false;
+}
+
+bool Input::KeyPressed(int keyboardIndex, int mouseIndex, unsigned int keycode)
+{
+	// It's a mouse button
+	if (keycode == HELL_MOUSE_LEFT && mouseIndex >= 0 && mouseIndex < 4)
+		return s_mouseStates[mouseIndex].leftMousePressed;
+	else if (keycode == HELL_MOUSE_RIGHT && mouseIndex >= 0 && mouseIndex < 4)
+		return s_mouseStates[mouseIndex].rightMousePressed;
+
+	// It's a keyboard button
+	else if (keyboardIndex >= 0 && keyboardIndex < 4)
+		return s_keyboardStates[keyboardIndex].keyPressed[keycode];
+	// Something else invalid
+	else
+		return false;
+}
+
 
 void Input::UpdateKeyboardInput(GLFWwindow* window)
 {

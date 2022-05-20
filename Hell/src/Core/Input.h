@@ -1,18 +1,51 @@
 #pragma once
 #include "Header.h"
 
+struct MouseState {
+	bool detected = false;
+	bool leftMouseDown = false;
+	bool rightMouseDown = false;
+	bool leftMousePressed = false;
+	bool rightMousePressed = false;
+	bool leftMouseDownLastFrame = false;
+	bool rightMouseDownLastFrame = false;
+	//double oldX, oldY;			// Old mouse position
+	double xoffset = 0;
+	double yoffset = 0;	// Distance mouse moved during current frame in pixels
+};
+
+struct KeyboardState {
+	bool keyPressed[372];
+	bool keyDown[372];
+	bool keyDownLastFrame[372];
+};
+
 class Input
 {
 public: // functions
+	
+	static void Init();
+	static void Update();
+	static void ResetMouseOffsets();
+
+
+
+
 	static void UpdateMouseInput(GLFWwindow* window);
 	static void UpdateKeyboardInput(GLFWwindow* window);
-	static void UpdateControllerInput(int controllerIndex);
-
+	//static void UpdateControllerInput(int controllerIndex);
 	
 
 	//static void HandleKeypresses(Game* game);
 	static void HandleKeypresses();
 	//static void HandleKeydowns();
+
+	static bool LeftMouseDown(int index);
+	static bool RightMouseDown(int index);
+	static bool LeftMousePressed(int index);
+	static bool RightMousePressed(int index);
+	static int GetMouseXOffset(int index);
+	static int GetMouseYOffset(int index);
 
 	static bool LeftMouseDown();
 	static bool RightMouseDown();
@@ -20,6 +53,11 @@ public: // functions
 	static bool RightMousePressed();
 	static bool ButtonPressed(int controllerIndex, unsigned int keycode);
 	static bool ButtonDown(int controllerIndex, unsigned int keycode);
+
+
+	static bool KeyPressed(int keyboardIndex, int mouseIndex, unsigned int keycode);
+	static bool KeyDown(int keyboardIndex, int mouseIndex, unsigned int keycode);
+
 
 	static bool KeyPressed(unsigned int keycode);
 	static bool KeyDown(unsigned int keycode);
@@ -58,4 +96,7 @@ public: // variables
 	static float m_mmouseSensitivity;
 
 	static bool s_mouseWasMovedThisFrame;
+
+	static std::vector<MouseState> s_mouseStates;
+	static std::vector<KeyboardState> s_keyboardStates;
 };

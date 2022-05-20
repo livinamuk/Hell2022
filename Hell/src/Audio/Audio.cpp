@@ -32,6 +32,8 @@ void Audio::Init()
 	Audio::LoadAudio("Glock_ReloadFromEmpty.wav");
 	Audio::LoadAudio("Glock_DryFire.wav");
 	Audio::LoadAudio("Glock_Equip.wav");
+	Audio::LoadAudio("MP7_Fire_0.wav");
+	Audio::LoadAudio("MP7_Fire_1.wav");
 	Audio::LoadAudio("FLY_Bullet_Impact_Flesh_01.wav");
 	Audio::LoadAudio("FLY_Bullet_Impact_Flesh_02.wav");
 	Audio::LoadAudio("FLY_Bullet_Impact_Flesh_03.wav");

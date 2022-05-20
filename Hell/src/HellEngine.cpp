@@ -12,14 +12,16 @@ void HellEngine::Init()
 
 	PhysX::p_PhysX = &m_physx;
 
+	//Input::Init();
+
 	m_physx.Init();
 	Renderer::Init(CoreGL::s_fullscreenWidth, CoreGL::s_fullscreenHeight);
 
 	AssetManager::DiscoverAssetFilenames();
 
 	
-	GameData::s_player1.p_gameCharacters = &Scene::s_gameCharacters;
-	GameData::s_player2.p_gameCharacters = &Scene::s_gameCharacters;
+	//GameData::s_player1.p_gameCharacters = &Scene::s_gameCharacters;
+	//GameData::s_player2.p_gameCharacters = &Scene::s_gameCharacters;
 	GameData::s_player1.p_bloodPools = &Scene::s_bloodPools;
 	GameData::s_player2.p_bloodPools = &Scene::s_bloodPools;
 	
@@ -30,10 +32,42 @@ void HellEngine::Init()
 		GameData::s_player2.SetControllerIndex(0);
 	if (GameData::s_controllers.size() > 1)
 		GameData::s_player1.SetControllerIndex(1);
+	if (GameData::s_controllers.size() > 2)
+		GameData::s_player3.SetControllerIndex(2);
+	if (GameData::s_controllers.size() > 3)
+		GameData::s_player4.SetControllerIndex(3);
+
+	// Assign keyboard and mouse
+	if (GameData::s_player1.m_inputType == InputType::KEYBOARD_AND_MOUSE) {
+		GameData::s_player1.m_mouseIndex = 0;
+		GameData::s_player1.m_keyboardIndex = 0;
+	}
+	if (GameData::s_player2.m_inputType == InputType::KEYBOARD_AND_MOUSE) {
+		GameData::s_player2.m_mouseIndex = 1;
+		GameData::s_player2.m_keyboardIndex = 1;
+	}
+	if (GameData::s_player3.m_inputType == InputType::KEYBOARD_AND_MOUSE) {
+		GameData::s_player3.m_mouseIndex = 0;
+		GameData::s_player3.m_keyboardIndex = 0;
+	}
+	if (GameData::s_player4.m_inputType == InputType::KEYBOARD_AND_MOUSE) {
+		GameData::s_player4.m_mouseIndex = 0;
+		GameData::s_player4.m_keyboardIndex = 0;
+	}
 }
 
 void HellEngine::Update(float deltaTime)
 {
+	// dual keyboard input shit
+	/*MSG msg;
+	//while (GetMessage(&msg, NULL, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	*/
+
 	m_physx.StepPhysics(deltaTime);
 
 	if (Input::KeyPressed(HELL_KEY_C))
@@ -42,18 +76,50 @@ void HellEngine::Update(float deltaTime)
 	if (Input::KeyPressed(HELL_KEY_BACKSPACE))
 		Scene::RemoveCorpse();
 
-	if (GameData::s_controllers.size() == 0) {
+	GameData::s_player1.m_enableControl = true;
+
+	/*if (GameData::s_controllers.size() == 0 &&
+		GameData::s_player1.m_mouseIndex != GameData::s_player2.m_mouseIndex &&
+		GameData::s_player1.m_keyboardIndex != GameData::s_player2.m_keyboardIndex) {
 		GameData::s_player1.m_enableControl = true;
 		GameData::s_player2.m_enableControl = true;
 		if (m_switchToPlayer2)
 			GameData::s_player1.m_enableControl = false;
 		else
 			GameData::s_player2.m_enableControl = false;
-	}
+	}*/
+
+	Input::Update();
+
 
 
 	GameData::s_player1.Update(deltaTime);
-	GameData::s_player2.Update(deltaTime);
+	GameData::s_player1.m_HUD_Weapon.UpdateAnmation(deltaTime);
+	GameData::s_player1.UpdatePlayerModelAnimation(deltaTime);
+
+	if (GameData::s_playerCount > 1) {
+		GameData::s_player2.m_enableControl = true;
+		GameData::s_player2.Update(deltaTime);
+		GameData::s_player2.m_HUD_Weapon.UpdateAnmation(deltaTime);
+		GameData::s_player2.UpdatePlayerModelAnimation(deltaTime);
+	}
+
+	if (GameData::s_playerCount > 2) {
+		GameData::s_player3.m_enableControl = true;
+		GameData::s_player3.Update(deltaTime);
+		GameData::s_player3.m_HUD_Weapon.UpdateAnmation(deltaTime);
+		GameData::s_player3.UpdatePlayerModelAnimation(deltaTime);
+	}
+
+	if (GameData::s_playerCount > 3) {
+		GameData::s_player4.m_enableControl = true;
+		GameData::s_player4.Update(deltaTime);
+		GameData::s_player4.m_HUD_Weapon.UpdateAnmation(deltaTime);
+		GameData::s_player4.UpdatePlayerModelAnimation(deltaTime);
+	}
+
+	
+	Input::ResetMouseOffsets();
 		
 	// Update game character logic
 	for (GameCharacter& gameChar : Scene::s_gameCharacters)
@@ -66,8 +132,6 @@ void HellEngine::Update(float deltaTime)
 			gameChar.UpdateAnimation(deltaTime);
 	}
 	
-	GameData::s_player1.m_HUD_Weapon.UpdateAnmation(deltaTime);
-	GameData::s_player2.m_HUD_Weapon.UpdateAnmation(deltaTime);
 
 	// Animate blood pools
 	for (BloodPool& bloodPool : Scene::s_bloodPools) {
@@ -78,8 +142,7 @@ void HellEngine::Update(float deltaTime)
 
     //if (Input::s_keyPressed[HELL_KEY_P])
 
-	   GameData::s_player1.UpdatePlayerModelAnimation(deltaTime);
-	   GameData::s_player2.UpdatePlayerModelAnimation(deltaTime);
+
 
 	   ProcessCollisions();
 
@@ -93,6 +156,8 @@ void HellEngine::UpdateInput()
 
 	GameData::s_player1.UpdateControllerInput();
 	GameData::s_player2.UpdateControllerInput();
+	GameData::s_player3.UpdateControllerInput();
+	GameData::s_player4.UpdateControllerInput();
 
 	CheckForDebugKeyPresses();
 }
@@ -124,20 +189,20 @@ void HellEngine::CheckForDebugKeyPresses()
 	//if (Input::KeyPressed(HELL_KEY_SPACE))
 	//	Scene::NewRagdoll();
 
-	if (Input::KeyPressed(HELL_KEY_N)) 
+	/*if (Input::KeyPressed(HELL_KEY_N))
 	{
 		if (!GameData::s_player1.m_isAlive)
 			GameData::s_player1.Respawn();
 
 		if (!GameData::s_player2.m_isAlive)
 			GameData::s_player2.Respawn();
-	}
+	}*/
 
 
-	if (Input::KeyPressed(HELL_KEY_1))
+	/*if (Input::KeyPressed(HELL_KEY_1))
 		m_currentPlayer = 1;
 	if (Input::KeyPressed(HELL_KEY_2))
-		m_currentPlayer = 2;
+		m_currentPlayer = 2;*/
 
 	if (Input::KeyPressed(HELL_KEY_T)) {
 		GameData::s_splitScreen = !GameData::s_splitScreen;
@@ -157,10 +222,15 @@ void HellEngine::Render()
 	int renderHeight = CoreGL::s_currentHeight;
 
 	// If split screen then modify that
-	if (GameData::s_splitScreen) {
+	if (GameData::s_splitScreen && GameData::s_playerCount == 2) {
 		renderWidth = CoreGL::s_currentWidth;
 		renderHeight = CoreGL::s_currentHeight / 2;
-		glViewport(0, CoreGL::s_currentHeight / 2, CoreGL::s_currentWidth, CoreGL::s_currentHeight/2);
+		glViewport(0, CoreGL::s_currentHeight / 2, CoreGL::s_currentWidth, CoreGL::s_currentHeight / 2);
+	}
+	else if (GameData::s_splitScreen && GameData::s_playerCount > 2) {
+		renderWidth = CoreGL::s_currentWidth / 2;
+		renderHeight = CoreGL::s_currentHeight / 2;
+		glViewport(0, CoreGL::s_currentHeight / 2, CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2);
 	}
 
 

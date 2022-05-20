@@ -14,8 +14,9 @@ void main()
 	if (u_Time > 0.9)
 		discard;
 
-	vec3 bloodColor = vec3(0.32, 0, 0); //  vec4(0.125, 0, 0, 1);
+	vec3 bloodColor = vec3(0.2, 0, 0); //  vec4(0.31, 0, 0, 1);
 	gAlbedo.rgba = vec4(bloodColor, 1);
     gNormal =  normalize(v_WorldNormal);
     gRMA = vec3(0.15, 0.85, 0);
+    gRMA = vec3(0.65, 0.0, 1);
 }

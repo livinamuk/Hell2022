@@ -19,6 +19,8 @@ public: // Fields
 	Transform m_transform;
 	Transform m_swayTransform;
 
+	float m_fieldOfView = 1.0f;
+
 	glm::vec3 m_Front = glm::vec3(0, 1, 0);
 	glm::vec3 m_Up;
 	glm::vec3 m_Right;
@@ -31,4 +33,6 @@ public: // Fields
 	glm::mat4 m_inverseProjectionMatrix;
 		
 	glm::vec3 m_viewPos = glm::vec3(0);
+	
+	float m_mp7_FOV = 0.175f;
 };

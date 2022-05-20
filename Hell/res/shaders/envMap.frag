@@ -142,6 +142,9 @@ void main()
 	float metallic = RMA.g; 
 	vec3 albedo = pow(ALB.rgb, vec3(2.2));
 
+	roughness =RMA.r;	
+	metallic = RMA.g;
+	//ao = RMA.g;
 	
 	/////////
 	// PBR //
@@ -202,8 +205,11 @@ void main()
 	vec3 diffuseContrib = (1.0 - F) * diffuse(pbrInputs);
 	vec3 specContrib = F * G * D / (4.0 * NdotL * NdotV);
 	// Obtain final intensity as reflectance (BRDF) scaled by the energy of the light (cosine law)
-	vec3 radiance = CaclulateAttenuation(FragPos, lightPosition, lightAttenuationConstant) * lightColor * lightStrength;
-	color = NdotL * (diffuseContrib + specContrib) * radiance;
+	float LightStrength = lightStrength * 1;
+	float LightRadius = lightAttenuationConstant * 2;
+	vec3 radiance = CaclulateAttenuation(FragPos, lightPosition, LightRadius) * lightColor * LightStrength;
+	//color = NdotL * (diffuseContrib + specContrib) * radiance;
+	color = NdotL * (diffuseContrib + specContrib) * lightColor;
 			
 	// Tone mapping
 	color = Tonemap_ACES(color);

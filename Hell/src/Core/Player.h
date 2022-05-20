@@ -18,8 +18,9 @@ struct PlayerControls
 	unsigned int INTERACT = HELL_KEY_E;
 	unsigned int RELOAD = HELL_KEY_R;
 	unsigned int FIRE = HELL_MOUSE_LEFT;
+	unsigned int ADS = HELL_MOUSE_RIGHT;
 	unsigned int JUMP = HELL_KEY_SPACE;
-	unsigned int CROUCH = HELL_KEY_LEFT_CONTROL;
+	unsigned int CROUCH = HELL_KEY_WIN_CONTROL;// HELL_KEY_LEFT_CONTROL;
 	unsigned int NEXT_WEAPON = HELL_KEY_Q;
 	unsigned int MELEE = HELL_KEY_J;
 };
@@ -31,11 +32,13 @@ public: // methods
 
 
 	enum class Gun {
-		NONE, KNIFE, AXE, GLOCK, SHOTGUN
+		NONE, KNIFE, AXE, GLOCK, SHOTGUN, MP7
 	}; 
-	
-	enum class ShotgunReloadState { NOT_RELOADING, FROM_IDLE, SINGLE_RELOAD, DOUBLE_RELOAD, BACK_TO_IDLE };
 
+	enum class ShotgunReloadState { NOT_RELOADING, FROM_IDLE, SINGLE_RELOAD, DOUBLE_RELOAD, BACK_TO_IDLE };
+	enum class ADSState { NOT_ADS, IDLE_TO_ADS, ADS, ADS_TO_IDLE};
+
+	void Create(glm::vec3 position);
 
 	//void Update(float deltaTime);
 	void Interact();
@@ -43,7 +46,7 @@ public: // methods
 	void Update(float deltaTime);
 	void Respawn();
 	void FireCameraRay();
-	void FireBulletRay(float variance);
+	//void FireBulletRay(float variance);
 	void FireBulletRay(glm::vec3 unitDir);
 	void CheckForWeaponInput();
 	void UpdateMovement(float deltaTime);
@@ -56,12 +59,18 @@ public: // methods
 	bool IsMoving();
 	bool IsCrouched();
 	void RenderCharacterModel(Shader* shader);
+	void RenderWeaponModel(Shader* shader);
 	void SetCharacterModel(SkinnedModel* skinnedModel);
 	void ForceRagdollToMatchAnimation();
+
 	void FireGlock();
 	void FireShotgun();
+	void FireMP7();
+
 	void SpawnGlockCasing();
 	void SpawnShotgunShell();
+	void SpawnMP7Casing();
+
 	void SetControlsToDefaultPS4Controls();
 	void SetControlsToDefaultXBoxControls();
 	void FootstepAudio(float deltaTime);
@@ -82,14 +91,17 @@ public: // methods
 	bool PressedCrouch();
 	bool PressedNextWeapon();
 	bool PressedMelee();
+	bool PressingADS();
+	bool PressedADS();
 
-	void SpawnBloodPool();
+	//void SpawnBloodPool();
 	void SpawnMuzzleFlash();
 
 	void CreateCharacterController();
 	void SpawnCoprseRagdoll();
 
 	glm::vec3 GetCasingSpawnLocation();
+	glm::mat4 GetMuzzleFlashSpawnMatrix();
 
 	//void SetMaterial(Material* material);
 
@@ -101,7 +113,7 @@ public: // methods
 	int GetCurrentGunAmmoInClip();
 	int GetCurrentGunTotalAmmo();
 
-	void FireBullet(float variance, float force);
+	void FireBullet(glm::vec3 direction, float force);
 
 	void CalculateViewMatrices();
 	glm::vec3 GetViewPosition();
@@ -114,17 +126,26 @@ public: // methods
 
 	void UpdateControllerInput();
 
+	void CheckForKnifeHit();
+
+	void CheckForEmptyGlock();
+	void CalculateADSOffestAndFOV(float deltatime);
+
 private:
 
 public: // fields
 	CharacterModelAnimationState m_characterModelAnimationState = CharacterModelAnimationState::STOPPED;
 	HUDWeaponAnimationState m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;    
+	ADSState m_ADSState = ADSState::NOT_ADS;
+
+	int m_mouseIndex = -1;
+	int m_keyboardIndex = -1;
 	
 	bool m_isCrouching = false;
 	bool m_hasHitFloorYet = false;
 	void HitFloor();
 
-	std::vector<GameCharacter>* p_gameCharacters = nullptr;
+	//std::vector<GameCharacter>* p_gameCharacters = nullptr;
 	std::vector<BloodPool>* p_bloodPools = nullptr;
 
 	bool m_justBorn = true;
@@ -132,6 +153,8 @@ public: // fields
 
 	bool m_enableControl = true;
 	float m_yVelocity = 0;
+
+	glm::vec3 m_ADSOffset = glm::vec3(0);
 
 	SkinnedModel* m_currentWeaponSkinnedModel;
 
@@ -168,20 +191,31 @@ public: // fields
 	float m_aim_trigger_axis_Y;
 
 	Gun m_gun = Gun::GLOCK;
-	Gun m_gunToChangeTo = Gun::NONE;
+	//Gun m_gunToChangeTo = Gun::NONE;
 	ShotgunReloadState m_shotgunReloadState = ShotgunReloadState::NOT_RELOADING;
 
 private:
 	unsigned int m_ammo_glock_total = 80;
-	unsigned int m_ammo_glock_in_clip = 15;
 	unsigned int m_clip_size_glock = 15;
+	unsigned int m_ammo_glock_in_clip = m_clip_size_glock;
 
 	unsigned int m_ammo_shotgun_total = 48;
-	unsigned int m_ammo_shotgun_in_clip = 8;
 	unsigned int m_clip_size_shotgun = 8;
+	unsigned int m_ammo_shotgun_in_clip = m_clip_size_shotgun;
+
+	unsigned int m_ammo_mp7_max = 200;
+	unsigned int m_ammo_mp7_total = m_ammo_mp7_max;
+	unsigned int m_clip_size_mp7 = 20;
+	unsigned int m_ammo_mp7_in_clip = m_clip_size_mp7;
+
+	float m_lastShotTime = 0;
+	unsigned int m_currentRecoilIndex = 0; 
+	Transform m_recoilOffsetTransform;
+
 
 	Transform m_transform;
 	bool m_isMoving = false;
+	public:
 	SkinnedModel* m_skinnedModel; 
 	float m_footstepAudioTimer = 0;
 
@@ -202,4 +236,6 @@ public:
 
 	bool m_firstShellLoaded = false;
 	bool m_secondShellLoaded = false;
+
+	int m_health = 100;
 };

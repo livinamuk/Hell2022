@@ -304,6 +304,7 @@ void AnimatedGameObject::CalculateBoneTransforms()
 			m_animatedTransforms.cameraMatrix = cameraMatrix;
 		}
 
+	
 		// Dose this animated node have a matching bone in the model?
 		if (m_skinnedModel->m_BoneMapping.find(NodeName) != m_skinnedModel->m_BoneMapping.end()) 
 		{

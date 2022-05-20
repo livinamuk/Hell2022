@@ -1,9 +1,9 @@
 WSAD: move
+Q: cycle weapons
 E: open door
 R: reload
 CTRL: crouch
 CAPS: show buffers
-Z: show s_lights[0] shadowmap
 C: switch players
 T: toggle splitscreen
 M: toggle cursor
@@ -13,4 +13,5 @@ SPACE: place vertex in map editor
 1: place door in map editor
 BACKSPACE: delete vertex in map editor
 
-Plug either 1 or 2 PS4 controllers via usb for real multiplayer
+Plug either 1 or 2 PS4/Xbox controllers via usb for real multiplayer
+or 2 keyboards and 2 mouse

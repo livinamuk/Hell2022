@@ -7,7 +7,6 @@ layout (location = 4) in vec3 aBitangent;
 
 uniform mat4 pv;
 uniform mat4 model;
-uniform int u_playerIndex;
 
 out vec3 FragPos;
 out vec2 TexCoords;

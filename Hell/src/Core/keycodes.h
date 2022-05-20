@@ -112,8 +112,8 @@
 #define HELL_KEY_KP_ADD             334
 #define HELL_KEY_KP_ENTER           335
 #define HELL_KEY_KP_EQUAL           336
-#define HELL_KEY_LEFT_SHIFT         340
-#define HELL_KEY_LEFT_CONTROL       341
+#define HELL_KEY_LEFT_SHIFT         16//340
+#define HELL_KEY_LEFT_CONTROL       17//341
 #define HELL_KEY_LEFT_ALT           342
 #define HELL_KEY_LEFT_SUPER         343
 #define HELL_KEY_RIGHT_SHIFT        344
@@ -125,6 +125,12 @@
 
 #define HELL_MOUSE_LEFT				350
 #define HELL_MOUSE_RIGHT			351
+
+#define HELL_KEY_WIN_SHIFT         16
+#define HELL_KEY_WIN_CONTROL       17
+#define HELL_KEY_WIN_ALT		   18
+#define HELL_KEY_WIN_TAB           9
+#define HELL_KEY_WIN_CAPSLOCK      20
 
 /*#define HELL_CONTROLLER_BUTTON_0	352
 #define HELL_CONTROLLER_BUTTON_1    353

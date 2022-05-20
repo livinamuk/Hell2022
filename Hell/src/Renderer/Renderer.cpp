@@ -40,6 +40,10 @@ Shader Renderer::s_instanced_geometry_shader;
 MuzzleFlash Renderer::s_muzzleFlash;
 bool Renderer::m_firstRenderLoop = true;
 
+// debug
+bool renderPlayerWeaponsAlways = false;// true;
+bool renderPlayerCharacterModels = true;// false;// true;
+
 
 void Renderer::Init(int screenWidth, int screenHeight)
 {
@@ -133,6 +137,9 @@ void Renderer::Init(int screenWidth, int screenHeight)
 
 void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, int player)
 {
+    // calculate projection matrix (requrired for ADS scope)
+    Player* p = GetPlayerFromIndex(player);
+    p->m_camera.CalculateProjectionMatrix(renderWidth, renderHeight);
 
     if (Input::s_showBulletDebug) {
 
@@ -156,6 +163,7 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
         if (player == 1) {
 
             static bool runOnce = true;
+            //runOnce = true;
             if (runOnce) {
                 EnvMapPass();
                 runOnce = false;
@@ -268,19 +276,21 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, s_gBuffer.gPostProcessed);
-    glActiveTexture(GL_TEXTURE1);
+   /* glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, s_gBuffer.gPostProcessed);
     glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, s_gBuffer.gNormal);
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, s_gBuffer.gEmissive);
+	glBindTexture(GL_TEXTURE_2D, s_gBuffer.gEmissive);*/
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, s_gBuffer.gRMA);
 
     int CHROM_ABZ_mode = 0;
 
     if (GameData::s_splitScreen && player == 1)
-        CHROM_ABZ_mode = 1;
-    else if (GameData::s_splitScreen && player == 2)
-        CHROM_ABZ_mode = 2;
+		CHROM_ABZ_mode = 1;
+	else if (GameData::s_splitScreen && player == 2)
+		CHROM_ABZ_mode = 2;
 
     s_final_pass_shader.use();
     s_final_pass_shader.setInt("u_CHROM_ABZ_mode", CHROM_ABZ_mode);
@@ -299,12 +309,8 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
 		glBindTexture(GL_TEXTURE_2D, s_BlurBuffers_p1[3].textureA);
 
         s_final_pass_shader.setFloat("u_timeSinceDeath", GameData::s_player1.m_timeSinceDeath);
-        if (GameData::s_splitScreen)
-            DrawViewportQuad(&s_final_pass_shader, ViewportSize::SPLITSCREEN_TOP);
-            //Draw_2_Player_Split_Screen_Quad_Top(&s_final_pass_shader);
-        else
-            DrawViewportQuad(&s_final_pass_shader, ViewportSize::FULL_SCREEN);
-            //DrawFullScreenQuad(&s_final_pass_shader);
+
+        DrawViewportQuad(&s_final_pass_shader, GetViewportSize(player));
 
         if (!GameData::s_player1.m_isAlive && GameData::s_player1.m_timeSinceDeath > 3.125)
         {
@@ -335,7 +341,8 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
         s_final_pass_shader.use();
         s_final_pass_shader.setFloat("u_timeSinceDeath", GameData::s_player2.m_timeSinceDeath);
         //Draw_2_Player_Split_Screen_Quad_Bottom(&s_final_pass_shader);
-        DrawViewportQuad(&s_final_pass_shader, ViewportSize::SPLITSCREEN_BOTTOM);
+        DrawViewportQuad(&s_final_pass_shader, GetViewportSize(player));
+        //DrawViewportQuad(&s_final_pass_shader, ViewportSize::SPLITSCREEN_BOTTOM);
     
         
         if (!GameData::s_player2.m_isAlive && GameData::s_player2.m_timeSinceDeath > 3.125)
@@ -383,44 +390,46 @@ void Renderer::RenderPlayerCrosshair(int renderWidth, int renderHeight, Player* 
     float width = (1.0f / 1920) * crosshairSize;
     float height = (1.0f / 1080) * crosshairSize * (CoreGL::s_currentHeight / renderHeight);
     glm::mat4 modelMatrix = glm::mat4(1.0f);
-    modelMatrix = glm::scale(modelMatrix, glm::vec3(width, height, 1)); 
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(width, height, 1));
     DrawQuad(&s_textued_2D_quad_shader, modelMatrix, AssetManager::GetTexturePtr("CrosshairCross")->ID);
 
 
-    
+
 
     width = (1.0f / 1920) * AssetManager::GetTexturePtr("HUDGradient")->m_width;
     height = (1.0f / 1080) * AssetManager::GetTexturePtr("HUDGradient")->m_height * (CoreGL::s_currentHeight / renderHeight);
     glm::vec3 position = glm::vec3(0.8f, -0.7785f, 0);
     modelMatrix = glm::translate(glm::mat4(1), position);
     modelMatrix = glm::scale(modelMatrix, glm::vec3(width, height, 1));
-   // DrawQuad(&m_textued_2D_quad_shader, modelMatrix, AssetManager::GetTexturePtr("HUDGradient")->ID);
-    
+    // DrawQuad(&m_textued_2D_quad_shader, modelMatrix, AssetManager::GetTexturePtr("HUDGradient")->ID);
 
 
 
 
-    
-   
-    // Ammo
-    //Quad2D::RenderQuad(shader, AssetManager::GetTextureByName("HUDGradient"), 1604, 934);
 
-    glBindTexture(GL_TEXTURE_2D, AssetManager::GetTexturePtr("NumSheet")->ID);
 
-    std::string ammo_in_clip = std::to_string(player->GetCurrentGunAmmoInClip());
-    std::string m_ammo_total = std::to_string(player->GetCurrentGunTotalAmmo());
-    glm::vec3 ammoColor = glm::vec3(0.26f, 0.78f, 0.33f);
 
-    char* cstr = new char[ammo_in_clip.length() + 1];
-    strcpy(cstr, ammo_in_clip.c_str());
-    char* cstr2 = new char[m_ammo_total.length() + 1];
-    strcpy(cstr2, m_ammo_total.c_str());
-    const char* slash = "/";
-    NumberBlitter::DrawTextBlit(&s_textued_2D_quad_shader, slash, 1700, 943, renderWidth, renderHeight);
-    NumberBlitter::DrawTextBlit(&s_textued_2D_quad_shader, cstr2, 1715, 943, renderWidth, renderHeight, 0.8);
-    NumberBlitter::DrawTextBlit(&s_textued_2D_quad_shader, cstr, 1695, 943, renderWidth, renderHeight, 1.0f, ammoColor, false);
-    s_textued_2D_quad_shader.setVec3("colorTint", glm::vec3(1, 1, 1));
+     // Ammo
+     //Quad2D::RenderQuad(shader, AssetManager::GetTextureByName("HUDGradient"), 1604, 934);
 
+    if (player->m_gun != Player::Gun::KNIFE)
+    {
+        glBindTexture(GL_TEXTURE_2D, AssetManager::GetTexturePtr("NumSheet")->ID);
+
+        std::string ammo_in_clip = std::to_string(player->GetCurrentGunAmmoInClip());
+        std::string m_ammo_total = std::to_string(player->GetCurrentGunTotalAmmo());
+        glm::vec3 ammoColor = glm::vec3(0.26f, 0.78f, 0.33f);
+
+        char* cstr = new char[ammo_in_clip.length() + 1];
+        strcpy(cstr, ammo_in_clip.c_str());
+        char* cstr2 = new char[m_ammo_total.length() + 1];
+        strcpy(cstr2, m_ammo_total.c_str());
+        const char* slash = "/";
+        NumberBlitter::DrawTextBlit(&s_textued_2D_quad_shader, slash, 1700, 943, renderWidth, renderHeight);
+        NumberBlitter::DrawTextBlit(&s_textued_2D_quad_shader, cstr2, 1715, 943, renderWidth, renderHeight, 0.8);
+        NumberBlitter::DrawTextBlit(&s_textued_2D_quad_shader, cstr, 1695, 943, renderWidth, renderHeight, 1.0f, ammoColor, false);
+        s_textued_2D_quad_shader.setVec3("colorTint", glm::vec3(1, 1, 1));
+    }
 
   /*  shader->use();
     glActiveTexture(GL_TEXTURE0);
@@ -817,29 +826,40 @@ void Renderer::SetViewport(int player)
 {
     if (!GameData::s_splitScreen)
         glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight);
-    else if (player == 1)
-        glViewport(0, CoreGL::s_currentHeight / 2, CoreGL::s_currentWidth, CoreGL::s_currentHeight / 2);
-    else if (player == 2)
-        glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight / 2);
+
+	else if (GameData::s_playerCount == 2)
+	{
+		if (player == 1)
+			glViewport(0, CoreGL::s_currentHeight / 2, CoreGL::s_currentWidth, CoreGL::s_currentHeight / 2);
+		else if (player == 2)
+			glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight / 2);
+	}
+	else if (GameData::s_playerCount > 2)
+	{
+		if (player == 1)
+			glViewport(0, CoreGL::s_currentHeight / 2, CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2);
+		else if (player == 2)
+			glViewport(0, 0, CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2);
+		else if (player == 3)
+			glViewport(CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2, CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2);
+		else if (player == 4)
+			glViewport(CoreGL::s_currentWidth / 2, CoreGL::s_currentWidth / 2, CoreGL::s_currentWidth / 2, CoreGL::s_currentHeight / 2);
+	}
 }
 
 float Renderer::GetViewportWidth(int player)
 {
-    if (!GameData::s_splitScreen)
+    if (!GameData::s_splitScreen || GameData::s_playerCount == 2)
         return CoreGL::s_currentWidth;
-    else if (player == 1)
-        return CoreGL::s_currentWidth;
-    else if (player == 2)
-        return CoreGL::s_currentWidth;
+    else
+        return CoreGL::s_currentWidth / 2;
 }
 
 float Renderer::GetViewportHeight(int player)
 {
     if (!GameData::s_splitScreen)
         return CoreGL::s_currentHeight;
-    else if (player == 1)
-        return CoreGL::s_currentHeight / 2;
-    else if (player == 2)
+    else
         return CoreGL::s_currentHeight / 2;
 }
 
@@ -847,10 +867,28 @@ Renderer::ViewportSize Renderer::GetViewportSize(int player)
 {
     if (!GameData::s_splitScreen)
         return ViewportSize::FULL_SCREEN;
-    else if (player == 1)
-        return ViewportSize::SPLITSCREEN_TOP;
-    else if (player == 2)
-        return ViewportSize::SPLITSCREEN_BOTTOM;
+
+    else if (GameData::s_playerCount == 2) 
+    {
+        if (player == 1)
+            return ViewportSize::SPLITSCREEN_TOP;
+        else if (player == 2)
+            return ViewportSize::SPLITSCREEN_BOTTOM;
+	}
+	else if (GameData::s_playerCount > 2)
+	{
+		if (player == 1)
+			return ViewportSize::QUAD_SPLITSCREEN_TOP_LEFT;
+		else if (player == 2)
+			return ViewportSize::QUAD_SPLITSCREEN_TOP_RIGHT;
+		else if (player == 3)
+			return ViewportSize::QUAD_SPLITSCREEN_BOTTOM_LEFT;
+		else if (player == 4)
+			return ViewportSize::QUAD_SPLITSCREEN_BOTTOM_RIGHT;
+	}
+    // Fall back. But if you get here then something is wrong
+    std::cout << "something is wrong\n";
+	return ViewportSize::FULL_SCREEN;
 }
 
 /*void Renderer::DrawFullScreenQuad(Shader * shader)
@@ -1045,13 +1083,14 @@ void Renderer::RenderDebugShit()
     Shader* shader = &s_solid_color_shader;
     shader->use();
 
-
+    //DrawPoint(shader, GameData::s_player1.GetMuzzleFlashSpawnMatrix(), RED);
+    
 
 	//DrawPoint(shader, GameData::s_player1.GetCasingSpawnLocation(), RED);
 
     // decals
     for (auto& decal : GameData::s_bulletDecals) {
-		DrawPoint(shader, decal.m_modelMatrix, RED);
+		//DrawPoint(shader, decal.m_modelMatrix, RED);
     }
 
     return;
@@ -1299,13 +1338,12 @@ void Renderer::GeometryPass(int player, int renderWidth, int renderHeight)
 
 
 	// render player weapons
-    bool renderPlayerWeaponsAlways = false;
     shader->setFloat("u_gunMask", 1.0f);
     if (player == 1 && GameData::s_player1.m_isAlive || renderPlayerWeaponsAlways)
-        GameData::s_player1.m_HUD_Weapon.Render(&s_geometry_shader, GameData::s_player1.m_camera.m_swayTransform.to_mat4());
+        GameData::s_player1.RenderWeaponModel(&s_geometry_shader);
     
-    if (player == 2 && GameData::s_player2.m_isAlive || renderPlayerWeaponsAlways)
-        GameData::s_player2.m_HUD_Weapon.Render(&s_geometry_shader, GameData::s_player2.m_camera.m_swayTransform.to_mat4());
+	if (player == 2 && GameData::s_player2.m_isAlive || renderPlayerWeaponsAlways)
+		GameData::s_player2.RenderWeaponModel(&s_geometry_shader);
 	shader->setFloat("u_gunMask", 0.0f);
 }
 
@@ -1432,9 +1470,9 @@ void Renderer::LightingPass(int player, int renderWidth, int renderHeight)
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, s_gBuffer.gRMA);
     glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, s_gBuffer.rboDepth);
-    glActiveTexture(GL_TEXTURE6);
-    glBindTexture(GL_TEXTURE_2D, s_brdfLUTTextureID);
+	glBindTexture(GL_TEXTURE_2D, s_gBuffer.rboDepth);
+	glActiveTexture(GL_TEXTURE6);
+	glBindTexture(GL_TEXTURE_2D, s_brdfLUTTextureID);
     
     unsigned int attachments[1] = { GL_COLOR_ATTACHMENT4 };
     glDrawBuffers(1, attachments);
@@ -1454,8 +1492,11 @@ void Renderer::LightingPass(int player, int renderWidth, int renderHeight)
         glBindTexture(GL_TEXTURE_2D, light.m_envMap.SH_TexID);
         glActiveTexture(GL_TEXTURE7);
         glBindTexture(GL_TEXTURE_CUBE_MAP, light.m_indirectShadowMap.m_depthTexture);
+		glActiveTexture(GL_TEXTURE8);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, light.m_envMap.m_TexID);
         
         DrawViewportQuad(shader, viewportSize);
+        //break;
     }
 
     // reset for the future. move this to whatever shader comes next
@@ -1484,28 +1525,9 @@ void Renderer::MuzzleFlashPass(int playerIndex, int renderWidth, int renderHeigh
 
     s_muzzleFlash.m_CurrentTime = player->m_muzzleFlashTimer;
 
-    glm::mat4 BoneMatrix;
-	auto& glock = player->m_HUD_Weapon;
-	auto glockSkinnedModel = glock.GetSkinnedModelPtr();    
-    Transform offsetTransform;
-
-    if (player->m_gun == Player::Gun::GLOCK) {        
-        int BoneIndex = glockSkinnedModel->m_BoneMapping["barrel"];
-		BoneMatrix = player->m_HUD_Weapon.m_animatedTransforms.local[BoneIndex];
-		offsetTransform.position = glm::vec3(0, -15, 10);
-    }
-    else if (player->m_gun == Player::Gun::SHOTGUN) {
-        int BoneIndex = glockSkinnedModel->m_BoneMapping["ShotgunMain_bone"];
-		BoneMatrix = player->m_HUD_Weapon.m_animatedTransforms.local[BoneIndex];
-        offsetTransform.position = glm::vec3(0, -73, 6);
-    }
-    else
-        return;
+    glm::mat4 worldMatrix = player->GetMuzzleFlashSpawnMatrix();
 
 
-
-	glm::mat4 worldMatrix = glock.GetTransform().to_mat4() * player->m_camera.m_swayTransform.to_mat4() * BoneMatrix * offsetTransform.to_mat4();
-	//glm::mat4 worldMatrix = glock.GetTransform().to_mat4() * BoneMatrix * offsetTransform.to_mat4();
 
     float x = worldMatrix[3][0];
     float y = worldMatrix[3][1];
@@ -1862,8 +1884,10 @@ void Renderer::DrawScene(Shader* shader, RenderPass renderPass, int player)
 		//    gameCharacter.RenderSkinnedModel(shader);
 			
 	//	glCullFace(GL_FRONT);
-		GameData::s_player1.RenderCharacterModel(shader);
-		GameData::s_player2.RenderCharacterModel(shader);
+        if (GameData::s_player1.m_isAlive)
+			GameData::s_player1.RenderCharacterModel(shader);
+		if (GameData::s_player2.m_isAlive)
+		    GameData::s_player2.RenderCharacterModel(shader);
 	//	glCullFace(GL_BACK);
 		return;
 	}
@@ -1932,7 +1956,6 @@ void Renderer::DrawScene(Shader* shader, RenderPass renderPass, int player)
         }
            
 	// Player models
-	bool renderPlayerCharacterModels = true;
     if (renderPlayerCharacterModels) {
         if (player == 2 && GameData::s_player1.m_isAlive)
             GameData::s_player1.RenderCharacterModel(shader);

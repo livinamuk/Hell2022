@@ -7,6 +7,7 @@ layout (binding = 1) uniform sampler2D blur0;
 layout (binding = 2) uniform sampler2D blur1;
 layout (binding = 3) uniform sampler2D blur2;
 layout (binding = 4) uniform sampler2D blur3;
+layout (binding = 5) uniform sampler2D RMA;
 
 //layout (binding = 1) uniform sampler2D ALB_TEXTURE;  // actually not used    
 //layout (binding = 2) uniform sampler2D NRM_TEXTURE;
@@ -97,11 +98,11 @@ void main()
 	color.b =  min(u_timeSinceDeath, 0.05);
 	
 	//vec4 baseColor = texture(ALB_TEXTURE, TexCoords) + color;
-	//FragColor = texture(LIGHTING_TEXTURE, TexCoords) + color;
 
 	FragColor.xyz = chromo_ABZ_color.xyz; 
 	//FragColor += baseColor * 0.1;
-
+    
+//	FragColor = texture(FINAL_TEXTURE, TexCoords) + color;
 
 	// Make it red
 	if (u_timeSinceDeath > 0) {	
@@ -140,5 +141,12 @@ void main()
 	blurBulbs += texture(blur3, SplitscreenAdjustedCoords).rgb;
     FragColor.rgb += blurBulbs;
 
+    
+    vec3 rma = texture(RMA, SplitscreenAdjustedCoords).rgb;
+    float ao = rma.g;
+	float perceptualRoughness = rma.r;
+	float metallic = rma.b;
+
+  // FragColor.rgb = vec3(metallic);
 
 } 

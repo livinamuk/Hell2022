@@ -6,6 +6,12 @@
 #include "GameCharacter.h"
 #include "Effects/BloodPool.h"
 #include "Core/GameData.h"
+#include "Core/CoreGL.h"
+
+void Player::Create(glm::vec3 position)
+{
+
+}
 
 void Player::Interact()
 {
@@ -20,22 +26,35 @@ void Player::Interact()
 }
 
 void Player::UpdateCamera(int renderWidth, int renderHeight)
-{
+{		
 	m_camera.CalculateProjectionMatrix(renderWidth, renderHeight);	
 }
 
 void Player::Update(float deltaTime)
 {
+	CalculateADSOffestAndFOV(deltaTime);
+
 	m_remainingBloodDecalsAllowedThisFrame = m_maxBloodDecalPerFrame;
 
 	if (m_muzzleFlashTimer >= 0)
-		m_muzzleFlashTimer += deltaTime * 15;
+		m_muzzleFlashTimer += deltaTime * 25;
 
 	// if player is alive
 	if (m_isAlive) 
 	{
 		m_timeSinceDeath = 0;	
 		
+		// lerp out of recoil if you aren't firing
+		if (!PressingFire() || m_ammo_mp7_in_clip == 0)
+		{
+			glm::vec3 current = m_camera.m_swayTransform.rotation;
+			glm::vec3 target = glm::vec3(0, 0, 0);
+			float speed = 6.0f;
+			m_camera.m_swayTransform.rotation = Util::Vec3InterpTo(current, target, deltaTime, speed);
+			m_recoilOffsetTransform.rotation = glm::vec3(0);
+			m_currentRecoilIndex = 0;
+		}
+
 		if (m_enableControl) {
 			UpdateMovement(deltaTime);			
 			UpdateAiming();
@@ -49,8 +68,6 @@ void Player::Update(float deltaTime)
 	else
 	{
 		m_timeSinceDeath += deltaTime;		
-
-		SpawnBloodPool();
 
 		// Presses Respawn
 		if (m_enableControl && !m_isAlive && m_timeSinceDeath > 3.25)
@@ -74,12 +91,15 @@ void Player::Respawn()
 {
 	m_corpse = nullptr;
 
-
+	m_health = 100;
 
 	m_ammo_glock_in_clip = m_clip_size_glock;
 	m_ammo_shotgun_in_clip = m_clip_size_shotgun;
 	m_ammo_glock_total = 80;
 	m_ammo_shotgun_total = 48;
+
+	m_ammo_mp7_in_clip = m_clip_size_mp7;
+	m_ammo_mp7_total = m_ammo_mp7_max;
 
 	m_isAlive = true;
 	m_transform = Transform();
@@ -169,7 +189,7 @@ void Player::FireCameraRay()
 	}
 }
 
-void Player::FireBulletRay(float variance)
+/*void Player::FireBulletRay(float variance)
 {
 	// First omit the player ragdoll from it's own raycast
 	for (RigidComponent& rigid : m_ragdoll.m_rigidComponents) {
@@ -195,7 +215,7 @@ void Player::FireBulletRay(float variance)
 		PxShape* shape = PhysX::GetShapeFromPxRigidDynamic(rigid.pxRigidBody);
 		PhysX::EnableRayCastingForShape(shape);
 	}
-}
+}*/
 
 void Player::FireBulletRay(glm::vec3 unitDir)
 {
@@ -317,7 +337,7 @@ void Player::UpdateMovement(float deltaTime)
 
 	// walk speed
 	if (!m_isCrouching)
-		displacement *= 0.0575;
+		displacement *= 0.0675;
 	// crouch speed
 	else if (m_isCrouching)
 		displacement *= (0.038725);
@@ -366,8 +386,8 @@ void Player::UpdateMovement(float deltaTime)
 	float xOffset = 0;
 	float yOffset = 0;
 	if (m_inputType == InputType::KEYBOARD_AND_MOUSE) {
-		xOffset = Input::m_xoffset;
-		yOffset = Input::m_yoffset;
+		xOffset = Input::GetMouseXOffset(m_mouseIndex);
+		yOffset = Input::GetMouseYOffset(m_mouseIndex);
 		//std::cout << xOffset << "\n";
 	}
 	else if (m_inputType == InputType::CONTROLLER) {
@@ -376,10 +396,10 @@ void Player::UpdateMovement(float deltaTime)
 	}
 
 	if (m_gun == Gun::GLOCK)
-		m_camera.CalculateWeaponSway(deltaTime, xOffset, yOffset, 2.25f);
+		m_camera.CalculateWeaponSway(deltaTime, yOffset, xOffset, 2.25f);
 
 	if (m_gun == Gun::SHOTGUN)
-		m_camera.CalculateWeaponSway(deltaTime, xOffset, yOffset, 4.25f);
+		m_camera.CalculateWeaponSway(deltaTime, yOffset, xOffset, 4.25f);
 
 	FootstepAudio(deltaTime);
 
@@ -434,8 +454,16 @@ void Player::UpdateAiming()
 			return;
 
 		// Apply actual trigger position to the camera
-		float yLimit = 1.5f;
-		m_camera.m_transform.rotation += glm::vec3(-Input::m_yoffset, -Input::m_xoffset, 0.0) / glm::vec3(201 - 10);
+		float mouseSensitivity = 50.0f;
+
+		if (PressingADS())
+			mouseSensitivity = 12.5f;
+
+		float xoffset = Input::GetMouseXOffset(m_mouseIndex) * (mouseSensitivity / 10000.0f);
+		float yoffset = Input::GetMouseYOffset(m_mouseIndex) * (mouseSensitivity / 10000.0f);
+		float yLimit = 1.5f; 
+		//m_camera.m_transform.rotation += glm::vec3(-Input::m_yoffset, -Input::m_xoffset, 0.0) / glm::vec3(201 - 10);
+		m_camera.m_transform.rotation += glm::vec3(-xoffset, -yoffset, 0.0);// / glm::vec3(201 - 10);
 		m_camera.m_transform.rotation.x = std::min(m_camera.m_transform.rotation.x, yLimit);
 		m_camera.m_transform.rotation.x = std::max(m_camera.m_transform.rotation.x, -yLimit);
 	}
@@ -478,7 +506,7 @@ void Player::UpdateAiming()
 bool Player::PressingWalkForward()
 {
 	if (m_inputType == InputType::KEYBOARD_AND_MOUSE)
-		return Input::KeyDown(m_controls.WALK_FORWARD);
+		return Input::KeyDown(m_keyboardIndex, m_mouseIndex, m_controls.WALK_FORWARD);
 	else
 		return Input::ButtonDown(m_controllerIndex, m_controls.WALK_FORWARD);
 }
@@ -486,7 +514,7 @@ bool Player::PressingWalkForward()
 bool Player::PressingWalkBackward()
 {
 	if (m_inputType == InputType::KEYBOARD_AND_MOUSE)
-		return Input::KeyDown(m_controls.WALK_BACKWARD);
+		return Input::KeyDown(m_keyboardIndex, m_mouseIndex, m_controls.WALK_BACKWARD);
 	else
 		return Input::ButtonDown(m_controllerIndex, m_controls.WALK_BACKWARD);
 }
@@ -494,7 +522,7 @@ bool Player::PressingWalkBackward()
 bool Player::PressingWalkLeft()
 {
 	if (m_inputType == InputType::KEYBOARD_AND_MOUSE)
-		return Input::KeyDown(m_controls.WALK_LEFT);
+		return Input::KeyDown(m_keyboardIndex, m_mouseIndex, m_controls.WALK_LEFT);
 	else
 		return Input::ButtonDown(m_controllerIndex, m_controls.WALK_LEFT);
 }
@@ -502,7 +530,7 @@ bool Player::PressingWalkLeft()
 bool Player::PressingWalkRight()
 {
 	if (m_inputType == InputType::KEYBOARD_AND_MOUSE)
-		return Input::KeyDown(m_controls.WALK_RIGHT);
+		return Input::KeyDown(m_keyboardIndex, m_mouseIndex, m_controls.WALK_RIGHT);
 	else
 		return Input::ButtonDown(m_controllerIndex, m_controls.WALK_RIGHT);
 }
@@ -510,7 +538,7 @@ bool Player::PressingWalkRight()
 bool Player::PressingCrouch()
 {
 	if (m_inputType == InputType::KEYBOARD_AND_MOUSE)
-		return Input::KeyDown(m_controls.CROUCH);
+		return Input::KeyDown(m_keyboardIndex, m_mouseIndex, m_controls.CROUCH);
 	else
 		return Input::ButtonDown(m_controllerIndex, m_controls.CROUCH);
 }
@@ -518,7 +546,7 @@ bool Player::PressingCrouch()
 bool Player::PressedInteract()
 {
 	if (m_inputType == InputType::KEYBOARD_AND_MOUSE)
-		return Input::KeyPressed(m_controls.INTERACT);
+		return Input::KeyPressed(m_keyboardIndex, m_mouseIndex, m_controls.INTERACT);
 	else
 		return Input::ButtonPressed(m_controllerIndex, m_controls.INTERACT);
 }
@@ -526,7 +554,7 @@ bool Player::PressedInteract()
 bool Player::PressedReload()
 {
 	if (m_inputType == InputType::KEYBOARD_AND_MOUSE)
-		return Input::KeyPressed(m_controls.RELOAD);
+		return Input::KeyPressed(m_keyboardIndex, m_mouseIndex, m_controls.RELOAD);
 	else
 		return Input::ButtonPressed(m_controllerIndex, m_controls.RELOAD);
 }
@@ -534,7 +562,7 @@ bool Player::PressedReload()
 bool Player::PressedFire()
 {
 	if (m_inputType == InputType::KEYBOARD_AND_MOUSE)
-		return Input::KeyPressed(m_controls.FIRE);
+		return Input::KeyPressed(m_keyboardIndex, m_mouseIndex, m_controls.FIRE);
 	else
 		return Input::ButtonPressed(m_controllerIndex, m_controls.FIRE);
 }
@@ -542,7 +570,7 @@ bool Player::PressedFire()
 bool Player::PressingFire()
 {
 	if (m_inputType == InputType::KEYBOARD_AND_MOUSE)
-		return Input::KeyDown(m_controls.FIRE);
+		return Input::KeyDown(m_keyboardIndex, m_mouseIndex, m_controls.FIRE);
 	else
 		return Input::ButtonDown(m_controllerIndex, m_controls.FIRE);
 }
@@ -550,7 +578,7 @@ bool Player::PressingFire()
 bool Player::PressedJump()
 {
 	if (m_inputType == InputType::KEYBOARD_AND_MOUSE)
-		return Input::KeyPressed(m_controls.JUMP);
+		return Input::KeyPressed(m_keyboardIndex, m_mouseIndex, m_controls.JUMP);
 	else
 		return Input::ButtonPressed(m_controllerIndex, m_controls.JUMP);
 }
@@ -558,7 +586,7 @@ bool Player::PressedJump()
 bool Player::PressedCrouch()
 {
 	if (m_inputType == InputType::KEYBOARD_AND_MOUSE)
-		return Input::KeyPressed(m_controls.CROUCH);
+		return Input::KeyPressed(m_keyboardIndex, m_mouseIndex, m_controls.CROUCH);
 	else
 		return Input::ButtonPressed(m_controllerIndex, m_controls.CROUCH);
 }
@@ -566,7 +594,7 @@ bool Player::PressedCrouch()
 bool Player::PressedNextWeapon()
 {
 	if (m_inputType == InputType::KEYBOARD_AND_MOUSE)
-		return Input::KeyPressed(m_controls.NEXT_WEAPON);
+		return Input::KeyPressed(m_keyboardIndex, m_mouseIndex, m_controls.NEXT_WEAPON);
 	else
 		return Input::ButtonPressed(m_controllerIndex, m_controls.NEXT_WEAPON);
 }
@@ -574,33 +602,28 @@ bool Player::PressedNextWeapon()
 bool Player::PressedMelee()
 {
 	if (m_inputType == InputType::KEYBOARD_AND_MOUSE)
-		return Input::KeyPressed(m_controls.MELEE);
+		return Input::KeyPressed(m_keyboardIndex, m_mouseIndex, m_controls.MELEE);
 	else
 		return Input::ButtonPressed(m_controllerIndex, m_controls.MELEE);
 }
 
-void Player::SpawnBloodPool()
-{		
-	// Check if it's time to spawn blood pool
-	if (!m_createdBloodPool && m_timeSinceDeath > 1.125)
-	{
-		for (RigidComponent& rigid : m_ragdoll.m_rigidComponents)
-		{
-			if (rigid.pxRigidBody->getName() == "RAGDOLL_HEAD")
-			{
-				PxTransform pose = rigid.pxRigidBody->getGlobalPose();
-			//	if (pose.p.y < 0.15)
-				{
-					Transform transform;
-					transform.position = glm::vec3(pose.p.x, 0.01f, pose.p.z);
-					p_bloodPools->emplace_back(BloodPool(transform));
-					m_createdBloodPool = true;
-					return;
-				}			
-			}
-		}
-	}
+bool Player::PressingADS()
+{
+	if (m_inputType == InputType::KEYBOARD_AND_MOUSE)
+		return Input::KeyDown(m_keyboardIndex, m_mouseIndex, m_controls.ADS);
+	else
+		return Input::ButtonDown(m_controllerIndex, m_controls.ADS);
 }
+
+bool Player::PressedADS()
+{
+	if (m_inputType == InputType::KEYBOARD_AND_MOUSE)
+		return Input::KeyPressed(m_keyboardIndex, m_mouseIndex, m_controls.ADS);
+	else
+		return Input::ButtonPressed(m_controllerIndex, m_controls.ADS);
+
+}
+
 
 void Player::SpawnMuzzleFlash()
 {
@@ -615,9 +638,13 @@ void Player::CreateCharacterController()
 
 void Player::SpawnCoprseRagdoll()
 {
-	p_gameCharacters->push_back(GameCharacter());
+	// don't let there be 2 corpses
+	if (m_corpse != nullptr)
+		return;
 
-	GameCharacter* gc = &p_gameCharacters->back();
+	Scene::s_gameCharacters.push_back(GameCharacter());
+
+	GameCharacter* gc = &Scene::s_gameCharacters.back();
 	gc->m_skinnedModel = AssetManager::GetSkinnedModelPtr("Nurse");
 	gc->m_ragdoll.BuildFromJsonFile("ragdoll.json", Transform(), nullptr, PhysicsObjectType::RAGDOLL);
 	gc->m_skinningMethod = SkinningMethod::RAGDOLL;
@@ -787,7 +814,106 @@ glm::vec3 Player::GetCasingSpawnLocation()
 		return modelMatrix[3];
 	}
 
+
+
+	else if (m_gun == Player::Gun::MP7) 
+	{
+	static float x = -1.45f;
+	static float y = -0.6f;
+	static float z = -1.6f;
+	static float front = 0.3f;
+
+	/*if (Input::s_keyPressed[HELL_KEY_COMMA])
+		front -= 0.05f;
+	if (Input::s_keyPressed[HELL_KEY_PERIOD])
+		front += 0.05f;
+
+	if (Input::s_keyPressed[HELL_KEY_3])
+		x += 0.05f;
+	if (Input::s_keyPressed[HELL_KEY_4])
+		y += 0.05f;
+	if (Input::s_keyPressed[HELL_KEY_5])
+		z += 0.05f;
+	if (Input::s_keyPressed[HELL_KEY_6])
+		x -= 0.05f;
+	if (Input::s_keyPressed[HELL_KEY_7])
+		y -= 0.05f;
+	if (Input::s_keyPressed[HELL_KEY_8])
+		z -= 0.05f;
+
+	std::cout << x << ", " << y << ", " << z << "\n";
+	std::cout << front << "\n\n";*/
+
+	glm::mat4 BoneMatrix = glm::mat4(1);
+	Transform offsetTransform;
+
+	int BoneIndex = m_HUD_Weapon.GetSkinnedModelPtr()->m_BoneMapping["Suppressor_Socket"];
+	BoneMatrix = m_HUD_Weapon.m_animatedTransforms.local[BoneIndex];
+	offsetTransform.position = glm::vec3(x, y, z);
+
+	glm::mat4 worldMatrix = m_HUD_Weapon.GetTransform().to_mat4() * m_camera.m_swayTransform.to_mat4() * BoneMatrix * offsetTransform.to_mat4();
+
+	glm::vec3 barrelPosition = worldMatrix[3];
+
+	glm::vec3 lookAtPosition = GetViewPosition() + m_camera.m_Front;
+	glm::vec3 barrelDirection = glm::normalize(lookAtPosition - barrelPosition) * glm::vec3(front);
+
+	glm::mat4 modelMatrix = Transform(barrelPosition).to_mat4() * Transform(barrelDirection).to_mat4();
+	return modelMatrix[3];
+	}
+
+	
+
+
+
+
 	else return glm::vec3(0);
+}
+
+glm::mat4 Player::GetMuzzleFlashSpawnMatrix()
+{
+	glm::mat4 BoneMatrix = glm::mat4(1);
+	Transform offsetTransform;
+
+	/*static float x = 0;
+	static float y = 0;
+	static float z = 0;
+
+	if (Input::s_keyPressed[HELL_KEY_3])
+		x += 0.05f;
+	if (Input::s_keyPressed[HELL_KEY_4])
+		y += 0.05f;
+	if (Input::s_keyPressed[HELL_KEY_5])
+		z += 0.05f;
+	if (Input::s_keyPressed[HELL_KEY_6])
+		x -= 0.05f;
+	if (Input::s_keyPressed[HELL_KEY_7])
+		y -= 0.05f;
+	if (Input::s_keyPressed[HELL_KEY_8])
+		z -= 0.05f;
+
+	std::cout << x << ", " << y << ',' << z << "\n";*/
+
+
+	if (m_gun == Player::Gun::GLOCK) {
+		int BoneIndex = m_HUD_Weapon.GetSkinnedModelPtr()->m_BoneMapping["barrel"];
+		BoneMatrix = m_HUD_Weapon.m_animatedTransforms.local[BoneIndex];
+		offsetTransform.position = glm::vec3(0, -15, 10);
+	}
+	else if (m_gun == Player::Gun::SHOTGUN) {
+		int BoneIndex = m_HUD_Weapon.GetSkinnedModelPtr()->m_BoneMapping["ShotgunMain_bone"];
+		BoneMatrix = m_HUD_Weapon.m_animatedTransforms.local[BoneIndex];
+		offsetTransform.position = glm::vec3(0, -73, 6);
+	}
+	else if (m_gun == Player::Gun::MP7) {
+		int BoneIndex = m_HUD_Weapon.GetSkinnedModelPtr()->m_BoneMapping["Suppressor_Socket"];
+		BoneMatrix = m_HUD_Weapon.m_animatedTransforms.local[BoneIndex];
+		offsetTransform.position = glm::vec3(0.0f, -0.7f, 0.075f);
+
+	//	std::cout << "bone index: " << BoneIndex << "\n";
+	}
+	
+	return m_HUD_Weapon.GetTransform().to_mat4() * m_camera.m_swayTransform.to_mat4() * BoneMatrix * offsetTransform.to_mat4();
 }
 
 void Player::UpdatePlayerModelAnimation(float deltaTime)
@@ -955,6 +1081,8 @@ void Player::UpdatePlayerModelAnimation(float deltaTime)
 		m_skinnedModel->UpdateBoneTransformsFromRagdoll(m_character_model.m_animatedTransforms.local, m_character_model.m_animatedTransforms.worldspace, &m_ragdoll);
 	}
 
+
+	CheckForEmptyGlock();
 }
 
 
@@ -996,6 +1124,8 @@ int Player::GetCurrentGunAmmoInClip()
 		return m_ammo_glock_in_clip;
 	if (m_gun == Gun::SHOTGUN)
 		return m_ammo_shotgun_in_clip;
+	if (m_gun == Gun::MP7)
+		return m_ammo_mp7_in_clip;
 	return -1;
 }
 
@@ -1005,15 +1135,17 @@ int Player::GetCurrentGunTotalAmmo()
 		return m_ammo_glock_total;
 	if (m_gun == Gun::SHOTGUN)
 		return m_ammo_shotgun_total;
+	if (m_gun == Gun::MP7)
+		return m_ammo_mp7_total;
 	return -1;
 }
 
-void Player::FireBullet(float variance, float bulletForce)
+void Player::FireBullet(glm::vec3 direction, float bulletForce)
 {
 	bool bodyHit = false;
 	bool headHit = false;
 
-	FireBulletRay(variance);
+	FireBulletRay(direction);
 
 	if (m_bulletRay.HitFound())
 	{
@@ -1060,8 +1192,6 @@ void Player::FireBullet(float variance, float bulletForce)
 					counter++;
 					if (counter > 3)
 						counter = 0;
-
-					//std::cout << "blood\n";
 				}
 			}
 
@@ -1069,22 +1199,22 @@ void Player::FireBullet(float variance, float bulletForce)
 			if (physicsData->type == PhysicsObjectType::PLAYER_RAGDOLL) {
 
 				Player* p = (Player*)physicsData->parent;
+				Player* player = (Player*)physicsData->parent;
 
-				// make blood
-			/*	GameData::s_bloodDecals.push_back(BloodDecal());
-				BloodDecal* decal = &GameData::s_bloodDecals.back();
-				decal->m_type = std::rand() % 4 + 0;
-				decal->m_transform.position.x = m_bulletRay.m_hitPosition.x;
-				decal->m_transform.position.y = 0.01f;
-				decal->m_transform.position.z = m_bulletRay.m_hitPosition.z;
-				decal->m_transform.rotation.y = m_camera.m_transform.rotation.y + HELL_PI;
-				decal->m_transform.scale = glm::vec3(2);*/
+				if (player->m_health > 0)
+					player->m_health -= 15;// +rand() % 10;
 
+				// Are they dead???			
 				// kill em
-				if (m_bulletRay.m_hitObjectName == "RAGDOLL_HEAD" && p->m_isAlive) {
+				if (player->m_health <= 0 || m_bulletRay.m_hitObjectName == "RAGDOLL_HEAD" && p->m_isAlive) 
+				{
+					player->m_health = 0;
 					p->m_isAlive = false;
 					m_killCount++;
 					headHit = true;
+
+					std::string file = "Death0.wav";
+					Audio::PlayAudio(file.c_str(), 0.45f);
 
 					// first disable players ragdoll from raycasts
 					for (RigidComponent& rigid : p->m_ragdoll.m_rigidComponents) {
@@ -1124,8 +1254,8 @@ void Player::FireBullet(float variance, float bulletForce)
 	}
 
 	if (headHit) {
-		std::string file = "Death0.wav";
-		Audio::PlayAudio(file.c_str(), 0.45f);
+	//	std::string file = "Death0.wav";
+	//	Audio::PlayAudio(file.c_str(), 0.45f);
 	}
 	else if (bodyHit) {
 			std::string file = "FLY_Bullet_Impact_Flesh_0" + std::to_string(rand() % 8 + 1) + ".wav";
@@ -1144,6 +1274,7 @@ void Player::FireBullet(float variance, float bulletForce)
 
 void Player::CalculateViewMatrices()
 {
+
 	if (m_isAlive)
 	{
 		const PxExtendedVec3& globalPose = m_characterController->getPosition();
@@ -1239,6 +1370,284 @@ void Player::UpdateControllerInput()
 		GameData::s_controllers[m_controllerIndex].UpdateInput();
 }
 
+
+
+void Player::CheckForKnifeHit()
+{
+	Player* otherPlayer;
+	if (this == &GameData::s_player1)
+		otherPlayer = &GameData::s_player2;
+	else
+		otherPlayer = &GameData::s_player1;
+
+	glm::vec3 pos = this->GetCameraFrontVector();
+	glm::vec3 pos2 = this->GetViewPosition() - otherPlayer->GetViewPosition();
+
+	pos = glm::normalize(pos);
+	pos2 = glm::normalize(pos2);
+
+	float dot = glm::dot(pos, pos2);
+	float distance = glm::length(this->GetViewPosition() - otherPlayer->GetViewPosition());
+
+	// Hit found
+	if (distance < 1.5f && dot < 0.025f)	// less than 1 metre distant AND facing the other player
+	{
+		// create volumetric blood
+		glm::vec3 position = this->GetViewPosition() + (this->GetCameraFrontVector() * 0.5f);
+		glm::vec3 rotation = m_camera.m_transform.rotation;
+		glm::vec3 front = m_camera.m_Front * glm::vec3(-1);
+		GameData::CreateVolumetricBlood(position, rotation, front);
+
+		// Play regular audio
+		std::string file = "FLY_Bullet_Impact_Flesh_0" + std::to_string(rand() % 8 + 1) + ".wav";
+		Audio::PlayAudio(file.c_str(), 0.5f);
+
+		/// decal
+		static int counter = 0;
+		int type = counter;
+		Transform transform;
+		transform.position = this->GetViewPosition();
+		transform.position.y = 0.01f;
+		transform.rotation.y = m_camera.m_transform.rotation.y + HELL_PI;
+		GameData::s_bloodDecals.push_back(BloodDecal(transform, type));
+		BloodDecal* decal = &GameData::s_bloodDecals.back();
+		counter++;
+		if (counter > 3)
+			counter = 0;
+		 
+		// apply damage
+		if (otherPlayer->m_health > 0) {
+			otherPlayer->m_health -= 20;// +rand() % 50;
+			// Are they dead???
+			if (otherPlayer->m_health <= 0 && otherPlayer->m_isAlive)
+			{
+				otherPlayer->m_health = 0;
+				std::string file = "Death0.wav";
+				Audio::PlayAudio(file.c_str(), 0.45f);
+
+				otherPlayer->m_isAlive = false;
+				m_killCount++;
+
+				// CREATE A RAGDOLL
+				otherPlayer->SpawnCoprseRagdoll();
+
+				// enable corpse for raycasts
+				for (RigidComponent& rigid : otherPlayer->m_corpse->m_ragdoll.m_rigidComponents) {
+					PxShape* shape = PhysX::GetShapeFromPxRigidDynamic(rigid.pxRigidBody);
+					PhysX::EnableRayCastingForShape(shape);
+				}
+			}
+		}
+		return;
+	}
+	
+
+	// CORPSE SHIT
+	FireBulletRay(m_cameraRay.m_rayDirection); // hit the new ragdoll
+	if (m_cameraRay.HitFound())
+	{
+		if (m_bulletRay.m_hitObjectName == "RAGDOLL" || m_bulletRay.m_hitObjectName == "RAGDOLL_HEAD")
+		{
+			PxVec3 force = PxVec3(m_camera.m_Front.x, m_camera.m_Front.y, m_camera.m_Front.z) * 1500;
+			PxRigidDynamic* actor = (PxRigidDynamic*)m_bulletRay.m_hitActor;
+			actor->addForce(force);
+		}
+		else
+			return;
+
+
+		float distance = glm::length(m_cameraRay.m_hitPosition - GetViewPosition());
+
+		if (distance < 2 && !otherPlayer->m_isAlive)
+		{
+			// Play regular audio
+			std::string file = "FLY_Bullet_Impact_Flesh_0" + std::to_string(rand() % 8 + 1) + ".wav";
+			Audio::PlayAudio(file.c_str(), 0.5f);
+
+			static int counter = 0;
+			int type = counter;
+			Transform transform;
+			transform.position.x = m_cameraRay.m_hitPosition.x;
+			transform.position.y = 0.01f;
+			transform.position.z = m_cameraRay.m_hitPosition.z;
+			transform.rotation.y = m_camera.m_transform.rotation.y + HELL_PI;
+
+			GameData::s_bloodDecals.push_back(BloodDecal(transform, type));
+			BloodDecal* decal = &GameData::s_bloodDecals.back();
+
+			counter++;
+			if (counter > 3)
+				counter = 0;
+
+			// create volumetric blood
+			glm::vec3 position = m_cameraRay.m_hitPosition;
+			glm::vec3 rotation = m_camera.m_transform.rotation;
+			glm::vec3 front = m_camera.m_Front * glm::vec3(-1);
+			GameData::CreateVolumetricBlood(position, rotation, front);
+		}
+	}
+
+
+
+
+
+
+
+	return;
+
+	if (m_cameraRay.HitFound())
+	{
+		if (m_cameraRay.m_hitObjectName == "RAGDOLL" || m_cameraRay.m_hitObjectName == "RAGDOLL_HEAD")
+		{	
+				
+
+			PxRigidDynamic* actor = (PxRigidDynamic*)m_cameraRay.m_hitActor;
+			EntityData* physicsData = (EntityData*)actor->userData;
+			
+
+			// Subtract health
+			if (physicsData->parent)
+			{
+				Player* player = (Player*)physicsData->parent;
+
+				float distance = glm::length(m_cameraRay.m_hitPosition - GetViewPosition());
+				
+				if (distance < 2) {
+
+					static int counter = 0;
+					int type = counter;
+					Transform transform;
+					transform.position.x = m_cameraRay.m_hitPosition.x;
+					transform.position.y = 0.01f;
+					transform.position.z = m_cameraRay.m_hitPosition.z;
+					transform.rotation.y = m_camera.m_transform.rotation.y + HELL_PI;
+
+					GameData::s_bloodDecals.push_back(BloodDecal(transform, type));
+					BloodDecal* decal = &GameData::s_bloodDecals.back();
+
+					counter++;
+					if (counter > 3)
+						counter = 0;
+
+					// create volumetric blood
+					glm::vec3 position = m_cameraRay.m_hitPosition;
+					glm::vec3 rotation = m_camera.m_transform.rotation;
+					glm::vec3 front = m_camera.m_Front * glm::vec3(-1);
+					GameData::CreateVolumetricBlood(position, rotation, front);
+
+
+
+
+
+					if (player->m_health > 0) {
+						player->m_health -= 34;// +rand() % 50;
+
+						// Are they dead???
+						if (player->m_health <= 0 && player->m_isAlive)
+						{
+							player->m_health = 0;
+							std::string file = "Death0.wav";
+							Audio::PlayAudio(file.c_str(), 0.45f);
+
+							player->m_isAlive = false;
+							m_killCount++;
+
+							// CREATE A RAGDOLL
+							player->SpawnCoprseRagdoll();
+
+							// enable corpse for raycasts
+							for (RigidComponent& rigid : player->m_corpse->m_ragdoll.m_rigidComponents) {
+								PxShape* shape = PhysX::GetShapeFromPxRigidDynamic(rigid.pxRigidBody);
+								PhysX::EnableRayCastingForShape(shape);
+							}
+
+							return;
+						}
+					}
+
+
+
+
+
+					// Play regular audio
+					std::string file = "FLY_Bullet_Impact_Flesh_0" + std::to_string(rand() % 8 + 1) + ".wav";
+					Audio::PlayAudio(file.c_str(), 0.5f);
+
+
+					// apply force to corpse
+					FireBulletRay(m_cameraRay.m_rayDirection); // hit the new ragdoll
+					if (m_cameraRay.HitFound())
+					{
+						if (m_bulletRay.m_hitObjectName == "RAGDOLL" || m_bulletRay.m_hitObjectName == "RAGDOLL_HEAD")
+						{
+							PxVec3 force = PxVec3(m_camera.m_Front.x, m_camera.m_Front.y, m_camera.m_Front.z) * 1500;
+							PxRigidDynamic* actor = (PxRigidDynamic*)m_bulletRay.m_hitActor;
+							actor->addForce(force);
+						}
+					}
+
+				}
+
+
+
+
+					
+			}		
+			
+		}
+	}
+}
+
+void Player::CheckForEmptyGlock()
+{
+	// glock slide
+	if (m_gun == Gun::GLOCK && m_ammo_glock_in_clip == 0 && m_HUDWeaponAnimationState != HUDWeaponAnimationState::RELOADING)
+	{
+		if (m_HUD_Weapon.m_skinnedModel->m_BoneMapping.find("slide") != m_HUD_Weapon.m_skinnedModel->m_BoneMapping.end())
+		{
+			unsigned int BoneIndex = GameData::s_player1.m_HUD_Weapon.m_skinnedModel->m_BoneMapping["slide"];
+			m_HUD_Weapon.m_animatedTransforms.local[BoneIndex] = m_HUD_Weapon.m_animatedTransforms.local[BoneIndex] * Transform(glm::vec3(0, 5, 0)).to_mat4();
+		}
+	}
+}
+
+void Player::CalculateADSOffestAndFOV(float deltatime)
+{
+	static float x = -2.38f;
+	static float y = -3.89f;
+	static float z = 0.2f;
+	
+	/*if (Input::s_keyPressed[HELL_KEY_3])
+		x += 0.01f;
+	if (Input::s_keyPressed[HELL_KEY_4])
+		y += 0.01f;
+	if (Input::s_keyPressed[HELL_KEY_5])
+		z += 0.1f;
+	if (Input::s_keyPressed[HELL_KEY_6])
+		x -= 0.01f;
+	if (Input::s_keyPressed[HELL_KEY_7])
+		y -= 0.01f;
+	if (Input::s_keyPressed[HELL_KEY_8])
+		z -= 0.1f;
+	if (Input::s_keyPressed[HELL_KEY_9])
+		m_camera.m_mp7_FOV -= 0.025f;
+	if (Input::s_keyPressed[HELL_KEY_0])
+		m_camera.m_mp7_FOV += 0.025f;
+	*/
+	glm::vec3 ADSTarget = glm::vec3(0);
+	float FOVTarget = 1.0f;
+	
+	if (m_gun == Gun::MP7 && PressingADS()) {
+		ADSTarget = glm::vec3(x, y, z);
+		FOVTarget = m_camera.m_mp7_FOV;
+	}
+
+	//std::cout << m_camera.m_mp7_FOV << "\n";
+
+	m_ADSOffset = Util::Vec3InterpTo(m_ADSOffset, ADSTarget, deltatime, 25);
+	m_camera.m_fieldOfView = Util::FInterpTo(m_camera.m_fieldOfView, FOVTarget, deltatime, 15);
+}
+
 void Player::CheckForWeaponInput()
 {
 
@@ -1257,45 +1666,37 @@ void Player::CheckForWeaponInput()
 
 	// lazy weapon switch implementation
 	if (canChangeWeapon)
-	{
-		/*if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::IDLE ||
-			m_HUDWeaponAnimationState == HUDWeaponAnimationState::RELOADING ||
-			m_HUDWeaponAnimationState == HUDWeaponAnimationState::FIRING
-			)
-		{*/
-
-			
+	{			
 		if (PressedNextWeapon() && m_gun == Gun::GLOCK) {
-			m_gunToChangeTo = Gun::SHOTGUN;
+			m_gun = Gun::SHOTGUN;
 			Audio::PlayAudio("Glock_Equip.wav", 0.5f);
-			m_HUD_Weapon.PlayAnimation("Glock_Holster.fbx");
-			m_HUDWeaponAnimationState = HUDWeaponAnimationState::HOLSTERING;
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
+			m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Shotgun"));
+			m_HUD_Weapon.PlayAnimation("Shotgun_Equip.fbx", 1.25f);
 		}
 		else if (PressedNextWeapon() && m_gun == Gun::SHOTGUN) {
-			m_gunToChangeTo = Gun::KNIFE;
+			m_gun = Gun::MP7;
 			Audio::PlayAudio("Glock_Equip.wav", 0.5f);
-			m_HUD_Weapon.PlayAnimation("Shotgun_Dequip.fbx");
-			m_HUDWeaponAnimationState = HUDWeaponAnimationState::HOLSTERING;
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
+			m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("MP7"));
+			m_HUD_Weapon.PlayAnimation("MP7_draw.fbx", 1.5f);
+		}
+		else if (PressedNextWeapon() && m_gun == Gun::MP7) {
+			m_gun = Gun::KNIFE;
+			Audio::PlayAudio("Glock_Equip.wav", 0.5f);
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
+			m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Knife"));
+			m_HUD_Weapon.PlayAnimation("Knife_Draw.fbx", 1.75f);
 		}
 		else if (PressedNextWeapon() && m_gun == Gun::KNIFE) {
-			m_gunToChangeTo = Gun::GLOCK;
+			m_gun = Gun::GLOCK;
 			Audio::PlayAudio("Glock_Equip.wav", 0.5f);
-			m_HUD_Weapon.PlayAnimation("Kinfe_Holster.fbx");
-			m_HUDWeaponAnimationState = HUDWeaponAnimationState::HOLSTERING;
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
+			m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Glock"));
+			m_HUD_Weapon.PlayAnimation("Glock_Equip2.fbx", 1.125f);			
 		}
-		/*	else if (PressedNextWeapon() && m_gun == Gun::SHOTGUN) {
-				m_gunToChangeTo = Gun::AXE;
-				Audio::PlayAudio("Glock_Equip.wav", 0.5f);
-				m_HUD_Weapon.PlayAnimation("Shotgun_Dequip.fbx");
-				m_HUDWeaponAnimationState = HUDWeaponAnimationState::HOLSTERING;
-			}
-			else if (PressedNextWeapon() && m_gun == Gun::AXE) {
-				m_gunToChangeTo = Gun::GLOCK;
-				Audio::PlayAudio("Glock_Equip.wav", 0.5f);
-				m_HUD_Weapon.PlayAnimation("Axe_Equip.fbx");
-				m_HUDWeaponAnimationState = HUDWeaponAnimationState::HOLSTERING;
-			}*/
-			else
+	
+			/*else
 				if (PressedMelee())
 				{
 					m_gun = Gun::KNIFE;
@@ -1310,65 +1711,200 @@ void Player::CheckForWeaponInput()
 					i++;					
 					if (i >= AssetManager::GetSkinnedModelPtr("Knife")->m_animations.size())
 					 i = 0;
-				}
+				}*/
 		//}
 	}
 
-	// Finished holstering
-	//if (m_HUD_Weapon.AnimationIsComplete() && m_HUDWeaponAnimationState == HUDWeaponAnimationState::HOLSTERING)
-	if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::HOLSTERING)
+	if (m_gun == Gun::KNIFE)
 	{
-		if (m_gunToChangeTo == Gun::AXE) {
-			m_gun = Gun::AXE;
-			m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
-			m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Axe"));
-			m_HUD_Weapon.PlayAnimation("Axe_Equip.fbx", 1.25f);
-			m_gunToChangeTo = Gun::NONE;
-		}
-		if (m_gunToChangeTo == Gun::KNIFE) {
-			m_gun = Gun::KNIFE;
-			m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
-			m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Knife"));
-			m_HUD_Weapon.PlayAnimation("Knife_Draw.fbx", 1.25f);
-			m_gunToChangeTo = Gun::NONE;
-		}
-		else if (m_gunToChangeTo == Gun::GLOCK) {
-			m_gun = Gun::GLOCK;
-			m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
-			m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Glock"));
-			m_HUD_Weapon.PlayAnimation("Glock_Equip2.fbx", 1.25f);
-			m_gunToChangeTo = Gun::NONE;
-		}
+		// finished stabbing?
+		if (m_HUD_Weapon.AnimationIsComplete() && m_HUDWeaponAnimationState == HUDWeaponAnimationState::FIRING)
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
+		if (m_HUD_Weapon.AnimationIsComplete() && m_HUDWeaponAnimationState == HUDWeaponAnimationState::EQUIPPING)
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
 
-		else if (m_gunToChangeTo == Gun::SHOTGUN) {
-			m_gun = Gun::SHOTGUN;
-			m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
-			m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Shotgun"));
-			m_HUD_Weapon.PlayAnimation("Shotgun_Equip.fbx", 1.25f);
-			m_gunToChangeTo = Gun::NONE;
-		}
-	}	
-
-
-	/*if (m_gun == Gun::SHOTGUN)
-	{
-		m_HUD_Weapon.PlayAndLoopAnimation("Axe.fbx");
-	}
-	*/
-
-	/*if (m_gun == Gun::KNIFE) {
-
-		// finished whatever you were doing? (at least i think this is what it does, read the glock comment below)
-		if (m_HUD_Weapon.AnimationIsComplete())
+		if (PressedFire())
 		{
-			if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::FIRING ||
-				m_HUDWeaponAnimationState == HUDWeaponAnimationState::EQUIPPING)
+			static int i = 0;
+			Audio::PlayAudio("Knife.wav", 0.5f);
+			if (i == 0)
+				m_HUD_Weapon.PlayAnimation("Knife_Swing.fbx", 1.0f);
+			if (i == 1)
+				m_HUD_Weapon.PlayAnimation("Knife_Swing2.fbx", 1.0f);
+			if (i == 2) {
+				m_HUD_Weapon.PlayAnimation("Knife_Swing4.fbx", 1.0f);
+				i = -1;
+			}
+			i++;
+
+			CheckForKnifeHit();
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::FIRING;
+
+		}
+		if (PressedMelee())
+		{
+			Audio::PlayAudio("Knife.wav", 0.5f);
+			m_HUD_Weapon.PlayAnimation("Knife_Swing3.fbx", 1.0f);
+		}
+
+		// Animate walking
+		if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::IDLE) 
+		{
+			if (IsMoving())
+				m_HUD_Weapon.PlayAndLoopAnimation("Knife_Walk.fbx");
+			else
+				m_HUD_Weapon.PlayAndLoopAnimation("Knife_Idle.fbx"); 
+		}
+	}
+
+	// No ADS for other weapons
+	if (m_gun != Gun::MP7)
+		m_ADSState = ADSState::NOT_ADS;
+
+
+	if (m_gun == Gun::MP7)
+	{
+		// Finished equpiing
+		if (m_HUD_Weapon.AnimationIsComplete() && m_HUDWeaponAnimationState == HUDWeaponAnimationState::EQUIPPING) {
+			m_HUD_Weapon.PlayAndLoopAnimation("MP7_idle.fbx");
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;			
+		}
+
+		// Switch to ADS
+		if (PressingADS() &&
+			m_ADSState != ADSState::ADS_TO_IDLE &&
+			m_ADSState != ADSState::ADS &&
+			m_ADSState != ADSState::IDLE_TO_ADS &&
+			m_HUDWeaponAnimationState != HUDWeaponAnimationState::RELOADING
+			) 
+		{
+			m_ADSState = ADSState::IDLE_TO_ADS;
+			m_HUD_Weapon.PlayAnimation("MP7_to_ads.fbx", 7.0f);
+		}
+
+		// Finished switching to ADS
+		if (m_HUD_Weapon.AnimationIsComplete() && m_ADSState == ADSState::IDLE_TO_ADS) {
+			m_HUD_Weapon.PlayAndLoopAnimation("MP7_ads_idle.fbx");
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
+			m_ADSState = ADSState::ADS;
+		}
+		// Leave ADS
+		if (m_ADSState == ADSState::ADS && !PressingADS()) {
+			m_ADSState = ADSState::ADS_TO_IDLE;
+			m_HUD_Weapon.PlayAnimation("MP7_to_idle.fbx", 7.0f);
+		}
+		// Finished leaving ADS
+		if (m_HUD_Weapon.AnimationIsComplete() && m_ADSState == ADSState::ADS_TO_IDLE) {
+			m_HUD_Weapon.PlayAndLoopAnimation("MP7_idle.fbx");
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
+			m_ADSState = ADSState::NOT_ADS;
+		}
+
+
+
+		if (m_ADSState == ADSState::ADS)
+		{
+			// Walking/idle
+			if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::IDLE)
 			{
-				m_HUD_Weapon.PlayAndLoopAnimation("Shotgun_Idle.fbx");
-				m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
+				if (IsMoving())
+					m_HUD_Weapon.PlayAndLoopAnimation("MP7_ads_walk.fbx");
+				else
+					m_HUD_Weapon.PlayAndLoopAnimation("MP7_ads_idle.fbx");
+			}
+
+			if (PressingFire())
+			{
+				if (GetCurrentGunAmmoInClip() > 0)
+				{
+					if (m_HUDWeaponAnimationState != HUDWeaponAnimationState::RELOADING ||
+						m_HUDWeaponAnimationState == HUDWeaponAnimationState::RELOADING && m_HUD_Weapon.AnimationIsPastPercentage(85))
+					{
+						bool stillFiring = false;
+						if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::FIRING && m_HUD_Weapon.GetCurrentAnimationTime() < 0.1025)
+							stillFiring = true;
+
+						if (!stillFiring)
+						{
+							m_HUDWeaponAnimationState = HUDWeaponAnimationState::FIRING;
+							m_HUD_Weapon.PlayAnimation("MP7_ads_fire" + std::to_string(rand() % 3) + ".fbx", 1.5f);
+							FireMP7();
+						}
+					}
+				}
 			}
 		}
-	}*/
+
+
+		if (m_ADSState == ADSState::NOT_ADS)
+		{
+			// Return to idle
+			if (m_HUD_Weapon.AnimationIsComplete()) {
+				if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::FIRING ||
+					m_HUDWeaponAnimationState == HUDWeaponAnimationState::EQUIPPING ||
+					m_HUDWeaponAnimationState == HUDWeaponAnimationState::RELOADING)
+				{
+					m_HUD_Weapon.PlayAndLoopAnimation("MP7_idle.fbx");
+					m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
+				}
+			}
+
+			// Walking/idle
+			if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::IDLE)
+			{
+				if (IsMoving())
+					m_HUD_Weapon.PlayAndLoopAnimation("MP7_walk.fbx");
+				else
+					m_HUD_Weapon.PlayAndLoopAnimation("MP7_idle.fbx");
+			}
+
+			// Fire
+			if (PressingFire())
+			{
+				if (GetCurrentGunAmmoInClip() > 0)
+				{
+					if (m_HUDWeaponAnimationState != HUDWeaponAnimationState::RELOADING ||
+						m_HUDWeaponAnimationState == HUDWeaponAnimationState::RELOADING && m_HUD_Weapon.AnimationIsPastPercentage(85))
+					{
+						bool stillFiring = false;
+						if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::FIRING && m_HUD_Weapon.GetCurrentAnimationTime() < 0.1025)
+							stillFiring = true;
+
+						if (!stillFiring)
+						{
+							m_HUDWeaponAnimationState = HUDWeaponAnimationState::FIRING;
+							m_HUD_Weapon.PlayAnimation("MP7_fire_" + std::to_string(rand() % 3) + ".fbx", 1.5f);
+							FireMP7();
+						}
+					}
+				}
+			}
+
+			// Reload
+			if (PressedReload()
+				&& m_HUDWeaponAnimationState != HUDWeaponAnimationState::RELOADING
+				&& m_ammo_mp7_in_clip != m_clip_size_mp7
+				&& m_ammo_mp7_total > 0
+				)
+			{
+				if (m_ammo_mp7_in_clip == 0)
+					m_HUD_Weapon.PlayAnimation("MP7_reload_empty.fbx", 1.25f);
+				else
+					m_HUD_Weapon.PlayAnimation("MP7_reload.fbx", 1.25f);
+
+				m_HUDWeaponAnimationState = HUDWeaponAnimationState::RELOADING;
+				Audio::PlayAudio("Glock_Reload.wav", 0.5f);
+
+				unsigned int ammo_to_add = std::min(m_clip_size_mp7 - m_ammo_mp7_in_clip, m_ammo_mp7_total);
+				m_ammo_mp7_in_clip += ammo_to_add;
+				m_ammo_mp7_total -= ammo_to_add;
+			}
+		}
+	}
+
+
+
+
 
 	if (m_gun == Gun::SHOTGUN) {
 
@@ -1629,7 +2165,11 @@ void Player::CheckForWeaponInput()
 			&& m_ammo_glock_in_clip != m_clip_size_glock
 			&& m_ammo_glock_total > 0)
 		{
-			m_HUD_Weapon.PlayAnimation("Glock_Reload.fbx");
+			if (m_ammo_glock_in_clip == 0)
+				m_HUD_Weapon.PlayAnimation("Glock_ReloadEmpty.fbx");
+			else
+				m_HUD_Weapon.PlayAnimation("Glock_Reload.fbx");
+
 			m_HUDWeaponAnimationState = HUDWeaponAnimationState::RELOADING;
 			Audio::PlayAudio("Glock_Reload.wav", 0.5f);
 
@@ -1692,7 +2232,7 @@ bool IsPlayer(Player* t) { return true; }*/
 void Player::FireGlock()
 {
 	m_ammo_glock_in_clip--;
-	FireBullet(0, 1500);
+	FireBullet(m_camera.m_Front, 1500);
 
 	std::string file = "Glock_Fire_" + std::to_string(rand() % 3) + ".wav";
 	Audio::PlayAudio(file.c_str(), 0.5f);
@@ -1702,10 +2242,86 @@ void Player::FireShotgun()
 {
 	m_ammo_shotgun_in_clip--;
 	
-	for (int i=0; i<12;i++)
-		FireBullet(0.125f, 1500);
+	for (int i = 0; i < 12; i++) {
+
+		float variance = 0.125f;
+		glm::vec3 direction = m_camera.m_Front;;
+		direction.x += (variance * 0.5f) - Util::RandomFloat(0, variance);
+		direction.y += (variance * 0.5f) - Util::RandomFloat(0, variance);
+		direction.z += (variance * 0.5f) - Util::RandomFloat(0, variance);
+		FireBullet(direction, 1500);
+	}
 
 	Audio::PlayAudio("Shotgun_Fire_01.wav", 0.75f);
+}
+
+void Player::FireMP7()
+{
+	std::string file = "MP7_Fire_" + std::to_string(rand() % 1) + ".wav";
+	Audio::PlayAudio(file.c_str(), 0.5f);
+
+	float currentTime = CoreGL::GetFrameTime();
+	float recoilResetTime = 100.000f;
+
+	/*if (currentTime - m_lastShotTime >= recoilResetTime) {
+		m_currentRecoilIndex = 0;
+	}
+	else*/
+		m_currentRecoilIndex++;
+
+	// Wrap
+	//if (m_currentRecoilIndex >= 5)
+	//	m_currentRecoilIndex = 0;
+
+	glm::vec3 gunRotationOffset[5] = {
+		glm::vec3(0.005f, 0, 0),
+		glm::vec3(0.005f, 0.0125, 0),
+		glm::vec3(0.005f, 0, 0),
+		glm::vec3(0.005f, 0, 0),
+		glm::vec3(0.005f, -0.0125, 0),
+	};
+
+	m_camera.m_swayTransform.rotation += gunRotationOffset[m_currentRecoilIndex % 5];
+
+
+	m_ammo_mp7_in_clip--;
+
+	glm::vec3 offsetDirection = m_camera.m_swayTransform.rotation;
+
+	glm::vec3 recoilOffest[20] = {
+	glm::vec3(0.000f, 0, 0),
+	glm::vec3(0.004f, -0.0015, 0),
+	glm::vec3(0.004f, -0.0012, 0),
+	glm::vec3(0.004f, -0.0011, 0),
+	glm::vec3(0.006f, -0.0015, 0),
+	glm::vec3(0.007f, -0.0019, 0),
+	glm::vec3(0.008f, -0.0017, 0),
+	glm::vec3(0.008f, -0.0029, 0),
+	glm::vec3(0.007f, -0.0019, 0),
+	glm::vec3(0.008f, -0.0024, 0),
+	glm::vec3(0.008f, -0.0029, 0),
+	glm::vec3(0.002f, 0.0020, 0),
+	glm::vec3(0.001f, 0.0061, 0),
+	glm::vec3(0.001f, 0.0063, 0),
+	glm::vec3(0.001f, 0.0065, 0),
+	glm::vec3(0.006f, -0.0121, 0),
+	glm::vec3(0.007f, -0.0015, 0),
+	glm::vec3(0.008f, -0.0025, 0),
+	glm::vec3(0.009f, -0.0026, 0),
+	};
+
+	m_recoilOffsetTransform.rotation += recoilOffest[m_currentRecoilIndex];
+
+	glm::mat4 viewMatrix = glm::inverse(m_camera.m_transform.to_mat4() * m_recoilOffsetTransform.to_mat4());
+	glm::mat4 inverseViewMatrix = glm::inverse(viewMatrix);
+	glm::vec3 direction = glm::vec3(inverseViewMatrix[2]) * glm::vec3(-1, -1, -1);
+
+	FireBullet(direction, 1500);
+	SpawnMP7Casing();
+	SpawnMuzzleFlash();
+
+
+	m_lastShotTime = currentTime;
 }
 
 void Player::SpawnGlockCasing()
@@ -1735,6 +2351,19 @@ void Player::SpawnShotgunShell()
 }
 
 
+void Player::SpawnMP7Casing()
+{
+	Transform t;
+	t.position = GetCasingSpawnLocation();
+	t.rotation = m_camera.m_transform.rotation;
+
+	glm::vec3 initialVelocity;
+	glm::vec3 up = m_camera.m_Up * Util::RandomFloat(1, 1.75f);
+	initialVelocity = glm::normalize(up + (m_camera.m_Right * glm::vec3(2.0f)));
+	initialVelocity *= glm::vec3(5.0f);
+	GameData::s_bulletCasings.push_back(BulletCasing(t, initialVelocity, BulletCasing::CasingType::GLOCK_CASING));
+}
+
 void Player::SetControlsToDefaultPS4Controls()
 {
 	m_controls.WALK_FORWARD =	HELL_PS_4_CONTROLLER_DPAD_UP;
@@ -1743,11 +2372,12 @@ void Player::SetControlsToDefaultPS4Controls()
 	m_controls.WALK_RIGHT =		HELL_PS_4_CONTROLLER_DPAD_RIGHT;
 	m_controls.INTERACT =		HELL_PS_4_CONTROLLER_TRIANGLE;
 	m_controls.RELOAD =			HELL_PS_4_CONTROLLER_SQUARE;
-	m_controls.FIRE =			HELL_PS_4_CONTROLLER_R2;// HELL_PS_4_HELL_PS_4_CONTROLLER_TRIGGER_R;
-	m_controls.JUMP =			HELL_PS_4_CONTROLLER_L1;
-	m_controls.CROUCH = HELL_PS_4_CONTROLLER_L2;// HELL_PS_4_CONTROLLER_TRIGGER_L;
-	m_controls.NEXT_WEAPON = HELL_PS_4_CONTROLLER_CROSS;
-	m_controls.MELEE = HELL_PS_4_CONTROLLER_R3;
+	m_controls.FIRE =			HELL_PS_4_CONTROLLER_R2;
+	m_controls.ADS =			HELL_PS_4_CONTROLLER_R1;// HELL_PS_4_HELL_PS_4_CONTROLLER_TRIGGER_R;
+	m_controls.JUMP =			HELL_PS_4_CONTROLLER_CROSS;// HELL_PS_4_CONTROLLER_L1;
+	m_controls.CROUCH =			HELL_PS_4_CONTROLLER_L2;// HELL_PS_4_CONTROLLER_TRIGGER_L;
+	m_controls.NEXT_WEAPON =	HELL_PS_4_CONTROLLER_CIRCLE;// CROSS;
+	m_controls.MELEE =			HELL_PS_4_CONTROLLER_R3;
 }
 
 void Player::SetControlsToDefaultXBoxControls()
@@ -1756,12 +2386,12 @@ void Player::SetControlsToDefaultXBoxControls()
 	m_controls.WALK_BACKWARD = HELL_XBOX_CONTROLLER_DPAD_DOWN;
 	m_controls.WALK_LEFT = HELL_XBOX_CONTROLLER_DPAD_LEFT;
 	m_controls.WALK_RIGHT = HELL_XBOX_CONTROLLER_DPAD_RIGHT;
-	m_controls.INTERACT = HELL_XBOX_CONTROLLER_L1;
+	m_controls.INTERACT = HELL_XBOX_CONTROLLER_Y;// HELL_XBOX_CONTROLLER_L1;
 	m_controls.RELOAD = HELL_XBOX_CONTROLLER_X;
 	m_controls.FIRE = HELL_XBOX_CONTROLLER_TRIGGER_R;
-	m_controls.JUMP = HELL_XBOX_CONTROLLER_TRIGGER_L;
-	m_controls.CROUCH = HELL_XBOX_CONTROLLER_B;
-	m_controls.NEXT_WEAPON = HELL_XBOX_CONTROLLER_Y; 
+	m_controls.JUMP = HELL_XBOX_CONTROLLER_L1;// HELL_XBOX_CONTROLLER_A;// HELL_XBOX_CONTROLLER_TRIGGER_L;
+	m_controls.CROUCH = HELL_XBOX_CONTROLLER_TRIGGER_L;// HELL_XBOX_CONTROLLER_B;
+	m_controls.NEXT_WEAPON = HELL_XBOX_CONTROLLER_A;// HELL_XBOX_CONTROLLER_Y;
 	m_controls.MELEE = HELL_XBOX_CONTROLLER_R3; 
 }
 
@@ -1877,6 +2507,19 @@ void Player::RenderCharacterModel(Shader* shader)
 }
 
 
+
+void Player::RenderWeaponModel(Shader* shader)
+{
+	Transform adsTransform;
+	adsTransform.position = m_ADSOffset;
+
+	// remove weaponsway if scoping mp7
+	if (PressingADS() && m_gun == Gun::MP7)
+		m_camera.m_swayTransform = Transform();
+
+	glm::mat4 modelMatrix = m_camera.m_swayTransform.to_mat4() * adsTransform.to_mat4();
+	m_HUD_Weapon.Render(shader, modelMatrix);
+}
 
 void Player::SetCharacterModel(SkinnedModel* skinnedModel)
 {
