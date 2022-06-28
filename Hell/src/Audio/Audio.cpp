@@ -32,8 +32,14 @@ void Audio::Init()
 	Audio::LoadAudio("Glock_ReloadFromEmpty.wav");
 	Audio::LoadAudio("Glock_DryFire.wav");
 	Audio::LoadAudio("Glock_Equip.wav");
-	Audio::LoadAudio("MP7_Fire_0.wav");
-	Audio::LoadAudio("MP7_Fire_1.wav");
+
+	Audio::LoadAudio("WPN_MP7_Fire_01.wav");
+	Audio::LoadAudio("WPN_MP7_Fire_02.wav");
+	Audio::LoadAudio("WPN_MP7_Fire_03.wav");
+	Audio::LoadAudio("WPN_MP7_Fire_04.wav");
+	Audio::LoadAudio("WPNFLY_MP7_Reload_Empty.wav");
+	Audio::LoadAudio("WPNFLY_MP7_Reload_Partial.wav");
+
 	Audio::LoadAudio("FLY_Bullet_Impact_Flesh_01.wav");
 	Audio::LoadAudio("FLY_Bullet_Impact_Flesh_02.wav");
 	Audio::LoadAudio("FLY_Bullet_Impact_Flesh_03.wav");
@@ -60,7 +66,6 @@ void Audio::Init()
 	Audio::LoadAudio("Door_Latch.wav");
 	Audio::LoadAudio("Shotgun_Fire_01.wav");
 	Audio::LoadAudio("Knife.wav");
-	
 	//Audio::LoadAudio("Music.wav");
 
 	Audio::LoadAudio("Music.wav");

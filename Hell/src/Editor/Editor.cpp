@@ -184,14 +184,33 @@ glm::vec3 Editor::GetMousePosVec3()
     return glm::vec3(s_mouseX, 0, s_mouseZ);
 }
 
+
+void Editor::ClearMap()
+{
+    GameData::Clear();
+}
+
+void Editor::CreateLight(float x, float z)
+{
+    GameData::AddLight(glm::vec3(x, 2.2f, z), DEFAULT_LIGHT_COLOR, 4, 10, 0.1, 0);
+}
+
+
 void Editor::Update(float screenWidth, float screenHeight)
 {
 
-    if (Input::s_keyDown[HELL_KEY_P])
+    if (Input::s_keyPressed[HELL_KEY_P])
         File::SaveMap("Map.json");
 
-    if (Input::s_keyDown[HELL_KEY_N])
-        GameData::Clear();
+    if (Input::s_keyPressed[HELL_KEY_O])
+        File::LoadMap("Map.json");
+
+    if (Input::s_keyPressed[HELL_KEY_N])
+        ClearMap();
+
+    if (Input::s_keyPressed[HELL_KEY_L])
+        CreateLight(s_gridX, s_gridZ);
+        
 
     if (Input::s_keyDown[HELL_KEY_W])
         s_cameraZ -= s_scrollSpeed;
@@ -213,6 +232,19 @@ void Editor::Update(float screenWidth, float screenHeight)
     // Round mouse position to the nearest grid square
     s_gridX = (int)std::round(s_mouseX * 10) / 10.0f;
     s_gridZ = (int)std::round(s_mouseZ * 10) / 10.0f;
+
+
+    // Are they pressing shift while creating a room? then snap the current vertex
+    if (Input::KeyDown(HELL_KEY_LEFT_SHIFT_GLFW) && s_editorAction == Action::CREATING_ROOM && s_newRoomVertices.size() >= 1)
+    {
+        glm::vec3* previousVert = &s_newRoomVertices[s_newRoomVertices.size() - 1];
+
+        if (abs(previousVert->x - s_gridX) < abs(previousVert->z - s_gridZ))
+            s_gridX = previousVert->x;
+        else
+
+            s_gridZ = previousVert->z;
+    }
 
     // Drag timer
     s_dragTime++;
@@ -312,7 +344,18 @@ void Editor::Update(float screenWidth, float screenHeight)
         ResetEditorState();
     }*/
 
+    // Mirror doors and windows
+    if (Input::KeyPressed(HELL_KEY_R) && s_selectedState == SelectedState::DOOR_SELECTED) {
+        Door* door = (Door*)s_selectedObject;
+        door->Rotate180();
+    }
 
+    // Scroll door/window types
+    if (Input::KeyPressed(HELL_KEY_V) && s_selectedState == SelectedState::DOOR_SELECTED) {        
+        Door* door = (Door*)s_selectedObject;
+        door->NextType();
+        RebuildAllMeshData();
+    }
 
     // Selected (and drag vertex)
     if (Input::LeftMousePressed())
@@ -516,6 +559,8 @@ void Editor::Update(float screenWidth, float screenHeight)
             s_editorAction = Action::IDLE;
         }
     }
+
+
 }
 
 void Editor::Render(float screenWidth, float screenHeight)
@@ -577,6 +622,25 @@ void Editor::Render(float screenWidth, float screenHeight)
         entityStatic.DrawEntity(shader);
 
 
+	// Draw light icons
+    shader = &Renderer::s_textued_2D_quad_shader;
+	shader->use();
+	shader->setMat4("proj", proj);
+	shader->setMat4("view", view);
+	for (auto& light : GameData::s_lights) {
+        Transform trans;
+        trans.position = light.m_position;
+        trans.position.y = 4.0f;
+        trans.scale - glm::vec3(0.1f);
+        glDisable(GL_CULL_FACE);
+		
+        glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, AssetManager::GetTexturePtr("Light_Icon.png")->ID);
+        
+        Util::DrawUpFacingPlane(shader, trans.to_mat4());
+	}
+
+
     ///
     /// S O L I D   C O L O R
     ///
@@ -590,6 +654,12 @@ void Editor::Render(float screenWidth, float screenHeight)
 
     glDisable(GL_DEPTH_TEST);
     glLineWidth(3);
+
+
+
+    for (auto& light : GameData::s_lights) {
+        Renderer::DrawPoint(shader, light.m_position, glm::vec3(1, 0, 0));
+    }
 
     // Render the vertices and lines for all existing rooms 
     for (Room& room : GameData::s_rooms)
@@ -767,7 +837,11 @@ void Editor::SubmitBlitterText()
     TextBlitter::BlitLine("Mouse pos: " + Util::FloatToString(s_mouseX, 3) + ", " + Util::FloatToString(s_mouseZ, 3));
     TextBlitter::BlitLine("Grid Pos:  " + Util::FloatToString(s_gridX, 1) + ", " + Util::FloatToString(s_gridZ, 1));
     TextBlitter::BlitLine(" ");
-   // TextBlitter::BlitLine("New room verts: " + std::to_string(Editor::s_newRoom.m_vertices.size()));
+
+    TextBlitter::BlitLine("Door count:  " + std::to_string(GameData::s_doors.size()));
+    TextBlitter::BlitLine("Light count: " + std::to_string(GameData::s_lights.size()));
+
+    // TextBlitter::BlitLine("New room verts: " + std::to_string(Editor::s_newRoom.m_vertices.size()));
 
    /* if (GameData::s_rooms.size() > 0)
         TextBlitter::BlitLine("Sum of edges: " + std::to_string(GameData::s_rooms[0].m_sumOfEdges));
@@ -894,6 +968,7 @@ void Editor::DragSelectedVertex()
         }
     }*/
 
+
     static_cast<glm::vec3*>(s_draggedObject)->x = s_gridX;
     static_cast<glm::vec3*>(s_draggedObject)->z = s_gridZ;
 
@@ -954,6 +1029,16 @@ void Editor::DeleteSelectedVertex()
                     room.DeleteAllData();
                     GameData::s_rooms.erase(GameData::s_rooms.begin() + r);
                     s_selectedState = SelectedState::IDLE;
+
+                    // Many doors may now need their m_parentRoomIndex shifted, and if the door belongs to this room then delete it.
+                    for (Door& door : GameData::s_doors) {
+                        //if (door.m_parentRoomIndex = r)
+                        //    GameData::s_doors.erase(std::remove(GameData::s_doors.begin(), GameData::s_doors.end(), door), GameData::s_doors.end());
+
+                        if (door.m_parentRoomIndex > r)
+                            door.m_parentRoomIndex--;
+                    }
+
                     return;
                 }            
                 // Otherwise remove the single vertex
@@ -968,21 +1053,23 @@ void Editor::DeleteSelectedVertex()
                     for (auto d = 0; d < GameData::s_doors.size(); d++)
                     {
                         Door* door = &GameData::s_doors[d];
-
-                        // Check if deleting this vertex needs to remove this door
-                        if (door->m_parentIndexVertexA == v || door->m_parentIndexVertexB == v) {
-                            GameData::s_doors.erase(GameData::s_doors.begin() + d);
-                            d--;
-                        }
-
-                        // Check if any doors need their parent vertex indices shifted
-                        Room* parentRoom = &GameData::s_rooms[door->m_parentRoomIndex];
-                        if (parentRoom == &GameData::s_rooms[r])
+                        if (door->m_parentRoomIndex == r) 
                         {
-                            if (v < door->m_parentIndexVertexA)
-                                door->m_parentIndexVertexA--;
-                            if (v < door->m_parentIndexVertexB)
-                                door->m_parentIndexVertexB--;
+                            // Check if deleting this vertex needs to remove this door
+                            if (door->m_parentIndexVertexA == v || door->m_parentIndexVertexB == v) {
+                                GameData::s_doors.erase(GameData::s_doors.begin() + d);
+                                d--;
+                            }
+
+                            // Check if any doors need their parent vertex indices shifted
+                            Room* parentRoom = &GameData::s_rooms[door->m_parentRoomIndex];
+                            if (parentRoom == &GameData::s_rooms[r])
+                            {
+                                if (v < door->m_parentIndexVertexA)
+                                    door->m_parentIndexVertexA--;
+                                if (v < door->m_parentIndexVertexB)
+                                    door->m_parentIndexVertexB--;
+                            }
                         }
                     }
 
@@ -1104,7 +1191,11 @@ void Editor::ReCalculateAllDoorPositions()
 
        door.m_transform.rotation.y = -theta_radians;
 
-       
+     /*  if (door.m_mirror) {
+           door.m_transform.rotation.y += HELL_PI;
+           door.m_OffsetTransform.position.z *= -1;
+       }
+       */
        if (door.m_rigid != nullptr)
            door.RemoveCollisionObject();
 
@@ -1136,7 +1227,7 @@ void Editor::PlaceDoorAtMousePos()
                 GameData::s_doors.push_back(Door());
                 Door* door = &GameData::s_doors.back();
 
-                // Find rookm index
+                // Find room index
                 for (int r = 0; r < GameData::s_rooms.size(); r++) {
                     if (&GameData::s_rooms[r] == s_hoveredLine.room)
                         door->m_parentRoomIndex = r;
@@ -1144,8 +1235,17 @@ void Editor::PlaceDoorAtMousePos()
 
                 // Now set the other shit
                 door->m_transform.position = GetClosestPointFromMouseToHoveredLine();
-                door->m_parentIndexVertexA = s_hoveredLine.vertIndex1;
-                door->m_parentIndexVertexB = s_hoveredLine.vertIndex2;
+
+                // Set the right vertices, the is used to offset the door on the wall normal the correct direction
+                Room* room = &GameData::s_rooms[door->m_parentRoomIndex];
+                if (room->m_sumOfEdges > 0) {
+                    door->m_parentIndexVertexA = s_hoveredLine.vertIndex1;
+                    door->m_parentIndexVertexB = s_hoveredLine.vertIndex2;
+                }
+                else {
+                    door->m_parentIndexVertexA = s_hoveredLine.vertIndex2;
+                    door->m_parentIndexVertexB = s_hoveredLine.vertIndex1;
+                }
             }
 
     ResetSelectedAndDragStates();

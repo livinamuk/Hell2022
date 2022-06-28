@@ -38,7 +38,7 @@ public: // methods
 	enum class ShotgunReloadState { NOT_RELOADING, FROM_IDLE, SINGLE_RELOAD, DOUBLE_RELOAD, BACK_TO_IDLE };
 	enum class ADSState { NOT_ADS, IDLE_TO_ADS, ADS, ADS_TO_IDLE};
 
-	void Create(glm::vec3 position);
+	void Create(glm::vec3 position, int materialID);
 
 	//void Update(float deltaTime);
 	void Interact();
@@ -46,15 +46,12 @@ public: // methods
 	void Update(float deltaTime);
 	void Respawn();
 	void FireCameraRay();
-	//void FireBulletRay(float variance);
-	void FireBulletRay(glm::vec3 unitDir);
 	void CheckForWeaponInput();
 	void UpdateMovement(float deltaTime);
 	void UpdateAiming();
 	void SetPosition(glm::vec3 position);
 	glm::vec3 GetPosition();
 	glm::vec3 GetRotation();
-	//glm::vec3 GetViewPos();
 	Camera* GetCameraPointer();
 	bool IsMoving();
 	bool IsCrouched();
@@ -108,12 +105,9 @@ public: // methods
 
 	void UpdatePlayerModelAnimation(float deltaTime);
 
-	void CreatePoormansCharacterController();
 
 	int GetCurrentGunAmmoInClip();
 	int GetCurrentGunTotalAmmo();
-
-	void FireBullet(glm::vec3 direction, float force);
 
 	void CalculateViewMatrices();
 	glm::vec3 GetViewPosition();
@@ -130,6 +124,8 @@ public: // methods
 
 	void CheckForEmptyGlock();
 	void CalculateADSOffestAndFOV(float deltatime);
+	bool IsMP7NotReloadingOrReadyToCancelReload();
+	bool MP7IsInADS();
 
 private:
 
@@ -140,7 +136,8 @@ public: // fields
 
 	int m_mouseIndex = -1;
 	int m_keyboardIndex = -1;
-	
+	int m_playerIndex = -1;
+
 	bool m_isCrouching = false;
 	bool m_hasHitFloorYet = false;
 	void HitFloor();
@@ -223,6 +220,7 @@ public:
 	int m_controllerIndex = -1;
 	Ragdoll m_ragdoll;
 	bool m_isAlive = true;
+	bool m_exists = false;
 	float m_timeSinceDeath = 0;
 	int m_materialIndex = 0;
 

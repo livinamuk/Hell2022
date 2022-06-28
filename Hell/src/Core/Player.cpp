@@ -8,9 +8,18 @@
 #include "Core/GameData.h"
 #include "Core/CoreGL.h"
 
-void Player::Create(glm::vec3 position)
+void Player::Create(glm::vec3 position, int materialID)
 {
+	m_exists = true;
+	SetPosition(position);
+	m_materialIndex = materialID;
 
+	SetCharacterModel(AssetManager::GetSkinnedModelPtr("Nurse")); 
+	m_currentWeaponSkinnedModel = (AssetManager::GetSkinnedModelPtr("Glock"));
+	m_ragdoll.BuildFromJsonFile("ragdoll.json", this->GetPosition(), this, PhysicsObjectType::PLAYER_RAGDOLL);
+	m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Glock"));
+	m_character_model.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Nurse"));
+	CreateCharacterController();
 }
 
 void Player::Interact()
@@ -189,54 +198,6 @@ void Player::FireCameraRay()
 	}
 }
 
-/*void Player::FireBulletRay(float variance)
-{
-	// First omit the player ragdoll from it's own raycast
-	for (RigidComponent& rigid : m_ragdoll.m_rigidComponents) {
-		PxShape* shape = PhysX::GetShapeFromPxRigidDynamic(rigid.pxRigidBody);
-		PhysX::DisableRayCastingForShape(shape);
-	}
-
-	// Cast ray
-	glm::vec3 origin = glm::vec3(m_transform.position.x, m_transform.position.y + m_cameraViewHeight, m_transform.position.z);
-	glm::vec3 unitDir = m_camera.m_Front;
-
-	// Add variance
-	unitDir.x += (variance * 0.5f) - Util::RandomFloat(0, variance);
-	unitDir.y += (variance * 0.5f) - Util::RandomFloat(0, variance);
-	unitDir.z += (variance * 0.5f) - Util::RandomFloat(0, variance);
-	unitDir = glm::normalize(unitDir);
-	
-	float distance = 100;
-	m_bulletRay.CastRay(origin, unitDir, distance);
-
-	// Renable raycasting for the ragdoll
-	for (RigidComponent& rigid : m_ragdoll.m_rigidComponents) {
-		PxShape* shape = PhysX::GetShapeFromPxRigidDynamic(rigid.pxRigidBody);
-		PhysX::EnableRayCastingForShape(shape);
-	}
-}*/
-
-void Player::FireBulletRay(glm::vec3 unitDir)
-{
-	// First omit the player ragdoll from it's own raycast
-	for (RigidComponent& rigid : m_ragdoll.m_rigidComponents) {
-		PxShape* shape = PhysX::GetShapeFromPxRigidDynamic(rigid.pxRigidBody);
-		PhysX::DisableRayCastingForShape(shape);
-	}
-
-	// Cast ray
-	glm::vec3 origin = glm::vec3(m_transform.position.x, m_transform.position.y + m_cameraViewHeight, m_transform.position.z);
-
-	float distance = 100;
-	m_bulletRay.CastRay(origin, unitDir, distance);
-
-	// Renable raycasting for the ragdoll
-	for (RigidComponent& rigid : m_ragdoll.m_rigidComponents) {
-		PxShape* shape = PhysX::GetShapeFromPxRigidDynamic(rigid.pxRigidBody);
-		PhysX::EnableRayCastingForShape(shape);
-	}
-}
 
 #define WALKING_SPEED 3.5f
 #define CROUCHING_SPEED 2.125f
@@ -456,7 +417,7 @@ void Player::UpdateAiming()
 		// Apply actual trigger position to the camera
 		float mouseSensitivity = 50.0f;
 
-		if (PressingADS())
+		if (m_ADSState == ADSState::ADS || m_ADSState == ADSState::ADS_TO_IDLE || m_ADSState == ADSState::IDLE_TO_ADS)
 			mouseSensitivity = 12.5f;
 
 		float xoffset = Input::GetMouseXOffset(m_mouseIndex) * (mouseSensitivity / 10000.0f);
@@ -1087,36 +1048,7 @@ void Player::UpdatePlayerModelAnimation(float deltaTime)
 
 
 
-void Player::CreatePoormansCharacterController()
-{
-	return;
 
-	// Sphere size
-	float radius = 0.25f;
-
-	// Spawn location
-	Transform spawnTransform = m_transform;
-	spawnTransform.position += radius + 0.05;
-	PxMat44 spawnMatrix = Util::GlmMat4ToPxMat44(m_transform.to_mat4());
-
-	// Create rigid
-	m_rigid = PhysX::GetPhysics()->createRigidDynamic(PxTransform(spawnMatrix));
-	m_rigid->setSolverIterationCounts(8, 1);
-	m_rigid->setName("PLAYER_SPHERE");
-	m_rigid->userData = new EntityData(PhysicsObjectType::UNDEFINED, this);
-
-
-	// Create and attach shape
-	auto* material = PhysX::GetDefaultMaterial();
-	PxSphereGeometry geometry = PxSphereGeometry(radius);
-	PxShape* shape = PxRigidActorExt::createExclusiveShape(*m_rigid, geometry, *material);
-
-	// Add to scene
-	PxScene* scene = PhysX::GetScene();
-	scene->addActor(*m_rigid);
-	float mass = 1;
-	PxRigidBodyExt::setMassAndUpdateInertia(*m_rigid, mass);
-}
 
 int Player::GetCurrentGunAmmoInClip()
 {
@@ -1140,7 +1072,7 @@ int Player::GetCurrentGunTotalAmmo()
 	return -1;
 }
 
-void Player::FireBullet(glm::vec3 direction, float bulletForce)
+/*void Player::FireBullet(glm::vec3 direction, float bulletForce)
 {
 	bool bodyHit = false;
 	bool headHit = false;
@@ -1270,7 +1202,7 @@ void Player::FireBullet(glm::vec3 direction, float bulletForce)
 		glm::vec3 front = m_camera.m_Front * glm::vec3(-1);
 		GameData::CreateVolumetricBlood(position, rotation, front);
 	}
-}
+}*/
 
 void Player::CalculateViewMatrices()
 {
@@ -1438,163 +1370,6 @@ void Player::CheckForKnifeHit()
 				}
 			}
 		}
-		return;
-	}
-	
-
-	// CORPSE SHIT
-	FireBulletRay(m_cameraRay.m_rayDirection); // hit the new ragdoll
-	if (m_cameraRay.HitFound())
-	{
-		if (m_bulletRay.m_hitObjectName == "RAGDOLL" || m_bulletRay.m_hitObjectName == "RAGDOLL_HEAD")
-		{
-			PxVec3 force = PxVec3(m_camera.m_Front.x, m_camera.m_Front.y, m_camera.m_Front.z) * 1500;
-			PxRigidDynamic* actor = (PxRigidDynamic*)m_bulletRay.m_hitActor;
-			actor->addForce(force);
-		}
-		else
-			return;
-
-
-		float distance = glm::length(m_cameraRay.m_hitPosition - GetViewPosition());
-
-		if (distance < 2 && !otherPlayer->m_isAlive)
-		{
-			// Play regular audio
-			std::string file = "FLY_Bullet_Impact_Flesh_0" + std::to_string(rand() % 8 + 1) + ".wav";
-			Audio::PlayAudio(file.c_str(), 0.5f);
-
-			static int counter = 0;
-			int type = counter;
-			Transform transform;
-			transform.position.x = m_cameraRay.m_hitPosition.x;
-			transform.position.y = 0.01f;
-			transform.position.z = m_cameraRay.m_hitPosition.z;
-			transform.rotation.y = m_camera.m_transform.rotation.y + HELL_PI;
-
-			GameData::s_bloodDecals.push_back(BloodDecal(transform, type));
-			BloodDecal* decal = &GameData::s_bloodDecals.back();
-
-			counter++;
-			if (counter > 3)
-				counter = 0;
-
-			// create volumetric blood
-			glm::vec3 position = m_cameraRay.m_hitPosition;
-			glm::vec3 rotation = m_camera.m_transform.rotation;
-			glm::vec3 front = m_camera.m_Front * glm::vec3(-1);
-			GameData::CreateVolumetricBlood(position, rotation, front);
-		}
-	}
-
-
-
-
-
-
-
-	return;
-
-	if (m_cameraRay.HitFound())
-	{
-		if (m_cameraRay.m_hitObjectName == "RAGDOLL" || m_cameraRay.m_hitObjectName == "RAGDOLL_HEAD")
-		{	
-				
-
-			PxRigidDynamic* actor = (PxRigidDynamic*)m_cameraRay.m_hitActor;
-			EntityData* physicsData = (EntityData*)actor->userData;
-			
-
-			// Subtract health
-			if (physicsData->parent)
-			{
-				Player* player = (Player*)physicsData->parent;
-
-				float distance = glm::length(m_cameraRay.m_hitPosition - GetViewPosition());
-				
-				if (distance < 2) {
-
-					static int counter = 0;
-					int type = counter;
-					Transform transform;
-					transform.position.x = m_cameraRay.m_hitPosition.x;
-					transform.position.y = 0.01f;
-					transform.position.z = m_cameraRay.m_hitPosition.z;
-					transform.rotation.y = m_camera.m_transform.rotation.y + HELL_PI;
-
-					GameData::s_bloodDecals.push_back(BloodDecal(transform, type));
-					BloodDecal* decal = &GameData::s_bloodDecals.back();
-
-					counter++;
-					if (counter > 3)
-						counter = 0;
-
-					// create volumetric blood
-					glm::vec3 position = m_cameraRay.m_hitPosition;
-					glm::vec3 rotation = m_camera.m_transform.rotation;
-					glm::vec3 front = m_camera.m_Front * glm::vec3(-1);
-					GameData::CreateVolumetricBlood(position, rotation, front);
-
-
-
-
-
-					if (player->m_health > 0) {
-						player->m_health -= 34;// +rand() % 50;
-
-						// Are they dead???
-						if (player->m_health <= 0 && player->m_isAlive)
-						{
-							player->m_health = 0;
-							std::string file = "Death0.wav";
-							Audio::PlayAudio(file.c_str(), 0.45f);
-
-							player->m_isAlive = false;
-							m_killCount++;
-
-							// CREATE A RAGDOLL
-							player->SpawnCoprseRagdoll();
-
-							// enable corpse for raycasts
-							for (RigidComponent& rigid : player->m_corpse->m_ragdoll.m_rigidComponents) {
-								PxShape* shape = PhysX::GetShapeFromPxRigidDynamic(rigid.pxRigidBody);
-								PhysX::EnableRayCastingForShape(shape);
-							}
-
-							return;
-						}
-					}
-
-
-
-
-
-					// Play regular audio
-					std::string file = "FLY_Bullet_Impact_Flesh_0" + std::to_string(rand() % 8 + 1) + ".wav";
-					Audio::PlayAudio(file.c_str(), 0.5f);
-
-
-					// apply force to corpse
-					FireBulletRay(m_cameraRay.m_rayDirection); // hit the new ragdoll
-					if (m_cameraRay.HitFound())
-					{
-						if (m_bulletRay.m_hitObjectName == "RAGDOLL" || m_bulletRay.m_hitObjectName == "RAGDOLL_HEAD")
-						{
-							PxVec3 force = PxVec3(m_camera.m_Front.x, m_camera.m_Front.y, m_camera.m_Front.z) * 1500;
-							PxRigidDynamic* actor = (PxRigidDynamic*)m_bulletRay.m_hitActor;
-							actor->addForce(force);
-						}
-					}
-
-				}
-
-
-
-
-					
-			}		
-			
-		}
 	}
 }
 
@@ -1615,20 +1390,22 @@ void Player::CalculateADSOffestAndFOV(float deltatime)
 {
 	static float x = -2.38f;
 	static float y = -3.89f;
-	static float z = 0.2f;
-	
-	/*if (Input::s_keyPressed[HELL_KEY_3])
-		x += 0.01f;
+	static float z = 0.525;// 0.425f;
+
+	//	0.2f; // 0.425f
+/*
+	if (Input::s_keyPressed[HELL_KEY_3])
+		x += 5.01f;
 	if (Input::s_keyPressed[HELL_KEY_4])
-		y += 0.01f;
+		y += 5.01f;
 	if (Input::s_keyPressed[HELL_KEY_5])
-		z += 0.1f;
+		z += 5.1f;
 	if (Input::s_keyPressed[HELL_KEY_6])
-		x -= 0.01f;
+		x -= 5.01f;
 	if (Input::s_keyPressed[HELL_KEY_7])
-		y -= 0.01f;
+		y -= 5.01f;
 	if (Input::s_keyPressed[HELL_KEY_8])
-		z -= 0.1f;
+		z -= 5.1f;
 	if (Input::s_keyPressed[HELL_KEY_9])
 		m_camera.m_mp7_FOV -= 0.025f;
 	if (Input::s_keyPressed[HELL_KEY_0])
@@ -1637,15 +1414,32 @@ void Player::CalculateADSOffestAndFOV(float deltatime)
 	glm::vec3 ADSTarget = glm::vec3(0);
 	float FOVTarget = 1.0f;
 	
-	if (m_gun == Gun::MP7 && PressingADS()) {
+	if (MP7IsInADS()) {
 		ADSTarget = glm::vec3(x, y, z);
 		FOVTarget = m_camera.m_mp7_FOV;
 	}
 
-	//std::cout << m_camera.m_mp7_FOV << "\n";
+	//	std::cout << x << " " << y << " " << " " << z << ": " << m_camera.m_mp7_FOV << "\n";
 
 	m_ADSOffset = Util::Vec3InterpTo(m_ADSOffset, ADSTarget, deltatime, 25);
 	m_camera.m_fieldOfView = Util::FInterpTo(m_camera.m_fieldOfView, FOVTarget, deltatime, 15);
+}
+
+bool Player::IsMP7NotReloadingOrReadyToCancelReload()
+{
+	if (m_HUDWeaponAnimationState != HUDWeaponAnimationState::RELOADING || m_HUDWeaponAnimationState == HUDWeaponAnimationState::RELOADING && m_HUD_Weapon.AnimationIsPastPercentage(75))
+			return true;
+	return false;
+}
+
+bool Player::MP7IsInADS()
+{
+	if (m_ADSState == ADSState::ADS_TO_IDLE ||
+		m_ADSState == ADSState::ADS ||
+		m_ADSState == ADSState::IDLE_TO_ADS)
+		return true;
+	else
+		return false;
 }
 
 void Player::CheckForWeaponInput()
@@ -1681,6 +1475,7 @@ void Player::CheckForWeaponInput()
 			m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("MP7"));
 			m_HUD_Weapon.PlayAnimation("MP7_draw.fbx", 1.5f);
 		}
+		
 		else if (PressedNextWeapon() && m_gun == Gun::MP7) {
 			m_gun = Gun::KNIFE;
 			Audio::PlayAudio("Glock_Equip.wav", 0.5f);
@@ -1693,8 +1488,30 @@ void Player::CheckForWeaponInput()
 			Audio::PlayAudio("Glock_Equip.wav", 0.5f);
 			m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
 			m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Glock"));
-			m_HUD_Weapon.PlayAnimation("Glock_Equip2.fbx", 1.125f);			
+			m_HUD_Weapon.PlayAnimation("Glock_Equip2.fbx", 1.125f);
 		}
+
+		/*else if (PressedNextWeapon() && m_gun == Gun::MP7) {
+			m_gun = Gun::AXE;
+			Audio::PlayAudio("Glock_Equip.wav", 0.5f);
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
+			m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Axe"));
+			m_HUD_Weapon.PlayAnimation("Axe_Equip.fbx", 1.75f);
+		}
+		else if (PressedNextWeapon() && m_gun == Gun::AXE) {
+			m_gun = Gun::KNIFE;
+			Audio::PlayAudio("Glock_Equip.wav", 0.5f);
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
+			m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Knife"));
+			m_HUD_Weapon.PlayAnimation("Knife_Draw.fbx", 1.75f);
+		}
+		else if (PressedNextWeapon() && m_gun == Gun::KNIFE) {
+			m_gun = Gun::GLOCK;
+			Audio::PlayAudio("Glock_Equip.wav", 0.5f);
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::EQUIPPING;
+			m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Glock"));
+			m_HUD_Weapon.PlayAnimation("Glock_Equip2.fbx", 1.125f);			
+		}*/
 	
 			/*else
 				if (PressedMelee())
@@ -1711,8 +1528,8 @@ void Player::CheckForWeaponInput()
 					i++;					
 					if (i >= AssetManager::GetSkinnedModelPtr("Knife")->m_animations.size())
 					 i = 0;
-				}*/
-		//}
+				}
+		//}*/
 	}
 
 	if (m_gun == Gun::KNIFE)
@@ -1775,12 +1592,20 @@ void Player::CheckForWeaponInput()
 			m_ADSState != ADSState::ADS_TO_IDLE &&
 			m_ADSState != ADSState::ADS &&
 			m_ADSState != ADSState::IDLE_TO_ADS &&
-			m_HUDWeaponAnimationState != HUDWeaponAnimationState::RELOADING
-			) 
+			IsMP7NotReloadingOrReadyToCancelReload()) 
 		{
 			m_ADSState = ADSState::IDLE_TO_ADS;
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
 			m_HUD_Weapon.PlayAnimation("MP7_to_ads.fbx", 7.0f);
 		}
+		// Switch to ADS from reload
+		/*if (PressingADS() &&
+			m_HUD_Weapon.AnimationIsComplete() && m_HUDWeaponAnimationState == HUDWeaponAnimationState::RELOADING)
+		{
+			m_ADSState = ADSState::IDLE_TO_ADS;
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
+			m_HUD_Weapon.PlayAnimation("MP7_to_ads.fbx", 7.0f);
+		}*/
 
 		// Finished switching to ADS
 		if (m_HUD_Weapon.AnimationIsComplete() && m_ADSState == ADSState::IDLE_TO_ADS) {
@@ -1879,26 +1704,31 @@ void Player::CheckForWeaponInput()
 					}
 				}
 			}
+		}
 
-			// Reload
-			if (PressedReload()
-				&& m_HUDWeaponAnimationState != HUDWeaponAnimationState::RELOADING
-				&& m_ammo_mp7_in_clip != m_clip_size_mp7
-				&& m_ammo_mp7_total > 0
-				)
-			{
-				if (m_ammo_mp7_in_clip == 0)
-					m_HUD_Weapon.PlayAnimation("MP7_reload_empty.fbx", 1.25f);
-				else
-					m_HUD_Weapon.PlayAnimation("MP7_reload.fbx", 1.25f);
-
-				m_HUDWeaponAnimationState = HUDWeaponAnimationState::RELOADING;
-				Audio::PlayAudio("Glock_Reload.wav", 0.5f);
-
-				unsigned int ammo_to_add = std::min(m_clip_size_mp7 - m_ammo_mp7_in_clip, m_ammo_mp7_total);
-				m_ammo_mp7_in_clip += ammo_to_add;
-				m_ammo_mp7_total -= ammo_to_add;
+		// Reload
+		if (PressedReload()
+			&& m_HUDWeaponAnimationState != HUDWeaponAnimationState::RELOADING
+			&& m_ammo_mp7_in_clip != m_clip_size_mp7
+			&& m_ammo_mp7_total > 0
+			)
+		{
+			if (m_ammo_mp7_in_clip == 0) {
+				m_HUD_Weapon.PlayAnimation("MP7_reload_empty.fbx", 1.25f);
+				Audio::PlayAudio("WPNFLY_MP7_Reload_Empty.wav", 0.40f);
 			}
+			else {
+				m_HUD_Weapon.PlayAnimation("MP7_reload.fbx", 1.25f);
+				Audio::PlayAudio("WPNFLY_MP7_Reload_Partial.wav", 0.5f);
+			}
+
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::RELOADING;
+
+			unsigned int ammo_to_add = std::min(m_clip_size_mp7 - m_ammo_mp7_in_clip, m_ammo_mp7_total);
+			m_ammo_mp7_in_clip += ammo_to_add;
+			m_ammo_mp7_total -= ammo_to_add;
+
+			m_ADSState = ADSState::NOT_ADS;
 		}
 	}
 
@@ -2065,6 +1895,27 @@ void Player::CheckForWeaponInput()
 				m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
 			}
 		}
+
+		if (PressedFire())
+		{
+			static int i = 0;
+			Audio::PlayAudio("Knife.wav", 0.5f);
+			if (i == 0)
+				m_HUD_Weapon.PlayAnimation("Axe_Swing1.fbx", 1.5f);
+			if (i == 1) {
+				m_HUD_Weapon.PlayAnimation("Axe_Swing3.fbx", 1.0f);
+				i = -1;
+			}
+			if (i == 2) {
+				m_HUD_Weapon.PlayAnimation("Axe_Swing4.fbx", 1.0f);
+				i = -1;
+			}
+			i++;
+
+			CheckForKnifeHit();
+			m_HUDWeaponAnimationState = HUDWeaponAnimationState::FIRING;
+
+		}
 		/*
 		// Presses fire
 		if (PressedFire())
@@ -2187,13 +2038,6 @@ void Player::CheckForWeaponInput()
 		if (IsMoving() && m_HUDWeaponAnimationState == HUDWeaponAnimationState::IDLE) {
 			m_HUD_Weapon.PlayAndLoopAnimation("Glock_Walk.fbx");
 		}
-
-		// THIS MASKS A BUG SURELY - look into it at some point
-		if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::EQUIPPING && m_HUD_Weapon.AnimationIsPastPercentage(95))
-		{
-		//	m_HUD_Weapon.PlayAndLoopAnimation("Glock_Idle.fbx");
-		//	m_HUDWeaponAnimationState = HUDWeaponAnimationState::IDLE;
-		}
 	}
 
 
@@ -2232,8 +2076,7 @@ bool IsPlayer(Player* t) { return true; }*/
 void Player::FireGlock()
 {
 	m_ammo_glock_in_clip--;
-	FireBullet(m_camera.m_Front, 1500);
-
+	GameData::SpawnBullet(GetViewPosition(), m_camera.m_Front, 1500, 15, m_playerIndex, m_camera.m_transform.rotation);
 	std::string file = "Glock_Fire_" + std::to_string(rand() % 3) + ".wav";
 	Audio::PlayAudio(file.c_str(), 0.5f);
 }
@@ -2249,7 +2092,7 @@ void Player::FireShotgun()
 		direction.x += (variance * 0.5f) - Util::RandomFloat(0, variance);
 		direction.y += (variance * 0.5f) - Util::RandomFloat(0, variance);
 		direction.z += (variance * 0.5f) - Util::RandomFloat(0, variance);
-		FireBullet(direction, 1500);
+		GameData::SpawnBullet(GetViewPosition(), direction, 1500, 15, m_playerIndex, m_camera.m_transform.rotation);
 	}
 
 	Audio::PlayAudio("Shotgun_Fire_01.wav", 0.75f);
@@ -2257,7 +2100,7 @@ void Player::FireShotgun()
 
 void Player::FireMP7()
 {
-	std::string file = "MP7_Fire_" + std::to_string(rand() % 1) + ".wav";
+	std::string file = "WPN_MP7_Fire_0" + std::to_string((rand() % 3) + 1) + ".wav"; // 01 to 04
 	Audio::PlayAudio(file.c_str(), 0.5f);
 
 	float currentTime = CoreGL::GetFrameTime();
@@ -2313,10 +2156,16 @@ void Player::FireMP7()
 	m_recoilOffsetTransform.rotation += recoilOffest[m_currentRecoilIndex];
 
 	glm::mat4 viewMatrix = glm::inverse(m_camera.m_transform.to_mat4() * m_recoilOffsetTransform.to_mat4());
+
+	// perfect accuracy when ADS
+	if (PressingADS())
+		viewMatrix = glm::inverse(m_camera.m_transform.to_mat4());
+
 	glm::mat4 inverseViewMatrix = glm::inverse(viewMatrix);
 	glm::vec3 direction = glm::vec3(inverseViewMatrix[2]) * glm::vec3(-1, -1, -1);
 
-	FireBullet(direction, 1500);
+	GameData::SpawnBullet(GetViewPosition(), direction, 1500, 15, m_playerIndex, m_camera.m_transform.rotation);
+	//FireBullet(direction, 1500);
 	SpawnMP7Casing();
 	SpawnMuzzleFlash();
 
@@ -2510,12 +2359,17 @@ void Player::RenderCharacterModel(Shader* shader)
 
 void Player::RenderWeaponModel(Shader* shader)
 {
+	// remove offset if reloading
+	//if (m_HUDWeaponAnimationState == HUDWeaponAnimationState::RELOADING)
+	//	m_ADSOffset = glm::vec3(0);
+
 	Transform adsTransform;
 	adsTransform.position = m_ADSOffset;
 
 	// remove weaponsway if scoping mp7
-	if (PressingADS() && m_gun == Gun::MP7)
+	if (PressingADS() && MP7IsInADS()) {
 		m_camera.m_swayTransform = Transform();
+	}
 
 	glm::mat4 modelMatrix = m_camera.m_swayTransform.to_mat4() * adsTransform.to_mat4();
 	m_HUD_Weapon.Render(shader, modelMatrix);

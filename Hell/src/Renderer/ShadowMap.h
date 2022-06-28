@@ -8,7 +8,8 @@
 class ShadowMap
 {
 public: // Methods
-	void Init();
+	void Init(); 
+	void CleanUp();
 
 public: // Fields
 	unsigned int m_ID;

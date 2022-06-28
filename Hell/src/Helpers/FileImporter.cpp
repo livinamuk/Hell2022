@@ -330,7 +330,8 @@ void FileImporter::LoadAnimation(SkinnedModel* skinnedModel, const char* Filenam
     // Failed
     if (!tempAnimScene) {
         std::cout << "Could not load: " << Filename << "\n";
-        assert(0);
+        delete animation;
+        return;// assert(0);
     }
 
     // Success

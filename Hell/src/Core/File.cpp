@@ -77,15 +77,41 @@ void File::LoadMap(std::string filename)
 		for (rapidjson::SizeType i = 0; i < doors.Size(); i++)
 		{
 			GameData::s_doors.push_back(Door());
-			Door* door= &GameData::s_doors.back();
+			Door* door = &GameData::s_doors.back();
 
+			int type = 0;
+			if (door->m_type == Door::Type::WINDOW_SINGLE)
+				type = 1;
+			if (door->m_type == Door::Type::WINDOW_DOUBLE)
+				type = 0;
+
+			door->m_mirror = ReadBool(doors[i], "Mirror");
 			door->m_transform.position = ReadVec3(doors[i], "Position");
 			door->m_parentRoomIndex = ReadInt(doors[i], "Room");
 			door->m_parentIndexVertexA = ReadInt(doors[i], "Vert1");
 			door->m_parentIndexVertexB = ReadInt(doors[i], "Vert2");
+			door->m_mirror = ReadBool(doors[i], "Mirror");
+			door->m_type = static_cast<Door::Type>(ReadInt(doors[i], "Type"));
+		}
+	}
+	
+	if (document.HasMember("LIGHTS"))
+	{
+		const rapidjson::Value& lights = document["LIGHTS"];
+		for (rapidjson::SizeType i = 0; i < lights.Size(); i++)
+		{
+			glm::vec3 position = ReadVec3(lights[i], "Position");
+			glm::vec3 color = ReadVec3(lights[i], "Color");
+			float radius = ReadFloat(lights[i], "Radius");
+			float magic = ReadFloat(lights[i], "Magic");
+			float strength = ReadFloat(lights[i], "Strength");
+			float type = ReadInt(lights[i], "Type");
+
+			GameData::AddLight(position, color, radius, strength, magic, type);
 		}
 	}
 
+	GameData::FlagEnvMapsForReRendering;
 	Editor::ReCalculateAllDoorPositions();
 	Editor::RebuildAllMeshData();
 
@@ -226,7 +252,6 @@ void File::SaveMap(std::string filename)
 		roomsArray.PushBack(roomObject, allocator);
 	}
 
-	// Save doors
 	for (Door& door : GameData::s_doors)
 	{
 		rapidjson::Value object(rapidjson::kObjectType);
@@ -234,7 +259,22 @@ void File::SaveMap(std::string filename)
 		SaveInt(&object, "Room", door.m_parentRoomIndex, allocator);
 		SaveInt(&object, "Vert1", door.m_parentIndexVertexA, allocator);
 		SaveInt(&object, "Vert2", door.m_parentIndexVertexB, allocator);
+		SaveInt(&object, "Type", static_cast<unsigned int>(door.m_type), allocator);
+		SaveBool(&object, "Mirror", door.m_mirror, allocator);
+
 		doorsArray.PushBack(object, allocator);
+	}
+
+	for (Light& light: GameData::s_lights)
+	{
+		rapidjson::Value object(rapidjson::kObjectType);
+		SaveVec3(&object, "Position", light.m_position, allocator);
+		SaveVec3(&object, "Color", light.m_color, allocator);
+		SaveFloat(&object, "Radius", light.m_radius, allocator);
+		SaveFloat(&object, "Magic", light.m_magic, allocator);
+		SaveFloat(&object, "Strength", light.m_strength, allocator);
+		SaveInt(&object, "Type", light.m_modelType, allocator);
+		lightsArray.PushBack(object, allocator);
 	}
 	/*
 	* 
@@ -282,6 +322,7 @@ void File::SaveMap(std::string filename)
 	//document.AddMember("ENTITIES", entitiesArray, allocator);
 	document.AddMember("ROOMS", roomsArray, allocator);
 	document.AddMember("DOORS", doorsArray, allocator);
+	document.AddMember("LIGHTS", lightsArray, allocator);
 	//document.AddMember("LIGHTS", lightsArray, allocator);
 	//document.AddMember("STAIRCASES", staircasesArray, allocator);
 	//document.AddMember("WINDOWS", windowsArray, allocator);

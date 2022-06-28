@@ -8,6 +8,28 @@ std::unordered_map<std::string, Material> AssetManager::m_materials;
 std::unordered_map<std::string, Model> AssetManager::m_models;
 std::unordered_map<std::string, SkinnedModel*> AssetManager::m_skinnedModelPtrs;
 std::vector<FileInfo> AssetManager::s_assetFilesToLoad;
+
+void AssetManager::ClipLoadLogToScreenHeight()
+{
+	float screenHeight = 1080;
+	float lineHeight = 38;
+	float textScale = 0.75f;
+	int maxLines = screenHeight / (lineHeight * textScale);
+
+	int lineCount = 0;
+	for (int i = 0; i < AssetManager::s_loadLog.size(); i++)
+		if (AssetManager::s_loadLog[i] == '\n')
+			lineCount++;
+
+	//std::cout << "maxLines: " << maxLines << "\n";
+	//std::cout << "lineCount: " << lineCount << "\n";
+
+	if (lineCount > maxLines) {
+		int index = AssetManager::s_loadLog.find("\n");
+		AssetManager::s_loadLog = AssetManager::s_loadLog.substr(index + 1);
+	}
+}
+
 std::string AssetManager::s_loadLog;
 
 ExrTexture AssetManager::s_ExrTexture_pos;

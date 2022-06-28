@@ -321,6 +321,7 @@ void Room::BuildMeshFromVertices()
 					v2.Position = cursor + glm::vec3(0, 2.4f, 0);
 					v3.Position = intersectionPoint + glm::vec3(0, 2.4f, 0);;
 					v4.Position = intersectionPoint;
+
 					v1.Normal = glm::vec3(0, 0, 1);
 					v2.Normal = glm::vec3(0, 0, 1);
 					v3.Normal = glm::vec3(0, 0, 1);
@@ -346,15 +347,27 @@ void Room::BuildMeshFromVertices()
 					floorTrans.rotation.y = Util::YRotationBetweenTwoPoints(intersectionPoint, cursor);
 					floorTrans.scale.x = glm::distance(cursor, intersectionPoint);
 					m_floorTrimMatrices.push_back(floorTrans.to_mat4());
+
+					//finishedBuildingWall = true;
 				}
 
 				// The piece above door
 				{
 					Vertex v1, v2, v3, v4;
-					v1.Position = intersectionPoint + glm::vec3(0, 2.0f, 0);;
-					v2.Position = intersectionPoint + glm::vec3(0, 2.4f, 0);
-					v3.Position = intersectionPoint + (wallDir * (DOOR_WIDTH + 0.05f)) + glm::vec3(0, 2.4f, 0);
-					v4.Position = intersectionPoint + (wallDir * (DOOR_WIDTH + 0.05f)) + glm::vec3(0, 2.0f, 0);
+
+					float topY = 2.4f;
+					float bottomY = 2.0f;
+					float width = closestDoor->GetWidth();
+
+					// Is it a window?
+					if (closestDoor->m_type == Door::Type::WINDOW_SINGLE ||
+						closestDoor->m_type == Door::Type::WINDOW_DOUBLE)
+						bottomY = 2.1f;
+
+					v1.Position = intersectionPoint + glm::vec3(0, bottomY, 0);;
+					v2.Position = intersectionPoint + glm::vec3(0, topY, 0);
+					v3.Position = intersectionPoint + (wallDir * (width + 0.05f)) + glm::vec3(0, topY, 0);
+					v4.Position = intersectionPoint + (wallDir * (width + 0.05f)) + glm::vec3(0, bottomY, 0);
 					
 					float wallWidth = glm::length((v4.Position - v1.Position)) / 2.4f;
 					float wallHeight = glm::length((v2.Position - v1.Position)) / 2.4f;
@@ -369,8 +382,35 @@ void Room::BuildMeshFromVertices()
 						wall->AddVerticesCounterClockwise(v1, v2, v3, v4);
 				}
 
+				// The piece below (if it is a window)				
+				if (closestDoor->m_type == Door::Type::WINDOW_SINGLE || closestDoor->m_type == Door::Type::WINDOW_DOUBLE)
+				{
+					Vertex v1, v2, v3, v4;
+					float bottomY = 0.0f;
+					float topY = 0.9f;
+					float width = closestDoor->GetWidth();
+
+					v1.Position = intersectionPoint + glm::vec3(0, bottomY, 0);;
+					v2.Position = intersectionPoint + glm::vec3(0, topY, 0);
+					v3.Position = intersectionPoint + (wallDir * (width + 0.05f)) + glm::vec3(0, topY, 0);
+					v4.Position = intersectionPoint + (wallDir * (width + 0.05f)) + glm::vec3(0, bottomY, 0);
+
+					float wallWidth = glm::length((v4.Position - v1.Position)) / 2.4f;
+					float wallHeight = glm::length((v2.Position - v1.Position)) / 2.4f;
+					v1.TexCoords = glm::vec2(0, 0);
+					v2.TexCoords = glm::vec2(0, wallHeight);
+					v3.TexCoords = glm::vec2(wallWidth, wallHeight);
+					v4.TexCoords = glm::vec2(wallWidth, 0);
+
+					if (m_sumOfEdges > 0)
+						wall->AddVerticesClockwise(v1, v2, v3, v4);
+					else
+						wall->AddVerticesCounterClockwise(v1, v2, v3, v4);
+				}
+					
+
 				// This 0.05 is so you don't get an intersection with the door itself
-				cursor = intersectionPoint + (wallDir * (DOOR_WIDTH + 0.05f));
+				cursor = intersectionPoint + (wallDir * (closestDoor->GetWidth() + 0.05f));
 			}
 			// You're on the final bit of wall then aren't ya
 			else

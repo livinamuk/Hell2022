@@ -17,6 +17,7 @@ public:
 
 PxCooking* PhysX::s_Cooking;
 PhysX* PhysX::p_PhysX;
+//PxMaterial s_defaultMaterial;
 
 using namespace physx;
 
@@ -108,9 +109,8 @@ void PhysX::Init()
         pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
     }
 
-    auto mMaterial = mPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 
-    PxRigidStatic* groundPlane = PxCreatePlane(*mPhysics, PxPlane(0, 1, 0, 0), *mMaterial);
+    PxRigidStatic* groundPlane = PxCreatePlane(*mPhysics, PxPlane(0, 1, 0, 0), *GetDefaultMaterial());
     groundPlane->setName("GROUND");
     groundPlane->userData = new EntityData(PhysicsObjectType::FLOOR, nullptr);
 
@@ -445,7 +445,7 @@ PxController* PhysX::CreateCharacterController(Transform transform)
 PxRigidDynamic* PhysX::CreateBox(Transform transform, glm::vec3 velocity)
 {
     PxShape* shape;
-    const PxMaterial* gMaterial = GetDefaultMaterial();// physX.createMaterial(0.5f, 0.5f, 0.6f);
+    const PxMaterial* gMaterial = GetDefaultMaterial();
 
     glm::vec3 boxExtents = glm::vec3(0.01, 0.01, 0.1);
 
@@ -588,7 +588,12 @@ PxScene* PhysX::GetScene()
 
 PxMaterial* PhysX::GetDefaultMaterial()
 {
-    return GetPhysics()->createMaterial(0.5f, 0.5f, 0.6f);
+    static PxMaterial* defaultMaterial = nullptr;
+
+    if (defaultMaterial == nullptr)
+        defaultMaterial = GetPhysics()->createMaterial(0.5f, 0.5f, 0.6f);
+    
+    return defaultMaterial;
 }
 
 PxCooking* PhysX::GetCooking() {
@@ -626,8 +631,7 @@ void PhysX::DisableRayCastingForShape(PxShape* shape)
 
 PxRigidDynamic* PhysX::createDynamic(const PxTransform& t, const PxGeometry& geometry, const PxVec3& velocity = PxVec3(0))
 {
-    auto mMaterial = mPhysics->createMaterial(0.5f, 0.5f, 0.6f);
-    PxRigidDynamic* dynamic = PxCreateDynamic(*mPhysics, t, geometry, *mMaterial, 10.0f);
+    PxRigidDynamic* dynamic = PxCreateDynamic(*mPhysics, t, geometry, *GetDefaultMaterial(), 10.0f);
     dynamic->setAngularDamping(0.5f);
     dynamic->setLinearVelocity(velocity);
     mScene->addActor(*dynamic);

@@ -123,6 +123,8 @@
 #define HELL_KEY_MENU               348
 #define HELL_KEY_LAST               HELL_KEY_MENU
 
+#define HELL_KEY_LEFT_SHIFT_GLFW	340					// special case
+
 #define HELL_MOUSE_LEFT				350
 #define HELL_MOUSE_RIGHT			351
 

@@ -89,7 +89,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>vendor\physx\include\extensions;vendor\physx\include;vendor\rapidjson\include;vendor\stb_image;vendor;src;vendor\glm;vendor\glad\include;vendor\GLFW\include;vendor\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor\imgui;vendor\physx\include\extensions;vendor\physx\include;vendor\rapidjson\include;vendor\stb_image;vendor;src;vendor\glm;vendor\glad\include;vendor\GLFW\include;vendor\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -107,7 +107,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>vendor\physx\include\extensions;vendor\physx\include;vendor\rapidjson\include;vendor\stb_image;vendor;src;vendor\glm;vendor\glad\include;vendor\GLFW\include;vendor\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor\imgui;vendor\physx\include\extensions;vendor\physx\include;vendor\rapidjson\include;vendor\stb_image;vendor;src;vendor\glm;vendor\glad\include;vendor\GLFW\include;vendor\assimp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -125,7 +125,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>vendor\soloud\include;vendor\physx\include\extensions;vendor\physx\include;vendor\rapidjson\include;vendor\stb_image;vendor;src;vendor\glm;vendor\glad\include;vendor\GLFW\include;vendor\assimp\include;vendor\compressonator\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor\imgui;vendor\soloud\include;vendor\physx\include\extensions;vendor\physx\include;vendor\rapidjson\include;vendor\stb_image;vendor;src;vendor\glm;vendor\glad\include;vendor\GLFW\include;vendor\assimp\include;vendor\compressonator\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -144,7 +144,7 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>vendor\soloud\include;vendor\physx\include\extensions;vendor\physx\include;vendor\rapidjson\include;vendor\stb_image;vendor;src;vendor\glm;vendor\glad\include;vendor\GLFW\include;vendor\assimp\include;vendor\compressonator\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor\imgui;vendor\soloud\include;vendor\physx\include\extensions;vendor\physx\include;vendor\rapidjson\include;vendor\stb_image;vendor;src;vendor\glm;vendor\glad\include;vendor\GLFW\include;vendor\assimp\include;vendor\compressonator\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -211,6 +211,13 @@
     <ClCompile Include="src\Renderer\TextureCompression\DDS_Helpers.cpp" />
     <ClCompile Include="src\Renderer\Transform.cpp" />
     <ClCompile Include="vendor\glad\src\glad.c" />
+    <ClCompile Include="vendor\imgui\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="vendor\imgui\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="vendor\imgui\imgui.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_demo.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_draw.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_tables.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_widgets.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -271,6 +278,15 @@
     <ClInclude Include="vendor\glad\include\KHR\khrplatform.h" />
     <ClInclude Include="vendor\GLFW\include\GLFW\glfw3.h" />
     <ClInclude Include="vendor\GLFW\include\GLFW\glfw3native.h" />
+    <ClInclude Include="vendor\imgui\backends\imgui_impl_glfw.h" />
+    <ClInclude Include="vendor\imgui\backends\imgui_impl_opengl3.h" />
+    <ClInclude Include="vendor\imgui\backends\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="vendor\imgui\imconfig.h" />
+    <ClInclude Include="vendor\imgui\imgui.h" />
+    <ClInclude Include="vendor\imgui\imgui_internal.h" />
+    <ClInclude Include="vendor\imgui\imstb_rectpack.h" />
+    <ClInclude Include="vendor\imgui\imstb_textedit.h" />
+    <ClInclude Include="vendor\imgui\imstb_truetype.h" />
     <ClInclude Include="vendor\stb_image\stb_image.h" />
     <ClInclude Include="vendor\tinyobj\tiny_obj_loader.h" />
   </ItemGroup>

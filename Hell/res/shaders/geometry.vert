@@ -29,11 +29,12 @@ uniform mat4 skinningMats[128];
 uniform bool instanced;
 
 out vec3 RMA_modifier;
-
 out vec3 test;
+out float MaterialID;	// used exclusively so the windows can use info from 2 different materials
 
 void main()
 {
+	MaterialID = aMaterialID;
 	TexCoord = aTexCoord;	
 
 	vec4 worldPos;

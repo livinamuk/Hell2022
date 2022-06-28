@@ -1,6 +1,7 @@
 #include "Light.h"
 #include "Helpers/AssetManager.h"
 
+
 Light::Light()
 {
 }
@@ -27,6 +28,13 @@ Light::Light(glm::vec3 position, glm::vec3 color, float radius, float strength, 
 	m_shadowMap.Init();
 	m_indirectShadowMap.Init();
 	CalculateProjectionTransforms();
+}
+
+void Light::CleanUp()
+{
+	m_envMap.CleanUp();
+	m_shadowMap.CleanUp();
+	m_indirectShadowMap.CleanUp();
 }
 
 void Light::Draw(Shader* shader)

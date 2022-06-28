@@ -61,4 +61,6 @@
         static std::vector<FileInfo> s_assetFilesToLoad;
 
         // bool m_testEnviroment = false;
+    public:
+        static void ClipLoadLogToScreenHeight();
     };

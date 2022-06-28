@@ -5,10 +5,13 @@ layout (location = 1) out vec4 gNormal;
 layout (location = 2) out vec4 gRMA;
 layout (location = 3) out vec4 gEmissive;
 
-layout (binding = 0) uniform sampler2D ALB_Texture;
-layout (binding = 1) uniform sampler2D NRM_Texture;
-layout (binding = 2) uniform sampler2D RMA_Texture;
+layout (binding = 0) uniform sampler2D ALB_Texture0;
+layout (binding = 1) uniform sampler2D NRM_Texture0;
+layout (binding = 2) uniform sampler2D RMA_Texture0;
 layout (binding = 3) uniform sampler2D E_Texture;
+layout (binding = 4) uniform sampler2D ALB_Texture1;
+layout (binding = 5) uniform sampler2D NRM_Texture1;
+layout (binding = 6) uniform sampler2D RMA_Texture1;
 
 //in vec3 Normal;
 in vec2 TexCoord;
@@ -26,10 +29,21 @@ void main()
 	// Read Texture Set //
 	//////////////////////
 
-	vec4 ALB = texture(ALB_Texture, vec2(TexCoord.x, TexCoord.y));
-	vec4 RMA = texture(RMA_Texture, vec2(TexCoord.x, TexCoord.y));
-	vec4 NRM = texture(NRM_Texture, vec2(TexCoord.x, TexCoord.y));
+	vec4 ALB;
+	vec4 RMA;
+	vec4 NRM;
 	vec4 EMISSIVE = texture(E_Texture, vec2(TexCoord.x, TexCoord.y));
+
+		if (round(MaterialID) == 1) {
+		ALB =  texture(ALB_Texture1, TexCoord);
+		RMA =  texture(RMA_Texture1, TexCoord);
+		NRM =  texture(NRM_Texture1, TexCoord);
+	}
+	else {
+		ALB =  texture(ALB_Texture0, TexCoord);
+		RMA =  texture(RMA_Texture0, TexCoord);
+		NRM =  texture(NRM_Texture0, TexCoord);
+	}
 
 	NRM.r = clamp(NRM.r, 0, 1);
 	NRM.g = clamp(NRM.g, 0, 1);

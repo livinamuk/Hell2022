@@ -1,4 +1,5 @@
 #include "AnimatedGameObject.h"
+#include "Helpers/AssetManager.h"
 
 void AnimatedGameObject::SetSkinnedModel(SkinnedModel* skinnedModel)
 {
@@ -154,6 +155,11 @@ void AnimatedGameObject::Render(Shader* shader, glm::mat4 modelMatrix)
 		shader->setMat4("skinningMats[" + std::to_string(i) + "]", modelMatrix * m_animatedTransforms.local[i]);
 
 	m_skinnedModel->Render(shader, m_transform.to_mat4());
+	
+	
+
+	//SkinnedModel* femaleArms = AssetManager::GetSkinnedModelPtr("FemaleArms");
+	//femaleArms->Render(shader, m_transform.to_mat4());
 
 	shader->setBool("hasAnimation", false);
 }

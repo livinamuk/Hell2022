@@ -15,6 +15,14 @@
 #include "Effects/BulletCasing.h"
 #include "Core/Controller.h"
 
+struct Bullet {
+	glm::vec3 origin;
+	glm::vec3 direction;
+	float force;
+	float damage;
+	int parentPlayerIndex;
+	glm::vec3 parentCameraRotation;
+};
 
 class GameData {
 public:
@@ -33,9 +41,13 @@ public:
 	static std::vector<BloodDecal> s_bloodDecals;
 	static std::vector<VolumetricBloodSplatter> s_volumetricBloodSplatters;
 	static std::vector<BulletCasing> s_bulletCasings;
+	static std::vector<Bullet> s_bulletsToProcess;
 
 	static void Clear();
 	static void Update(float deltaTime);
+	static void ProcessUnprocessedBullets();
+
+	static void SpawnBullet(glm::vec3 position, glm::vec3 unitDir, float force, float damage, int parentPlayerIndex, glm::vec3 parentCamerasRotation);
 
 	static void CreateVolumetricBlood(glm::vec3 position, glm::vec3 rotation, glm::vec3 front);
 	static void DetermineIfLightNeedsShadowmapUpdate(Light& light);
@@ -44,12 +56,23 @@ public:
 	static void DrawInstancedBulletDecals(Shader* shader);
 	static void DrawInstancedBloodDecals(Shader* shader);
 
+	static Player* GetPlayerPtrFromIndex(int index);
+
 	static bool s_splitScreen;
 
 	static std::vector<Controller> s_controllers;
 		
 	static unsigned int s_instancingBuffer;
+	static unsigned int s_remainingBloodDecalsAllowedThisFrame;
 
+	static void AddLight(glm::vec3 position, glm::vec3 color, float radius, float strength, float magic, int modelType);
+
+public: // Inlines
+	static void FlagEnvMapsForReRendering() { s_renderEnvMaps = true; }
+	//static void UnflagEnvMapsForReRendering() { s_renderEnvMaps = false; }
+	//static bool EnvMapsNeedReRendering() { return s_renderEnvMaps; }
+
+	static bool s_renderEnvMaps;
 	// internals
 private:
 	static int s_volumetricBloodObjectsSpawnedThisFrame;

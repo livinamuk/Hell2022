@@ -6,6 +6,11 @@ RayCast::RayCast()
 
 }
 
+RayCast::RayCast(glm::vec3 rayOrigin, glm::vec3 rayDirection, float rayLength)
+{
+	CastRay(rayOrigin, rayDirection, rayLength);
+}
+
 void RayCast::CastRay(glm::vec3 rayOrigin, glm::vec3 rayDirection, float rayLength)
 {
 	PxScene* scene = PhysX::GetScene();

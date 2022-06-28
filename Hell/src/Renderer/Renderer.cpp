@@ -36,6 +36,7 @@ Shader Renderer::s_horizontal_blur_shader;
 Shader Renderer::s_vertical_blur_shader;
 Shader Renderer::s_volumetric_blood_shader;
 Shader Renderer::s_instanced_geometry_shader;
+bool Renderer::s_showBulletDecalPositions = false;
 
 MuzzleFlash Renderer::s_muzzleFlash;
 bool Renderer::m_firstRenderLoop = true;
@@ -134,6 +135,39 @@ void Renderer::Init(int screenWidth, int screenHeight)
     s_muzzleFlash.Init();
 }
 
+void Renderer::DrawTangentDebugAxis(Shader* shader, glm::mat4 modelMatrix, float lineLength)
+{
+    static unsigned int VAO = 0;
+    if (VAO == 0)
+    {
+        unsigned int VBO;
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glm::vec3 vertices[12];
+        vertices[0] = (glm::vec3(0, 0, 0)); // origin
+        vertices[1] = (glm::vec3(1, 0, 0)); // red
+        vertices[2] = (glm::vec3(lineLength, 0, 0)); // X Axis
+        vertices[3] = (glm::vec3(1, 0, 0)); // red
+        vertices[4] = (glm::vec3(0, 0, 0)); // origin
+        vertices[5] = (glm::vec3(0, 1, 0)); // green
+        vertices[6] = (glm::vec3(0, lineLength, 0)); // Y Axis
+        vertices[7] = (glm::vec3(0, 1, 0)); // green
+        vertices[8] = (glm::vec3(0, 0, 0)); // origin
+        vertices[9] = (glm::vec3(0, 0, 1)); // green
+        vertices[10] = (glm::vec3(0, 0, lineLength)); // Z Axis
+        vertices[11] = (glm::vec3(0, 0, 1)); // green
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glBindVertexArray(VAO);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+    }
+    shader->setMat4("model", modelMatrix);
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_LINES, 0, 6);
+}
 
 void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, int player)
 {
@@ -162,12 +196,11 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
     {
         if (player == 1) {
 
-            static bool runOnce = true;
-            //runOnce = true;
-            if (runOnce) {
+            if (GameData::s_renderEnvMaps) {
+                GameData::s_renderEnvMaps = false;
                 EnvMapPass();
-                runOnce = false;
             }
+
             ShadowMapPass();
             IndirectShadowMapPass();
         }
@@ -1085,13 +1118,22 @@ void Renderer::RenderDebugShit()
 
     //DrawPoint(shader, GameData::s_player1.GetMuzzleFlashSpawnMatrix(), RED);
     
+    if (false)
+    for (auto t : GameData::s_player1.m_character_model.m_animatedTransforms.worldspace)
+    {
+        Transform transform;
+        transform.position = GameData::s_player1.GetPosition();
+        transform.position.y -= 1;
+        transform.rotation.y = GameData::s_player1.GetRotation().y + HELL_PI;
+        DrawTangentDebugAxis(shader, transform.to_mat4() * t, 0.1f);
+    }
 
 	//DrawPoint(shader, GameData::s_player1.GetCasingSpawnLocation(), RED);
 
-    // decals
-    for (auto& decal : GameData::s_bulletDecals) {
-		//DrawPoint(shader, decal.m_modelMatrix, RED);
-    }
+    // Bullet decals
+    //if (s_showBulletDecalPositions)
+		//for (auto& decal : GameData::s_bulletDecals)
+			//DrawPoint(shader, decal.m_modelMatrix, RED);
 
     return;
 

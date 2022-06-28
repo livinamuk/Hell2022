@@ -5,7 +5,8 @@ class RayCast
 {
 public: // methods
 	RayCast();
-	void CastRay(glm::vec3 rayOrigin, glm::vec3 rayDirection, float rayLength);
+	RayCast(glm::vec3 rayOrigin, glm::vec3 rayDirection, float rayLength = 250);
+	void CastRay(glm::vec3 rayOrigin, glm::vec3 rayDirection, float rayLength = 250);
 	bool HitFound();
 
 public: // fields

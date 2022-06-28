@@ -94,6 +94,7 @@ public: // static variables
 	static PxCooking* s_Cooking;
 	static PxControllerManager* s_characterControllerManager;
 
+	//static PxMaterial* s_defaultMaterial;
 
 };
 

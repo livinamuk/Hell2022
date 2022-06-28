@@ -44,6 +44,8 @@
 #define DOOR_WIDTH 0.8f
 #define DOOR_DEPTH 0.04f
 #define DOOR_HEIGHT 2.0f
+#define WINDOW_WIDTH_SINGLE 0.8f
+#define WINDOW_WIDTH_DOUBLE 1.65f
 
 #define MAX_LIGHTS 10
 
@@ -116,7 +118,7 @@ struct Vertex {
 	glm::vec3 Bitangent;
 	unsigned int BlendingIndex[4];
 	glm::vec4 BlendingWeight;
-	unsigned int MaterialID;
+	unsigned int MaterialID = 0;
 
 	bool operator==(const Vertex& other) const {
 		return Position == other.Position && Normal == other.Normal && TexCoords == other.TexCoords;

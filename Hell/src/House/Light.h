@@ -26,7 +26,8 @@ public:
 	Light();
 	Light(glm::vec3 position, glm::vec3 color, float m_radius, float m_strength, float m_magic, int modelType);
 	void Draw(Shader* shader);
-	void CalculateProjectionTransforms();
+	void CalculateProjectionTransforms(); 
+	void CleanUp();
 
 	//ShadowMap m_shadowMapStorage;
 	//ShadowMap m_indirectShadowMapStorage;

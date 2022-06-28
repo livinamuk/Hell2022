@@ -58,7 +58,7 @@ public: // functions
 	static void TextBlitterPass(Shader* shader);
 	//static void DrawLine(Shader* shader, Line line, glm::mat4 modelMatrix);
 	static void HotLoadShaders();
-	//static void DrawTangentDebugAxis(Shader* shader, glm::mat4 modelMatrix, float lineLength);
+	static void DrawTangentDebugAxis(Shader* shader, glm::mat4 modelMatrix, float lineLength);
 	//static void DrawAnimatedEntityDebugBones_Animated(Shader* shader, Ragdoll* ragdoll);	
 	
 
@@ -128,5 +128,7 @@ public: // variables
 	static GLuint s_brdfLUTTextureID;
 
 	static MuzzleFlash s_muzzleFlash;
+
+	static bool s_showBulletDecalPositions;
 };
 

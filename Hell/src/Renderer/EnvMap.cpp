@@ -67,3 +67,13 @@ void EnvMap::Init()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, SH_TexID, 0);
 }
+
+void EnvMap::CleanUp()
+{
+	glDeleteTextures(1, &m_DepthTexID);
+	glDeleteTextures(1, &m_TexID);
+	glDeleteFramebuffers(1, &m_FboID);
+
+	glDeleteTextures(1, &SH_TexID);
+	glDeleteFramebuffers(1, &SH_FboID);
+}

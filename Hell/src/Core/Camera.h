@@ -34,5 +34,5 @@ public: // Fields
 		
 	glm::vec3 m_viewPos = glm::vec3(0);
 	
-	float m_mp7_FOV = 0.175f;
+	float m_mp7_FOV = 0.425f;// 0.175f;
 };

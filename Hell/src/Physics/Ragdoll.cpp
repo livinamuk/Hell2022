@@ -112,13 +112,6 @@ void Ragdoll::BuildFromJsonFile(std::string filename, Transform spawnLocation, v
 
 	for (RigidComponent& rigid : m_rigidComponents)
 	{
-		
-
-
-		//	PxShape* shape;
-			auto gMaterial = physX.createMaterial(0.5f, 0.5f, 0.6f);
-			const PxMaterial& material = *gMaterial;
-
 			// Skip the scene rigid (it's outputted in the JSON export)
 			if (rigid.name == "rSceneShape")
 				continue;

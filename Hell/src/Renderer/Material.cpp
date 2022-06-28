@@ -15,10 +15,10 @@ void Material::Bind()
 }
 void Material::BindToSecondSlot()
 {
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, ALB);
 	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, NRM);
+	glBindTexture(GL_TEXTURE_2D, ALB);
 	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, NRM);
+	glActiveTexture(GL_TEXTURE6);
 	glBindTexture(GL_TEXTURE_2D, RMA);
 }

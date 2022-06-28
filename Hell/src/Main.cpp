@@ -37,26 +37,35 @@ int main()
 
     AssetManager::ForceLoadTexture("res/textures/CharSheet.png");
 
-    while (AssetManager::AssetsToLoad() && !Input::s_keyDown[HELL_KEY_ESCAPE])
+    while (AssetManager::AssetsToLoad())
     {
         CoreGL::OnUpdate();
         Input::UpdateKeyboardInput(CoreGL::s_window);
-        Input::HandleKeypresses();
+
+		if (Input::KeyPressed(HELL_KEY_F))
+			CoreGL::ToggleFullScreen();
+
+        if (Input::KeyPressed(HELL_KEY_ESCAPE))
+            return 0;
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(0, 0, CoreGL::s_fullscreenWidth, CoreGL::s_fullscreenHeight);
+        glViewport(0, 0, CoreGL::s_currentWidth, CoreGL::s_currentHeight);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         TextBlitter::BlitLine(AssetManager::s_loadLog);
-
+        AssetManager::ClipLoadLogToScreenHeight();
         Renderer::TextBlitterPass(&Renderer::s_textued_2D_quad_shader);
  
         glfwSwapBuffers(CoreGL::s_window);
         glfwPollEvents();
 
         AssetManager::LoadNextAssetToGL();
-    }
+	}
+
+    // Incase the user toggled full screen while loading
+	Renderer::ReconfigureFrameBuffers(CoreGL::s_currentWidth, CoreGL::s_currentHeight);
+
 
 
     AssetManager::CreateMaterials();
@@ -93,7 +102,11 @@ int main()
 	AssetManager::LoadSkinnedModel("Axe", "Axe_TPose.fbx");
 	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Axe"), "Axe_Equip.fbx");
 	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Axe"), "Axe_Walk.fbx");
-	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Axe"), "Axe_Idle.fbx");
+    FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Axe"), "Axe_Idle.fbx");
+    FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Axe"), "Axe_Swing1.fbx");
+    FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Axe"), "Axe_Swing2.fbx");
+    FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Axe"), "Axe_Swing3.fbx");
+    FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Axe"), "Axe_Swing4.fbx");
 
 	AssetManager::LoadSkinnedModel("Knife", "Knife.fbx");
 	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("Knife"), "Knife_Draw.fbx");
@@ -123,6 +136,8 @@ int main()
 	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("MP7"), "MP7_to_ads.fbx");
 	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("MP7"), "MP7_to_idle.fbx");
 	FileImporter::LoadAnimation(AssetManager::GetSkinnedModelPtr("MP7"), "MP7_walk.fbx");
+
+    AssetManager::LoadSkinnedModel("FemaleArms", "FemaleArms.fbx");
 
 	
 
@@ -251,43 +266,13 @@ int main()
 	//GameData::s_staticEntities.emplace_back(AssetManager::GetModelPtr("spheres"), AssetManager::GetMaterialPtr("Test"), trans);
 
 
-	GameData::s_player2.SetPosition(glm::vec3(0, 0, 2));
-	GameData::s_player2.m_materialIndex = 1;
+	GameData::s_player1.Create(glm::vec3(0, 0, 0), 1);
+	GameData::s_player2.Create(glm::vec3(0, 0, 2), 0);
 
-	GameData::s_player3.SetPosition(glm::vec3(0, 1, 2));
-	GameData::s_player3.m_materialIndex = 1;
-
-	GameData::s_player1.SetCharacterModel(AssetManager::GetSkinnedModelPtr("Nurse"));
-	GameData::s_player2.SetCharacterModel(AssetManager::GetSkinnedModelPtr("Nurse"));
-	GameData::s_player3.SetCharacterModel(AssetManager::GetSkinnedModelPtr("Nurse"));
-	GameData::s_player4.SetCharacterModel(AssetManager::GetSkinnedModelPtr("Nurse"));
-
-	GameData::s_player1.m_currentWeaponSkinnedModel = (AssetManager::GetSkinnedModelPtr("Glock"));
-	GameData::s_player2.m_currentWeaponSkinnedModel = (AssetManager::GetSkinnedModelPtr("Glock"));
-	GameData::s_player3.m_currentWeaponSkinnedModel = (AssetManager::GetSkinnedModelPtr("Glock"));
-	GameData::s_player4.m_currentWeaponSkinnedModel = (AssetManager::GetSkinnedModelPtr("Glock"));
-
-	GameData::s_player1.m_ragdoll.BuildFromJsonFile("ragdoll.json", GameData::s_player1.GetPosition(), &GameData::s_player1, PhysicsObjectType::PLAYER_RAGDOLL);
-	GameData::s_player2.m_ragdoll.BuildFromJsonFile("ragdoll.json", GameData::s_player2.GetPosition(), &GameData::s_player2, PhysicsObjectType::PLAYER_RAGDOLL);
-	GameData::s_player3.m_ragdoll.BuildFromJsonFile("ragdoll.json", GameData::s_player3.GetPosition(), &GameData::s_player3, PhysicsObjectType::PLAYER_RAGDOLL);
-	GameData::s_player4.m_ragdoll.BuildFromJsonFile("ragdoll.json", GameData::s_player4.GetPosition(), &GameData::s_player4, PhysicsObjectType::PLAYER_RAGDOLL);
-
-	GameData::s_player1.m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Glock"));
-	GameData::s_player2.m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Glock"));
-	GameData::s_player3.m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Glock"));
-	GameData::s_player4.m_HUD_Weapon.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Glock"));
-
-	GameData::s_player1.m_character_model.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Nurse"));
-	GameData::s_player2.m_character_model.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Nurse"));
-	GameData::s_player3.m_character_model.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Nurse"));
-	GameData::s_player4.m_character_model.SetSkinnedModel(AssetManager::GetSkinnedModelPtr("Nurse"));
-
-
-	GameData::s_player1.CreateCharacterController();
-	GameData::s_player2.CreateCharacterController();
-	GameData::s_player3.CreateCharacterController();
-	GameData::s_player4.CreateCharacterController();
-
+    GameData::s_player1.m_playerIndex = 1;
+    GameData::s_player2.m_playerIndex = 2;
+    GameData::s_player3.m_playerIndex = 3;
+    GameData::s_player4.m_playerIndex = 4;
 
     hellEngine.m_currentPlayer = 1;
 
@@ -320,37 +305,17 @@ int main()
 
     File::LoadMap("Map.json");
 
-    GameData::s_lights.push_back(Light(glm::vec3(0, 2.2f, 0), DEFAULT_LIGHT_COLOR, 4, 10, 0.1, 0));
+   /*GameData::s_lights.push_back(Light(glm::vec3(0, 2.2f, 0), DEFAULT_LIGHT_COLOR, 4, 10, 0.1, 0));
 	GameData::s_lights.push_back(Light(glm::vec3(4, 2.2f, 3.5), DEFAULT_LIGHT_COLOR, 4, 10, 0.1, 0));
 	GameData::s_lights.push_back(Light(glm::vec3(-3.9, 2.2f, 5), DEFAULT_LIGHT_COLOR, 4, 10, 0.1, 0));
 	GameData::s_lights.push_back(Light(glm::vec3(-7.9, 2.2f, -1), COLOR_RED, 5, 200, 0.1, 0));
 	GameData::s_lights.push_back(Light(glm::vec3(-3.7, 2.2f, -5.2), DEFAULT_LIGHT_COLOR, 4, 5, 0.1, 0));
-	GameData::s_lights.push_back(Light(glm::vec3(3.2, 2.2f, -3.0), COLOR_RED, 4, 200, 0.1, 0));
-
-	GameData::s_player1.CreatePoormansCharacterController();
-	GameData::s_player2.CreatePoormansCharacterController();
-	GameData::s_player3.CreatePoormansCharacterController();
-	GameData::s_player4.CreatePoormansCharacterController();
-   
-  //  GameData::s_doors.push_back(Door(glm::vec3(0, 0, 2)));
-
-   /* Scene::s_gameCharacters.push_back(GameCharacter());
-    GameCharacter* gc = &Scene::s_gameCharacters.back();
-
-	gc->m_skinnedModel = AssetManager::GetSkinnedModelPtr("Axe");
-	gc->m_transform.scale = glm::vec3(0.015);
-	gc->m_transform.position = glm::vec3(0, 1, 0);
-	gc->m_skinningMethod = SkinningMethod::ANIMATED;
-	gc->m_animIndex = 0;*/
-
-   // gc->m_
-
-
+	GameData::s_lights.push_back(Light(glm::vec3(3.2, 2.2f, -3.0), COLOR_RED, 4, 200, 0.1, 0));*/
 
     // print the fucking skeleton nodes
     std::cout << "\n\n\n\n";
 
-
+    /*
 
 	TextBlitter::BlitLine("\ncamera");
 
@@ -389,15 +354,15 @@ int main()
 	final *= Camera001_$AssimpFbx$_Rotation;
 	final *= Camera001_$AssimpFbx$_PostRotation;
 	//final *= Camera001_$AssimpFbx$_Scaling;
-	/*glm::mat4 m = glm::translate(glm::mat4(1), position);
+	glm::mat4 m = glm::translate(glm::mat4(1), position);
 	glm::quat qt = glm::quat(rotation);
 	m *= glm::mat4_cast(qt);
 	m = glm::scale(m, scale);
-    */
+   
 
     std::cout << "--FINAL\n";
 	Util::PrintMat4(final);
-
+     */
 
 
 	//std::cout << "--" << joint.m_name << "\n";
@@ -504,7 +469,7 @@ int main()
                 accumulator -= fixedStep;
             }
 
-            TextBlitter::BlitLine("P1 RayCast: " + GameData::s_player1.m_cameraRay.m_hitObjectName);
+       /*     TextBlitter::BlitLine("P1 RayCast: " + GameData::s_player1.m_cameraRay.m_hitObjectName);
             TextBlitter::BlitLine("P2 RayCast: " + GameData::s_player2.m_cameraRay.m_hitObjectName);
             TextBlitter::BlitLine("");
             TextBlitter::BlitLine("P1 Kill count: " + std::to_string(GameData::s_player1.m_killCount));
@@ -520,10 +485,16 @@ int main()
 			TextBlitter::BlitLine("Body count: " + std::to_string(Scene::s_gameCharacters.size()));
 
 			TextBlitter::BlitLine("");
-			TextBlitter::BlitLine("L mouse: " + std::to_string(Input::s_mouseStates[0].leftMouseDown));
-			TextBlitter::BlitLine("R mouse: " + std::to_string(Input::s_mouseStates[0].rightMouseDown));
-			TextBlitter::BlitLine("offset: " + std::to_string(Input::s_mouseStates[0].xoffset) + "," + std::to_string(Input::s_mouseStates[0].yoffset));
-			
+		//	TextBlitter::BlitLine("L mouse: " + std::to_string(Input::s_mouseStates[0].leftMouseDown));
+		//	TextBlitter::BlitLine("R mouse: " + std::to_string(Input::s_mouseStates[0].rightMouseDown));
+		//	TextBlitter::BlitLine("offset: " + std::to_string(Input::s_mouseStates[0].xoffset) + "," + std::to_string(Input::s_mouseStates[0].yoffset));
+
+			TextBlitter::BlitLine("offset x:" + std::to_string(GameData::s_player1.m_ADSOffset.x));
+			TextBlitter::BlitLine("offset y:" + std::to_string(GameData::s_player1.m_ADSOffset.y));
+            TextBlitter::BlitLine("offset z:" + std::to_string(GameData::s_player1.m_ADSOffset.z));
+
+            TextBlitter::BlitLine("\nEnv map render:" + std::to_string(GameData::s_renderEnvMaps));
+*/
             
             
             //TextBlitter::BlitLine("P1 weapon state: " + Util::WeaponStateToString(GameData::s_player1.m_HUDWeaponAnimationState));
@@ -602,6 +573,12 @@ int main()
         }
         else
             hellEngine.Render();
+
+
+
+
+
+
     
         
         glfwSwapBuffers(CoreGL::s_window);

@@ -83,7 +83,9 @@ public: // methods
 	static void SubmitBlitterText();
 	static void ToggleEditor();
 	static bool IsOpen();
-	//static Room s_newRoom;
+	static void ClearMap(); 
+	static void CreateLight(float x, float z);
+
 
 private:
 	static bool VertexEquality(glm::vec3 a, glm::vec3 b);

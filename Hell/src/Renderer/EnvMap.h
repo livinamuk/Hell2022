@@ -8,7 +8,8 @@ class EnvMap
 {
 	public: // methods
 		EnvMap();
-		void Init();
+		void Init(); 
+		void CleanUp();
 
 	public: // fields
 		glm::vec3 m_position;

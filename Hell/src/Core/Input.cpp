@@ -263,6 +263,7 @@ void Input::HandleKeypresses()
 	// Toggle cursor
 	if (s_keyPressed[HELL_KEY_M])
 		s_showCursor = !s_showCursor;
+
 }
 
 int Input::GetMouseYOffset(int index)

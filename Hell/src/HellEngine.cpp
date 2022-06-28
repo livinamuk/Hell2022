@@ -5,6 +5,10 @@
 #include "Core/File.h"
 #include "Core/Controller.h"
 
+#include "imgui/imgui.h"
+#include "imgui/backends/imgui_impl_opengl3.h"
+#include "imgui/backends/imgui_impl_glfw.h"
+
 void HellEngine::Init()
 {
 	CoreGL::InitGL(SCR_WIDTH, SCR_HEIGHT);
@@ -18,12 +22,6 @@ void HellEngine::Init()
 	Renderer::Init(CoreGL::s_fullscreenWidth, CoreGL::s_fullscreenHeight);
 
 	AssetManager::DiscoverAssetFilenames();
-
-	
-	//GameData::s_player1.p_gameCharacters = &Scene::s_gameCharacters;
-	//GameData::s_player2.p_gameCharacters = &Scene::s_gameCharacters;
-	GameData::s_player1.p_bloodPools = &Scene::s_bloodPools;
-	GameData::s_player2.p_bloodPools = &Scene::s_bloodPools;
 	
 	CheckForControllers();
 
@@ -54,6 +52,18 @@ void HellEngine::Init()
 		GameData::s_player4.m_mouseIndex = 0;
 		GameData::s_player4.m_keyboardIndex = 0;
 	}
+
+	// ImGUI
+	const char* glsl_version = "#version 150";
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	// Setup Platform/Renderer bindings
+	ImGui_ImplGlfw_InitForOpenGL(CoreGL::s_window, true);
+	ImGui_ImplOpenGL3_Init(glsl_version);
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+	ImGui::GetIO().FontGlobalScale = 3;
 }
 
 void HellEngine::Update(float deltaTime)
@@ -373,6 +383,33 @@ void HellEngine::Render()
 
 	// Text blitter UI
 	Renderer::TextBlitterPass(&Renderer::s_textued_2D_quad_shader);
+
+
+
+	if (Input::s_showCursor) 
+	{
+		// feed inputs to dear imgui, start new frame
+		//ImGui::GetIO().FontGlobalScale = CoreGL::s_currentWidth / CoreGL::s_fullscreenWidth * 2;
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		ImGui::Begin("Demo window");
+
+		if (ImGui::Button("Clear decals")) {
+			GameData::s_bloodDecals.clear();
+			GameData::s_bulletDecals.clear();
+		}
+		if (ImGui::Button("Clear bodies")) {
+			Scene::s_gameCharacters.clear();
+		}
+
+		ImGui::Checkbox("Show bullet decal positions", &Renderer::s_showBulletDecalPositions);
+
+		ImGui::End();
+		// Render dear imgui into screen
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	}
 }
 
 void HellEngine::ProcessCollisions()
