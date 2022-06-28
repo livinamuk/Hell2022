@@ -16,6 +16,7 @@ Shader Renderer::s_final_pass_shader;
 Shader Renderer::s_solid_color_shader_editor; 
 Shader Renderer::s_shadow_map_shader;
 Shader Renderer::s_skybox_shader;
+Shader Renderer::s_glass_shader;
 GBuffer Renderer::s_gBuffer;
 std::vector<BlurBuffer> Renderer::s_BlurBuffers_p1;
 std::vector<BlurBuffer> Renderer::s_BlurBuffers_p2;
@@ -67,6 +68,7 @@ void Renderer::Init(int screenWidth, int screenHeight)
 	s_horizontal_blur_shader = Shader("blurHorizontal.vert", "blur.frag");
 	s_vertical_blur_shader = Shader("blurVertical.vert", "blur.frag");
     s_volumetric_blood_shader = Shader("bloodVolumetric.vert", "bloodVolumetric.frag");
+    s_glass_shader = Shader("glass.vert", "glass.frag");
     
     s_gBuffer = GBuffer(screenWidth, screenHeight);
 
@@ -209,6 +211,7 @@ void Renderer::RenderFrame(Camera* camera, int renderWidth, int renderHeight, in
         DecalPass(player, renderWidth, renderHeight);
         VolumetricBloodPass(player, renderWidth, renderHeight);
         LightingPass(player, renderWidth, renderHeight);
+        GlassPass(player, renderWidth, renderHeight);
         MuzzleFlashPass(player, renderWidth, renderHeight);
 
         RenderDebugShit();
@@ -569,6 +572,7 @@ void Renderer::DrawLine(Shader* shader, glm::vec3 p1, glm::vec3 p2, glm::vec3 co
 
 void Renderer::HotLoadShaders()
 {
+    s_glass_shader.ReloadShader();
     s_geometry_shader.ReloadShader();
     s_instanced_geometry_shader.ReloadShader();
     s_solid_color_shader.ReloadShader();
@@ -1540,16 +1544,116 @@ void Renderer::LightingPass(int player, int renderWidth, int renderHeight)
         DrawViewportQuad(shader, viewportSize);
         //break;
     }
+}
 
-    // reset for the future. move this to whatever shader comes next
-    unsigned int attachments2[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 , GL_COLOR_ATTACHMENT4 };
-    glDrawBuffers(5, attachments2);
-    glEnable(GL_DEPTH_TEST); 
-    glDisable(GL_BLEND);
+void Renderer::GlassPass(int playerIndex, int renderWidth, int renderHeight)
+{
+    SetViewport(playerIndex);
+    //ViewportSize viewportSize = ViewportSize::FULL_SCREEN;
+    Shader* shader = &s_glass_shader;
+    shader->use();
+
+    Player* player = GetPlayerFromIndex(playerIndex);
+    glm::mat4 proj = player->GetProjectionMatrix();
+    glm::mat4 view = player->GetViewMatrix();
+    glm::vec3 viewPos = player->GetViewPosition();
+
+    shader->setMat4("projection", proj);
+    shader->setMat4("viewMatrix", view);
+    shader->setMat4("inverseViewMatrix", glm::inverse(view));
+    shader->setFloat("screenWidth", CoreGL::s_currentWidth);
+    shader->setFloat("screenHeight", CoreGL::s_currentHeight);
+
+    for (int i = 0; i < GameData::s_lights.size(); i++)
+    {
+        Light& light = GameData::s_lights[i];
+        shader->setVec3("lightPosition[" + std::to_string(i) + "]", light.m_position);
+        shader->setFloat("lightRadius[" + std::to_string(i) + "]", light.m_radius);
+        shader->setFloat("lightMagic[" + std::to_string(i) + "]", light.m_magic);
+        shader->setFloat("lightStrength[" + std::to_string(i) + "]", light.m_strength);
+        shader->setVec3("lightColor[" + std::to_string(i) + "]", light.m_color);
+    }
+
+    for (auto& window : GameData::s_doors)
+    {
+        if (window.m_type == Door::Type::WINDOW_SINGLE)
+        {
+
+            AssetManager::GetMaterialPtr("WindowExterior")->Bind();
+            //AssetManager::GetMaterialPtr("Window")->BindToSecondSlot();
+
+            glEnable(GL_CULL_FACE);
+            glEnable(GL_DEPTH_TEST);
+            glDepthMask(GL_FALSE);
+            glDisable(GL_BLEND);
+
+            // First blit main lighting image to temporary buffer
+            // you need this because you draw into the lighting buffer, but also sample it
+            int origin_X = 0;
+            int origin_Y = 0;
+            int viewportWidth = CoreGL::s_currentWidth;
+            int viewportHeight = CoreGL::s_currentHeight;
+            if (GameData::s_splitScreen) {
+                if (playerIndex == 1) {
+                    origin_X = 0;
+                    origin_Y = CoreGL::s_currentHeight / 2;
+                    viewportWidth = CoreGL::s_currentWidth;
+                    viewportHeight = CoreGL::s_currentHeight / 2;
+                }
+                else if (playerIndex == 2) {
+                    origin_X = 0;
+                    origin_Y = 0;
+                    viewportWidth = CoreGL::s_currentWidth;
+                    viewportHeight = CoreGL::s_currentHeight / 2;
+                }
+            }
+            int srcX_1 = origin_X;
+            int srcY_1 = origin_Y;
+            int srcX_2 = viewportWidth;
+            int srcY_2 = origin_Y + viewportHeight;
+            int destX_1 = origin_X;
+            int destY_1 = origin_Y;
+            int destX_2 = viewportWidth;
+            int destY_2 = origin_Y + viewportHeight;
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, s_gBuffer.ID);
+            glReadBuffer(GL_COLOR_ATTACHMENT4);
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER, s_gBuffer.ID);
+            glDrawBuffer(GL_COLOR_ATTACHMENT7);
+            glBlitFramebuffer(srcX_1, srcY_1, srcX_2, srcY_2, destX_1, destY_1, destX_2, destY_2, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+            // Now render light back into main lighting buffer
+            glBindFramebuffer(GL_FRAMEBUFFER, s_gBuffer.ID);
+            glDrawBuffer(GL_COLOR_ATTACHMENT4);
+            glActiveTexture(GL_TEXTURE3);
+            glBindTexture(GL_TEXTURE_2D, s_gBuffer.gTemp);
+           // window->m_renderData.material1->Bind();
+           // window->m_renderData.glassModel->Draw(&m_glass_shader, window->m_transform.to_mat4());
+
+            // Construct model matrix
+            Transform trueOffet = window.m_OffsetTransform;
+            if (window.m_mirror) {
+                trueOffet.rotation.y += HELL_PI;
+            }
+            glm::mat4 modelMatrix = window.m_transform.to_mat4() * trueOffet.to_mat4();
+
+            glActiveTexture(GL_TEXTURE4);
+            glBindTexture(GL_TEXTURE_2D, AssetManager::GetTexturePtr("Dust0_Overlay")->ID);
+            glActiveTexture(GL_TEXTURE5);
+            glBindTexture(GL_TEXTURE_2D, AssetManager::GetTexturePtr("Dust1_Overlay")->ID);
+
+            AssetManager::m_models["WindowGlass"].Draw(shader, modelMatrix);
+        }
+    }
 }
 
 void Renderer::MuzzleFlashPass(int playerIndex, int renderWidth, int renderHeight)
-{
+{    
+    unsigned int attachments2[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 , GL_COLOR_ATTACHMENT4 };
+    glDrawBuffers(5, attachments2);
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+
     // Get player pointer
     Player* player;
     if (playerIndex == 1)

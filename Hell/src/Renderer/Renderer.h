@@ -47,6 +47,7 @@ public: // functions
 	static void GeometryPass(int player, int renderWidth, int renderHeight);
 	static void DecalPass(int player, int renderWidth, int renderHeight);
 	static void LightingPass(int player, int renderWidth, int renderHeight);
+	static void GlassPass(int player, int renderWidth, int renderHeight);
 	static void MuzzleFlashPass(int player, int renderWidth, int renderHeight);
 	static void PostProcessingPass(int player);
 	static void EmissiveBlurPass(int player, int renderWidth, int renderHeight, int levels);
@@ -111,6 +112,7 @@ public: // variables
 	static Shader s_vertical_blur_shader;
 	static Shader s_volumetric_blood_shader;
 	static Shader s_instanced_geometry_shader;
+	static Shader s_glass_shader;
 	//static Shader s_textured_editor_shader;
 
 	static bool s_showBuffers;

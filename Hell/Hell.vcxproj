@@ -310,6 +310,8 @@
     <None Include="res\shaders\FinalPass.vert" />
     <None Include="res\shaders\geometryInstanced.frag" />
     <None Include="res\shaders\geometryInstanced.vert" />
+    <None Include="res\shaders\glass.frag" />
+    <None Include="res\shaders\glass.vert" />
     <None Include="res\shaders\lighting.frag" />
     <None Include="res\shaders\lighting.vert" />
     <None Include="res\shaders\PostProcessing.frag" />

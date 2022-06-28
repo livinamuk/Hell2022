@@ -11,6 +11,7 @@ GBuffer::GBuffer(int width, int height)
 	glGenTextures(1, &gPostProcessed);
 	glGenTextures(1, &rboDepth);
 	glGenTextures(1, &gEmissive);
+	glGenTextures(1, &gTemp);
 	Configure(width, height); 
 }
 
@@ -68,6 +69,12 @@ void GBuffer::Configure(int width, int height)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT6, GL_TEXTURE_2D, gEmissive, 0);
+
+	glBindTexture(GL_TEXTURE_2D, gTemp);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT7, GL_TEXTURE_2D, gTemp, 0);
 	
 	//unsigned int attachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4};
 //glDrawBuffers(5, attachments);
